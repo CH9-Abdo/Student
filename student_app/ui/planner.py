@@ -6,8 +6,8 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from student_app.database import (
     add_subject, get_all_subjects, delete_subject, 
-    add_chapter, get_chapters_by_subject, toggle_chapter_status,
-    add_semester, get_all_semesters
+    add_chapter, get_chapters_by_subject, toggle_chapter_status, delete_chapter,
+    add_semester, get_all_semesters, delete_semester
 )
 
 class StudyPlanner(QWidget):
@@ -32,6 +32,13 @@ class StudyPlanner(QWidget):
         add_sem_btn.clicked.connect(self.handle_add_semester)
         add_sem_btn.setFixedWidth(120)
         top_bar.addWidget(add_sem_btn)
+        
+        # Delete Semester Button
+        del_sem_btn = QPushButton("Delete")
+        del_sem_btn.setObjectName("dangerButton")
+        del_sem_btn.setFixedWidth(80)
+        del_sem_btn.clicked.connect(self.handle_delete_semester)
+        top_bar.addWidget(del_sem_btn)
         
         main_layout.addLayout(top_bar)
 
@@ -108,6 +115,12 @@ class StudyPlanner(QWidget):
         self.chapter_list.itemChanged.connect(self.on_chapter_toggled)
         right_layout.addWidget(self.chapter_list)
         
+        # Delete Chapter Button
+        del_chap_btn = QPushButton("Delete Selected Chapter")
+        del_chap_btn.setObjectName("dangerButton") # Style as danger if supported
+        del_chap_btn.clicked.connect(self.handle_delete_chapter)
+        right_layout.addWidget(del_chap_btn)
+        
         self.right_panel.setLayout(right_layout)
         self.right_panel.setEnabled(False) # Disabled until subject selected
 
@@ -156,6 +169,21 @@ class StudyPlanner(QWidget):
             # Select the new one
             idx = self.semester_combo.count() - 1
             self.semester_combo.setCurrentIndex(idx)
+
+    def handle_delete_semester(self):
+        if self.semester_combo.count() == 0:
+            return
+            
+        sem_name = self.semester_combo.currentText()
+        sem_id = self.semester_combo.currentData()
+        
+        ret = QMessageBox.question(self, "Confirm Delete", 
+                                 f"Delete semester '{sem_name}'?\n\nWarning: All subjects and chapters in this semester will be deleted!",
+                                 QMessageBox.Yes | QMessageBox.No)
+        
+        if ret == QMessageBox.Yes:
+            delete_semester(sem_id)
+            self.refresh_semesters()
 
     def refresh_subjects(self):
         self.subject_list.clear()
@@ -235,3 +263,17 @@ class StudyPlanner(QWidget):
         chap_id = item.data(Qt.UserRole)
         status = 1 if item.checkState() == Qt.Checked else 0
         toggle_chapter_status(chap_id, status)
+
+    def handle_delete_chapter(self):
+        curr_item = self.chapter_list.currentItem()
+        if not curr_item:
+            return
+            
+        ret = QMessageBox.question(self, "Confirm Delete", 
+                                 f"Delete chapter '{curr_item.text()}'?",
+                                 QMessageBox.Yes | QMessageBox.No)
+        
+        if ret == QMessageBox.Yes:
+            chap_id = curr_item.data(Qt.UserRole)
+            delete_chapter(chap_id)
+            self.refresh_chapters()

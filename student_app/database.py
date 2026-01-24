@@ -141,6 +141,12 @@ def toggle_chapter_status(chapter_id, status):
     conn.commit()
     conn.close()
 
+def delete_chapter(chapter_id):
+    conn = get_db_connection()
+    conn.execute('DELETE FROM chapters WHERE id = ?', (chapter_id,))
+    conn.commit()
+    conn.close()
+
 def get_todo_chapters():
     conn = get_db_connection()
     # Join with subjects to get subject name
