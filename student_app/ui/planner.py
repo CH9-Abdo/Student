@@ -1,20 +1,22 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QListWidgetItem, 
     QLineEdit, QPushButton, QLabel, QComboBox, QSpinBox, QDoubleSpinBox, 
-    QMessageBox, QCheckBox, QGroupBox, QSplitter, QInputDialog
+    QMessageBox, QCheckBox, QGroupBox, QSplitter, QInputDialog, QProgressBar
 )
 from PyQt5.QtCore import Qt
 from student_app.database import (
     add_subject, get_all_subjects, delete_subject, 
     add_chapter, get_chapters_by_subject, toggle_chapter_status, delete_chapter,
-    add_semester, get_all_semesters, delete_semester
+    add_semester, get_all_semesters, delete_semester, get_subject_progress
 )
+from student_app.ui.subject_window import SubjectWindow
 
 class StudyPlanner(QWidget):
     def __init__(self):
         super().__init__()
         self.selected_subject_id = None
         self.current_semester_id = None
+        self.subject_windows = {} # Keep track of open windows
         self.init_ui()
 
     def init_ui(self):
@@ -96,30 +98,25 @@ class StudyPlanner(QWidget):
 
         left_panel.setLayout(left_layout)
 
-        # --- Right Panel: Chapters ---
-        self.right_panel = QGroupBox("Chapters")
+        # --- Right Panel: Subject Details & Progress ---
+        self.right_panel = QGroupBox("Subject Overview")
         right_layout = QVBoxLayout()
         
-        self.chapter_input = QLineEdit()
-        self.chapter_input.setPlaceholderText("New Chapter Name")
-        add_chap_btn = QPushButton("Add Chapter")
-        add_chap_btn.clicked.connect(self.handle_add_chapter)
+        self.subject_title_label = QLabel("Select a subject to see progress")
+        self.subject_title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
+        right_layout.addWidget(self.subject_title_label)
         
-        chap_form = QHBoxLayout()
-        chap_form.addWidget(self.chapter_input)
-        chap_form.addWidget(add_chap_btn)
+        self.subject_progress_bar = QProgressBar()
+        self.subject_progress_bar.setFixedHeight(25)
+        right_layout.addWidget(self.subject_progress_bar)
         
-        right_layout.addLayout(chap_form)
+        self.open_subject_btn = QPushButton("Open Subject Study Window")
+        self.open_subject_btn.setObjectName("primaryButton")
+        self.open_subject_btn.setFixedHeight(50)
+        self.open_subject_btn.clicked.connect(self.handle_open_subject_window)
+        right_layout.addWidget(self.open_subject_btn)
         
-        self.chapter_list = QListWidget()
-        self.chapter_list.itemChanged.connect(self.on_chapter_toggled)
-        right_layout.addWidget(self.chapter_list)
-        
-        # Delete Chapter Button
-        del_chap_btn = QPushButton("Delete Selected Chapter")
-        del_chap_btn.setObjectName("dangerButton") # Style as danger if supported
-        del_chap_btn.clicked.connect(self.handle_delete_chapter)
-        right_layout.addWidget(del_chap_btn)
+        right_layout.addStretch() # Push everything to top
         
         self.right_panel.setLayout(right_layout)
         self.right_panel.setEnabled(False) # Disabled until subject selected
@@ -129,7 +126,7 @@ class StudyPlanner(QWidget):
         splitter.addWidget(left_panel)
         splitter.addWidget(self.right_panel)
         splitter.setStretchFactor(0, 1)
-        splitter.setStretchFactor(1, 2)
+        splitter.setStretchFactor(1, 1)
 
         content_layout.addWidget(splitter)
         main_layout.addLayout(content_layout)
@@ -159,7 +156,6 @@ class StudyPlanner(QWidget):
         self.current_semester_id = self.semester_combo.itemData(index)
         self.refresh_subjects()
         self.right_panel.setEnabled(False)
-        self.chapter_list.clear()
 
     def handle_add_semester(self):
         text, ok = QInputDialog.getText(self, 'New Semester', 'Enter Semester Name:')
@@ -227,53 +223,40 @@ class StudyPlanner(QWidget):
             delete_subject(sub_id)
             self.refresh_subjects()
             self.right_panel.setEnabled(False)
-            self.chapter_list.clear()
             self.selected_subject_id = None
 
     def on_subject_selected(self, item):
         self.selected_subject_id = item.data(Qt.UserRole)
+        self.selected_subject_name = item.text().split(' (')[0]
         self.right_panel.setEnabled(True)
-        self.right_panel.setTitle(f"Chapters for: {item.text().split(' (')[0]}")
-        self.refresh_chapters()
+        self.right_panel.setTitle(f"Overview: {self.selected_subject_name}")
+        self.subject_title_label.setText(self.selected_subject_name)
+        self.update_subject_progress()
 
-    def refresh_chapters(self):
-        self.chapter_list.clear()
+    def update_subject_progress(self):
         if self.selected_subject_id is None:
             return
-            
-        chapters = get_chapters_by_subject(self.selected_subject_id)
-        for chap in chapters:
-            item = QListWidgetItem(chap['name'])
-            item.setData(Qt.UserRole, chap['id'])
-            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-            state = Qt.Checked if chap['is_completed'] else Qt.Unchecked
-            item.setCheckState(state)
-            self.chapter_list.addItem(item)
+        total, completed = get_subject_progress(self.selected_subject_id)
+        if total > 0:
+            self.subject_progress_bar.setValue(int((completed / total) * 100))
+        else:
+            self.subject_progress_bar.setValue(0)
 
-    def handle_add_chapter(self):
-        name = self.chapter_input.text().strip()
-        if not name or self.selected_subject_id is None:
+    def handle_open_subject_window(self):
+        if self.selected_subject_id is None:
             return
-            
-        add_chapter(self.selected_subject_id, name)
-        self.chapter_input.clear()
-        self.refresh_chapters()
-
-    def on_chapter_toggled(self, item):
-        chap_id = item.data(Qt.UserRole)
-        status = 1 if item.checkState() == Qt.Checked else 0
-        toggle_chapter_status(chap_id, status)
-
-    def handle_delete_chapter(self):
-        curr_item = self.chapter_list.currentItem()
-        if not curr_item:
-            return
-            
-        ret = QMessageBox.question(self, "Confirm Delete", 
-                                 f"Delete chapter '{curr_item.text()}'?",
-                                 QMessageBox.Yes | QMessageBox.No)
         
-        if ret == QMessageBox.Yes:
-            chap_id = curr_item.data(Qt.UserRole)
-            delete_chapter(chap_id)
-            self.refresh_chapters()
+        # Check if window already open
+        if self.selected_subject_id in self.subject_windows:
+            self.subject_windows[self.selected_subject_id].show()
+            self.subject_windows[self.selected_subject_id].raise_()
+            self.subject_windows[self.selected_subject_id].activateWindow()
+        else:
+            win = SubjectWindow(self.selected_subject_id, self.selected_subject_name)
+            win.data_changed.connect(self.update_subject_progress)
+            win.show()
+            self.subject_windows[self.selected_subject_id] = win
+
+    def refresh_all_progress(self):
+        if self.selected_subject_id:
+            self.update_subject_progress()

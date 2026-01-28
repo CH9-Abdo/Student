@@ -50,10 +50,19 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             subject_id INTEGER NOT NULL,
             name TEXT NOT NULL,
+            video_completed BOOLEAN DEFAULT 0,
+            exercises_completed BOOLEAN DEFAULT 0,
             is_completed BOOLEAN DEFAULT 0,
             FOREIGN KEY (subject_id) REFERENCES subjects (id) ON DELETE CASCADE
         )
     ''')
+    
+    # Migration for chapters table
+    try:
+        cursor.execute('SELECT video_completed FROM chapters LIMIT 1')
+    except sqlite3.OperationalError:
+        cursor.execute('ALTER TABLE chapters ADD COLUMN video_completed BOOLEAN DEFAULT 0')
+        cursor.execute('ALTER TABLE chapters ADD COLUMN exercises_completed BOOLEAN DEFAULT 0')
 
     # Data Migration: Ensure at least one semester exists if there are subjects
     cursor.execute('SELECT count(*) FROM semesters')
@@ -141,6 +150,30 @@ def toggle_chapter_status(chapter_id, status):
     conn.commit()
     conn.close()
 
+def toggle_video_status(chapter_id, status):
+    conn = get_db_connection()
+    conn.execute('UPDATE chapters SET video_completed = ? WHERE id = ?', (status, chapter_id))
+    # Automatically complete chapter if both are done
+    cursor = conn.cursor()
+    cursor.execute('SELECT exercises_completed FROM chapters WHERE id = ?', (chapter_id,))
+    ex_done = cursor.fetchone()[0]
+    is_done = 1 if status and ex_done else 0
+    conn.execute('UPDATE chapters SET is_completed = ? WHERE id = ?', (is_done, chapter_id))
+    conn.commit()
+    conn.close()
+
+def toggle_exercises_status(chapter_id, status):
+    conn = get_db_connection()
+    conn.execute('UPDATE chapters SET exercises_completed = ? WHERE id = ?', (status, chapter_id))
+    # Automatically complete chapter if both are done
+    cursor = conn.cursor()
+    cursor.execute('SELECT video_completed FROM chapters WHERE id = ?', (chapter_id,))
+    vid_done = cursor.fetchone()[0]
+    is_done = 1 if status and vid_done else 0
+    conn.execute('UPDATE chapters SET is_completed = ? WHERE id = ?', (is_done, chapter_id))
+    conn.commit()
+    conn.close()
+
 def delete_chapter(chapter_id):
     conn = get_db_connection()
     conn.execute('DELETE FROM chapters WHERE id = ?', (chapter_id,))
@@ -151,7 +184,7 @@ def get_todo_chapters():
     conn = get_db_connection()
     # Join with subjects to get subject name
     query = '''
-        SELECT c.id, c.name as chapter_name, s.name as subject_name, c.is_completed
+        SELECT c.id, c.name as chapter_name, s.name as subject_name, c.is_completed, c.video_completed, c.exercises_completed
         FROM chapters c
         JOIN subjects s ON c.subject_id = s.id
         WHERE c.is_completed = 0
@@ -160,9 +193,34 @@ def get_todo_chapters():
     conn.close()
     return todos
 
+def get_subject_progress(subject_id):
+    conn = get_db_connection()
+    total = conn.execute('SELECT COUNT(*) FROM chapters WHERE subject_id = ?', (subject_id,)).fetchone()[0]
+    # We consider a chapter complete if is_completed = 1 (both video and exercises)
+    # Or maybe we count subtasks? User said "progression bar for every subject".
+    # Let's count subtasks: each chapter has 2 subtasks.
+    cursor = conn.cursor()
+    cursor.execute('SELECT COUNT(*) FROM chapters WHERE subject_id = ?', (subject_id,))
+    total_chapters = cursor.fetchone()[0]
+    
+    cursor.execute('SELECT SUM(video_completed + exercises_completed) FROM chapters WHERE subject_id = ?', (subject_id,))
+    completed_subtasks = cursor.fetchone()[0] or 0
+    
+    total_subtasks = total_chapters * 2
+    
+    conn.close()
+    return total_subtasks, completed_subtasks
+
 def get_progress_stats():
     conn = get_db_connection()
-    total_chapters = conn.execute('SELECT COUNT(*) FROM chapters').fetchone()[0]
-    completed_chapters = conn.execute('SELECT COUNT(*) FROM chapters WHERE is_completed = 1').fetchone()[0]
+    # Total subtasks across all chapters
+    cursor = conn.cursor()
+    cursor.execute('SELECT COUNT(*) FROM chapters')
+    total_chapters = cursor.fetchone()[0]
+    total_subtasks = total_chapters * 2
+    
+    cursor.execute('SELECT SUM(video_completed + exercises_completed) FROM chapters')
+    completed_subtasks = cursor.fetchone()[0] or 0
+    
     conn.close()
-    return total_chapters, completed_chapters
+    return total_subtasks, completed_subtasks
