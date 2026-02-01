@@ -6,6 +6,8 @@ from student_app.ui.styles import STYLESHEET
 from student_app.ui.dashboard import Dashboard
 from student_app.ui.planner import StudyPlanner
 from student_app.ui.calculator import GradeCalculator
+from student_app.ui.pomodoro import PomodoroTimer
+from student_app.sound_manager import create_app_sounds
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -20,10 +22,12 @@ class MainWindow(QMainWindow):
         self.dashboard_tab = Dashboard()
         self.planner_tab = StudyPlanner()
         self.calculator_tab = GradeCalculator()
+        self.pomodoro_tab = PomodoroTimer()
         
         self.tabs.addTab(self.dashboard_tab, "Dashboard")
         self.tabs.addTab(self.planner_tab, "Study Planner")
         self.tabs.addTab(self.calculator_tab, "Grade Calculator")
+        self.tabs.addTab(self.pomodoro_tab, "Pomodoro Timer")
         
         # Connect tab change to refresh
         self.tabs.currentChanged.connect(self.on_tab_change)
@@ -35,10 +39,15 @@ class MainWindow(QMainWindow):
             self.planner_tab.refresh_subjects()
         elif index == 2:
             self.calculator_tab.load_data()
+        elif index == 3:
+            self.pomodoro_tab.refresh_subjects()
 
 def main():
     # Initialize Database
     init_db()
+    
+    # Initialize Sounds
+    create_app_sounds()
     
     app = QApplication(sys.argv)
     app.setStyleSheet(STYLESHEET)
