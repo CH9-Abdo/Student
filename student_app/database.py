@@ -224,3 +224,22 @@ def get_progress_stats():
     
     conn.close()
     return total_subtasks, completed_subtasks
+
+def get_next_task(subject_id):
+    """
+    Returns the next actionable task for a subject.
+    Prioritizes the first chapter that isn't complete.
+    Within a chapter, prioritizes Video then Exercises.
+    """
+    conn = get_db_connection()
+    # Order by ID to ensure we tackle chapters in order
+    chapters = conn.execute('SELECT * FROM chapters WHERE subject_id = ? ORDER BY id ASC', (subject_id,)).fetchall()
+    conn.close()
+    
+    for chap in chapters:
+        if not chap['video_completed']:
+            return {'chapter_id': chap['id'], 'chapter_name': chap['name'], 'type': 'Video', 'completed': False}
+        if not chap['exercises_completed']:
+            return {'chapter_id': chap['id'], 'chapter_name': chap['name'], 'type': 'Exercises', 'completed': False}
+            
+    return None

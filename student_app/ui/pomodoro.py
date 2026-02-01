@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QComboBox, QProgressBar, QFrame, QMessageBox, QGroupBox
 )
 from PyQt5.QtCore import QTimer, Qt
-from student_app.database import get_all_subjects
+from student_app.database import get_all_subjects, get_next_task
 from student_app.sound_manager import play_sound
 
 class PomodoroTimer(QWidget):
@@ -54,8 +54,20 @@ class PomodoroTimer(QWidget):
         sel_layout.addWidget(QLabel("Focus Subject:"))
         self.subject_combo = QComboBox()
         self.subject_combo.setStyleSheet("padding: 5px; font-size: 14px;")
+        self.subject_combo.currentIndexChanged.connect(self.update_suggestion)
         sel_layout.addWidget(self.subject_combo, 1)
         layout.addLayout(sel_layout)
+
+        # --- Smart Suggestion ---
+        self.suggestion_frame = QFrame()
+        self.suggestion_frame.setStyleSheet("background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 5px; padding: 10px;")
+        sug_layout = QHBoxLayout(self.suggestion_frame)
+        sug_layout.setContentsMargins(10, 5, 10, 5)
+        
+        self.suggestion_label = QLabel("💡 Suggestion: Select a subject")
+        self.suggestion_label.setStyleSheet("color: #856404; font-weight: bold;")
+        sug_layout.addWidget(self.suggestion_label)
+        layout.addWidget(self.suggestion_frame)
 
         # --- Timer Display ---
         self.timer_label = QLabel("25:00")
@@ -97,6 +109,7 @@ class PomodoroTimer(QWidget):
         self.setLayout(layout)
 
     def refresh_subjects(self):
+        self.subject_combo.blockSignals(True)
         self.subject_combo.clear()
         subjects = get_all_subjects() # Returns list of Row objects or dicts
         
@@ -117,11 +130,32 @@ class PomodoroTimer(QWidget):
                 self.high_priority_subject = name
             
             self.subject_combo.addItem(label, sub['id'])
+        
+        self.subject_combo.blockSignals(False)
 
         if self.high_priority_subject:
             self.challenge_label.setText(f"🎯 Challenge: Complete 2 sessions of {self.high_priority_subject}")
         else:
             self.challenge_label.setText("🎯 Challenge: Add subjects to see challenges!")
+            
+        # Trigger initial suggestion update
+        self.update_suggestion()
+
+    def update_suggestion(self):
+        if self.subject_combo.count() == 0:
+            self.suggestion_label.setText("💡 Suggestion: Add subjects in the Planner tab first!")
+            return
+
+        subject_id = self.subject_combo.currentData()
+        task = get_next_task(subject_id)
+        
+        if task:
+            task_type = task['type'] # Video or Exercises
+            chap_name = task['chapter_name']
+            icon = "🎥" if task_type == "Video" else "✍️"
+            self.suggestion_label.setText(f"💡 Suggestion: {icon} Watch '{chap_name}' {task_type}" if task_type == "Video" else f"💡 Suggestion: {icon} Do '{chap_name}' {task_type}")
+        else:
+            self.suggestion_label.setText("💡 Suggestion: All caught up! Review or add new chapters.")
 
     def toggle_timer(self):
         if self.is_running:
