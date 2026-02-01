@@ -1,43 +1,41 @@
-# Student Study Manager
+# Student Study Manager 🎓
 
-A comprehensive desktop application designed to help university students manage their academic life. It allows for tracking subjects, planning study chapters, and calculating semester GPAs with ease.
+A comprehensive desktop application designed to help university students manage their academic life. It allows for tracking subjects, planning study chapters, calculating GPA, and maintaining a high-focus study routine with gamified elements.
 
-## 🚀 Features
+## 🚀 Key Features
 
-### 1. Dashboard
-- **Progress Tracking:** Visual progress bar showing the percentage of completed chapters across all subjects.
-- **To-Do List:** Displays a list of pending chapters ("Up Next") to help you focus on what needs to be studied.
+### 1. 🍅 Pomodoro Timer & Smart Suggestions
+- **Focused Study:** Standard 25/5/15 Pomodoro intervals to maintain peak productivity.
+- **Smart Priority:** Automatically suggests the most important task based on:
+  1. **Upcoming Exams:** Prioritizes subjects with deadlines in the next 7 days.
+  2. **Coefficients:** Prioritizes high-weight subjects.
+- **Task Suggestions:** Specifically tells you whether to focus on **Videos** or **Exercises** for the next incomplete chapter.
+- **Lo-Fi Audio:** Integrated background focus music (Lo-Fi/Rain) to improve concentration.
 
-### 2. Study Planner
-- **Semester Management:** Create and delete semesters to organize your academic years.
-- **Subject Management:**
-  - Add subjects with specific details:
-    - **Name**
-    - **Module Type:**
-      - **Type A:** TD (40%) + Exam (60%)
-      - **Type B:** (TD + TP) / 2 (40%) + Exam (60%)
-      - **Type C:** Exam (100%)
-    - **Coefficient**
-    - **Credits**
-  - Delete subjects (cascades to chapters).
-- **Chapter Management:**
-  - Break down subjects into chapters.
-  - Mark chapters as completed or pending.
-  - **Delete Chapters:** Remove chapters if plans change.
+### 2. 🎮 Gamification (XP & Leveling)
+- **Earn XP:** Gain 50 XP for every completed study session.
+- **Level Up:** Progress through student ranks as you accumulate XP.
+- **Challenges:** Daily goals like "Focus on [High Coef Subject] for 2 sessions" to keep you engaged.
+- **Audio Feedback:** Celebratory sound effects for starting, finishing, and leveling up.
 
-### 3. Grade Calculator
-- **Semester-Based Calculation:** Select a semester to view its subjects.
-- **Grade Entry:** Input scores for TD, TP, and Exams based on the module type.
-- **Automatic Calculation:** instantly calculates:
-  - **Module Averages** (based on the specific weighting rules).
-  - **Semester Average (GPA).**
-  - **Total Earned Credits** (for modules with average >= 10).
-- **Persistence:** Grades are saved to the database automatically.
+### 3. 📊 Study Analytics
+- **Visual Data:** A dedicated Analytics tab with a **Pie Chart** visualizing time spent per subject.
+- **Reality Check:** Track exactly where your time goes to ensure you aren't neglecting difficult subjects.
+
+### 4. 📝 Subject Management & Notes
+- **Detailed Planning:** Add subjects with module types, coefficients, and exam dates.
+- **Dedicated Notes:** A built-in notepad for every subject to store formulas, summaries, and key points directly in the database.
+- **Chapter Tracking:** Break down every subject into chapters with sub-tasks (Video/Exercises).
+
+### 5. 🧮 Grade Calculator
+- **Automated GPA:** Calculate your semester average and total earned credits instantly.
+- **Module Weights:** Handles multiple grading systems (TD/TP/Exam combinations).
 
 ## 🛠️ Technology Stack
 - **Language:** Python 3
 - **GUI Framework:** PyQt5
-- **Database:** SQLite (Built-in)
+- **Audio Engine:** Pygame (Cross-platform audio mixer)
+- **Database:** SQLite (Built-in persistence)
 
 ## 📦 Installation
 
@@ -48,9 +46,9 @@ A comprehensive desktop application designed to help university students manage 
    ```
 
 2. **Install Dependencies:**
-   Ensure you have Python installed. Then install the required library:
+   Ensure you have Python installed. Then install the required libraries:
    ```bash
-   pip install PyQt5
+   pip install PyQt5 pygame
    ```
 
 ## ▶️ How to Run
@@ -65,15 +63,19 @@ python run.py
 
 ```
 student_app/
-├── database.py       # Database connection and CRUD operations
-├── main.py           # Main application window setup
+├── database.py       # Database schema and business logic
+├── sound_manager.py  # Pygame-powered audio handling
+├── main.py           # Application entry and tab navigation
 └── ui/
-    ├── dashboard.py  # Dashboard view logic
-    ├── planner.py    # Study Planner view logic
-    ├── calculator.py # Grade Calculator view logic
-    └── styles.py     # CSS-like styling for the application
-run.py                # Entry point script
-student_data.db       # SQLite database file (auto-generated)
+    ├── dashboard.py  # Overview and quick to-dos
+    ├── planner.py    # Subject and semester organization
+    ├── calculator.py # GPA and grade calculations
+    ├── pomodoro.py   # Timer logic, XP system, and smart suggestions
+    ├── analytics.py  # Data visualization and charts
+    ├── subject_window.py # Chapter management and notes
+    └── styles.py     # Global application styling
+run.py                # Main entry point
+student_data.db       # Persistent SQLite storage
 ```
 
 ## 📝 License
