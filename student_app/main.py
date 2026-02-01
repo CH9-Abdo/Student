@@ -7,6 +7,7 @@ from student_app.ui.dashboard import Dashboard
 from student_app.ui.planner import StudyPlanner
 from student_app.ui.calculator import GradeCalculator
 from student_app.ui.pomodoro import PomodoroTimer
+from student_app.ui.analytics import Analytics
 from student_app.sound_manager import create_app_sounds
 
 class MainWindow(QMainWindow):
@@ -23,11 +24,13 @@ class MainWindow(QMainWindow):
         self.planner_tab = StudyPlanner()
         self.calculator_tab = GradeCalculator()
         self.pomodoro_tab = PomodoroTimer()
+        self.analytics_tab = Analytics()
         
         self.tabs.addTab(self.dashboard_tab, "Dashboard")
         self.tabs.addTab(self.planner_tab, "Study Planner")
         self.tabs.addTab(self.calculator_tab, "Grade Calculator")
         self.tabs.addTab(self.pomodoro_tab, "Pomodoro Timer")
+        self.tabs.addTab(self.analytics_tab, "Analytics")
         
         # Connect tab change to refresh
         self.tabs.currentChanged.connect(self.on_tab_change)
@@ -41,6 +44,9 @@ class MainWindow(QMainWindow):
             self.calculator_tab.load_data()
         elif index == 3:
             self.pomodoro_tab.refresh_subjects()
+            self.pomodoro_tab.refresh_profile()
+        elif index == 4:
+            self.analytics_tab.refresh_data()
 
 def main():
     # Initialize Database

@@ -64,6 +64,32 @@ def init_db():
         cursor.execute('ALTER TABLE chapters ADD COLUMN video_completed BOOLEAN DEFAULT 0')
         cursor.execute('ALTER TABLE chapters ADD COLUMN exercises_completed BOOLEAN DEFAULT 0')
 
+    # Create User Profile table (Gamification)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS user_profile (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            xp INTEGER DEFAULT 0,
+            level INTEGER DEFAULT 1,
+            total_sessions INTEGER DEFAULT 0
+        )
+    ''')
+
+    # Ensure at least one user profile exists
+    cursor.execute('SELECT count(*) FROM user_profile')
+    if cursor.fetchone()[0] == 0:
+        cursor.execute('INSERT INTO user_profile (xp, level, total_sessions) VALUES (0, 1, 0)')
+
+    # Create Study Sessions Log table (Analytics)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS study_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            subject_id INTEGER,
+            duration_minutes INTEGER,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (subject_id) REFERENCES subjects (id) ON DELETE CASCADE
+        )
+    ''')
+
     # Data Migration: Ensure at least one semester exists if there are subjects
     cursor.execute('SELECT count(*) FROM semesters')
     sem_count = cursor.fetchone()[0]
@@ -76,6 +102,53 @@ def init_db():
     
     conn.commit()
     conn.close()
+
+# --- User Profile Functions ---
+def get_user_profile():
+    conn = get_db_connection()
+    profile = conn.execute('SELECT * FROM user_profile LIMIT 1').fetchone()
+    conn.close()
+    return profile
+
+def add_xp(amount, session_increment=0):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Get current stats
+    cursor.execute('SELECT xp, level, total_sessions FROM user_profile LIMIT 1')
+    row = cursor.fetchone()
+    current_xp = row['xp'] + amount
+    current_level = row['level']
+    current_sessions = row['total_sessions'] + session_increment
+    
+    # Simple Leveling Logic: Level up every 500 XP
+    new_level = 1 + (current_xp // 500)
+    
+    cursor.execute('UPDATE user_profile SET xp = ?, level = ?, total_sessions = ?', 
+                   (current_xp, new_level, current_sessions))
+    conn.commit()
+    conn.close()
+    return new_level > current_level, new_level # Returns (leveled_up, new_level)
+
+def log_study_session(subject_id, duration_minutes):
+    conn = get_db_connection()
+    conn.execute('INSERT INTO study_sessions (subject_id, duration_minutes) VALUES (?, ?)', 
+                 (subject_id, duration_minutes))
+    conn.commit()
+    conn.close()
+
+def get_study_stats():
+    conn = get_db_connection()
+    # Aggregate duration by subject
+    query = '''
+        SELECT s.name, SUM(ss.duration_minutes) as total_minutes
+        FROM study_sessions ss
+        JOIN subjects s ON ss.subject_id = s.id
+        GROUP BY s.name
+    '''
+    stats = conn.execute(query).fetchall()
+    conn.close()
+    return stats
 
 # --- Semester Functions ---
 def add_semester(name):

@@ -1,10 +1,13 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
-    QComboBox, QProgressBar, QFrame, QMessageBox, QGroupBox
+    QComboBox, QProgressBar, QFrame, QMessageBox, QGroupBox, QCheckBox
 )
 from PyQt5.QtCore import QTimer, Qt
-from student_app.database import get_all_subjects, get_next_task
-from student_app.sound_manager import play_sound
+from student_app.database import (
+    get_all_subjects, get_next_task, get_user_profile, 
+    add_xp, log_study_session
+)
+from student_app.sound_manager import play_sound, toggle_lofi
 
 class PomodoroTimer(QWidget):
     def __init__(self):
@@ -24,11 +27,27 @@ class PomodoroTimer(QWidget):
         
         self.init_ui()
         self.refresh_subjects()
+        self.refresh_profile()
 
     def init_ui(self):
         layout = QVBoxLayout()
         layout.setContentsMargins(30, 30, 30, 30)
-        layout.setSpacing(20)
+        layout.setSpacing(15)
+
+        # --- Profile Header (XP & Level) ---
+        profile_layout = QHBoxLayout()
+        self.level_label = QLabel("Level 1 Student")
+        self.level_label.setStyleSheet("font-weight: bold; font-size: 16px; color: #6f42c1;")
+        
+        self.xp_bar = QProgressBar()
+        self.xp_bar.setRange(0, 500)
+        self.xp_bar.setValue(0)
+        self.xp_bar.setFormat("XP: %v/500")
+        self.xp_bar.setStyleSheet("QProgressBar::chunk { background-color: #d63384; }")
+        
+        profile_layout.addWidget(self.level_label)
+        profile_layout.addWidget(self.xp_bar)
+        layout.addLayout(profile_layout)
 
         # --- Challenge Section ---
         self.challenge_banner = QFrame()
@@ -97,16 +116,30 @@ class PomodoroTimer(QWidget):
         btn_layout.addWidget(self.reset_btn)
         layout.addLayout(btn_layout)
 
-        # --- Stats ---
-        stats_group = QGroupBox("Session Stats")
-        stats_layout = QHBoxLayout()
+        # --- Audio & Stats ---
+        extra_layout = QHBoxLayout()
+        
+        self.lofi_check = QCheckBox("🎵 Lo-Fi Music")
+        self.lofi_check.stateChanged.connect(self.toggle_music)
+        extra_layout.addWidget(self.lofi_check)
+        
+        extra_layout.addStretch()
+        
         self.stats_text = QLabel("Sessions Today: 0")
-        stats_layout.addWidget(self.stats_text)
-        stats_group.setLayout(stats_layout)
-        layout.addWidget(stats_group)
+        extra_layout.addWidget(self.stats_text)
+        
+        layout.addLayout(extra_layout)
         
         layout.addStretch()
         self.setLayout(layout)
+
+    def refresh_profile(self):
+        profile = get_user_profile()
+        if profile:
+            self.level_label.setText(f"Level {profile['level']} Student")
+            # XP bar (Mod 500)
+            current_xp = profile['xp'] % 500
+            self.xp_bar.setValue(current_xp)
 
     def refresh_subjects(self):
         self.subject_combo.blockSignals(True)
@@ -163,12 +196,22 @@ class PomodoroTimer(QWidget):
             self.start_btn.setText("Resume")
             self.start_btn.setStyleSheet("font-size: 16px; background-color: #2ecc71; color: white; border-radius: 5px;")
             self.is_running = False
+            # Pause music if enabled
+            if self.lofi_check.isChecked():
+                toggle_lofi(False)
         else:
             self.timer.start(1000)
             self.start_btn.setText("Pause")
             self.start_btn.setStyleSheet("font-size: 16px; background-color: #e67e22; color: white; border-radius: 5px;")
             self.is_running = True
             play_sound("start.wav")
+            # Start music if enabled
+            if self.lofi_check.isChecked():
+                toggle_lofi(True)
+
+    def toggle_music(self, state):
+        if self.is_running:
+            toggle_lofi(state == Qt.Checked)
 
     def reset_timer(self):
         self.timer.stop()
@@ -179,6 +222,7 @@ class PomodoroTimer(QWidget):
         self.start_btn.setText("Start Focus")
         self.start_btn.setStyleSheet("font-size: 16px; background-color: #2ecc71; color: white; border-radius: 5px;")
         self.status_label.setText("Ready to Work?")
+        toggle_lofi(False)
 
     def update_timer(self):
         if self.time_left > 0:
@@ -199,11 +243,24 @@ class PomodoroTimer(QWidget):
             self.sessions_completed += 1
             self.stats_text.setText(f"Sessions Today: {self.sessions_completed}")
             play_sound("complete.wav")
+            toggle_lofi(False)
+            
+            # --- Log Session for Analytics ---
+            subject_id = self.subject_combo.currentData()
+            if subject_id:
+                log_study_session(subject_id, 25) # Log 25 minutes
+            
+            # --- Award XP ---
+            leveled_up, new_level = add_xp(50, session_increment=1)
+            self.refresh_profile()
+            
+            if leveled_up:
+                play_sound("levelup.wav")
+                QMessageBox.information(self, "Level Up!", f"🎉 Congratulations! You reached Level {new_level}!")
             
             # Check Challenge
             current_sub_text = self.subject_combo.currentText()
             if self.high_priority_subject and self.high_priority_subject in current_sub_text:
-                # Simple logic: assume challenge is 2 sessions
                 if self.sessions_completed >= 2:
                      self.challenge_status.setText(f"Progress: {self.sessions_completed}/2 Sessions (Completed!)")
                      play_sound("tada.wav")
