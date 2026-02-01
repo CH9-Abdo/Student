@@ -1,12 +1,13 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QListWidgetItem, 
     QLineEdit, QPushButton, QLabel, QCheckBox, QGroupBox, QProgressBar,
-    QMainWindow, QScrollArea, QFrame
+    QMainWindow, QScrollArea, QFrame, QTextEdit, QTabWidget
 )
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal, QTimer
 from student_app.database import (
     add_chapter, get_chapters_by_subject, toggle_video_status, 
-    toggle_exercises_status, delete_chapter, get_subject_progress
+    toggle_exercises_status, delete_chapter, get_subject_progress,
+    update_subject_notes, get_subject_notes
 )
 
 class ChapterWidget(QFrame):
@@ -85,6 +86,13 @@ class SubjectWindow(QMainWindow):
         
         main_layout.addLayout(header_layout)
 
+        # Tabs
+        self.tabs = QTabWidget()
+        
+        # --- Tab 1: Chapters ---
+        chapters_tab = QWidget()
+        chap_layout = QVBoxLayout(chapters_tab)
+
         # Add Chapter Form
         add_chap_layout = QHBoxLayout()
         self.chapter_input = QLineEdit()
@@ -96,7 +104,7 @@ class SubjectWindow(QMainWindow):
         
         add_chap_layout.addWidget(self.chapter_input)
         add_chap_layout.addWidget(add_btn)
-        main_layout.addLayout(add_chap_layout)
+        chap_layout.addLayout(add_chap_layout)
 
         # Chapters List (Scroll Area)
         self.scroll = QScrollArea()
@@ -105,7 +113,25 @@ class SubjectWindow(QMainWindow):
         self.chapter_layout = QVBoxLayout(self.chapter_container)
         self.chapter_layout.setAlignment(Qt.AlignTop)
         self.scroll.setWidget(self.chapter_container)
-        main_layout.addWidget(self.scroll)
+        chap_layout.addWidget(self.scroll)
+        
+        self.tabs.addTab(chapters_tab, "Chapters")
+
+        # --- Tab 2: Notes ---
+        notes_tab = QWidget()
+        notes_layout = QVBoxLayout(notes_tab)
+        
+        self.notes_edit = QTextEdit()
+        self.notes_edit.setPlaceholderText("Write your notes, formulas, or reminders here...")
+        notes_layout.addWidget(self.notes_edit)
+        
+        save_notes_btn = QPushButton("Save Notes")
+        save_notes_btn.clicked.connect(self.handle_save_notes)
+        notes_layout.addWidget(save_notes_btn)
+        
+        self.tabs.addTab(notes_tab, "Notes")
+        
+        main_layout.addWidget(self.tabs)
 
         self.refresh_data()
 
@@ -127,8 +153,22 @@ class SubjectWindow(QMainWindow):
             chap_widget = ChapterWidget(chap)
             chap_widget.status_changed.connect(self.refresh_data)
             self.chapter_layout.addWidget(chap_widget)
+            
+        # Refresh Notes (only if first load or explicitly requested, but simple is fine)
+        saved_notes = get_subject_notes(self.subject_id)
+        if self.notes_edit.toPlainText() != saved_notes:
+             # Prevent overwriting user work if they are typing, but mostly this is called on init
+             if not self.notes_edit.hasFocus():
+                 self.notes_edit.setPlainText(saved_notes)
         
         self.data_changed.emit()
+
+    def handle_save_notes(self):
+        notes = self.notes_edit.toPlainText()
+        update_subject_notes(self.subject_id, notes)
+        # Optional: Show a small "Saved" tooltip or message?
+        self.sender().setText("Saved!")
+        QTimer.singleShot(2000, lambda: self.sender().setText("Save Notes")) # Reset text after 2s
 
     def handle_add_chapter(self):
         name = self.chapter_input.text().strip()

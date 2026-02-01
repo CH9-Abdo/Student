@@ -2,7 +2,8 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
     QComboBox, QProgressBar, QFrame, QMessageBox, QGroupBox, QCheckBox
 )
-from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtCore import QTimer, Qt, QDate
+from datetime import datetime, timedelta
 from student_app.database import (
     get_all_subjects, get_next_task, get_user_profile, 
     add_xp, log_study_session
@@ -146,20 +147,52 @@ class PomodoroTimer(QWidget):
         self.subject_combo.clear()
         subjects = get_all_subjects() # Returns list of Row objects or dicts
         
-        # Sort by coefficient (descending) to prioritize high coef
-        # Assuming subject is a sqlite3.Row or dict-like
+        # Sort Logic:
+        # 1. Urgent Exam (within 7 days)
+        # 2. Upcoming Exam (future)
+        # 3. No Exam (High Coef first)
+        
         subjects_list = [dict(s) for s in subjects]
-        subjects_list.sort(key=lambda x: x['coefficient'], reverse=True)
+        today = datetime.now().date()
+        
+        def sort_key(s):
+            exam_date_str = s.get('exam_date')
+            coef = s['coefficient']
+            
+            if exam_date_str:
+                exam_date = datetime.strptime(exam_date_str, "%Y-%m-%d").date()
+                days_until = (exam_date - today).days
+                
+                if 0 <= days_until <= 7:
+                    return (0, days_until) # Urgent: Priority 0
+                elif days_until > 7:
+                    return (1, days_until) # Upcoming: Priority 1
+                else:
+                    return (2, -coef) # Past exam: Priority 2 (fallback to coef)
+            
+            return (2, -coef) # No exam: Priority 2 (fallback to coef)
+
+        subjects_list.sort(key=sort_key)
         
         self.high_priority_subject = None
         
         for i, sub in enumerate(subjects_list):
             name = sub['name']
             coef = sub['coefficient']
+            exam_str = sub.get('exam_date')
+            
             label = f"{name} (Coef: {coef})"
             
-            if i == 0: # Highest coef
-                label += " 🔥 High Priority"
+            if exam_str:
+                exam_date = datetime.strptime(exam_str, "%Y-%m-%d").date()
+                days_until = (exam_date - today).days
+                if 0 <= days_until <= 3:
+                     label += f" 🚨 EXAM IN {days_until} DAYS!"
+                elif 0 <= days_until <= 7:
+                     label += f" ⚠️ Exam in {days_until} days"
+            
+            if i == 0: 
+                label += " 🔥 Top Priority"
                 self.high_priority_subject = name
             
             self.subject_combo.addItem(label, sub['id'])

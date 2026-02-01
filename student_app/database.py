@@ -33,6 +33,7 @@ def init_db():
             td_score REAL DEFAULT 0,
             tp_score REAL DEFAULT 0,
             exam_score REAL DEFAULT 0,
+            exam_date DATE,
             FOREIGN KEY (semester_id) REFERENCES semesters (id) ON DELETE CASCADE
         )
     ''')
@@ -43,6 +44,18 @@ def init_db():
     except sqlite3.OperationalError:
         # Column missing, add it
         cursor.execute('ALTER TABLE subjects ADD COLUMN semester_id INTEGER REFERENCES semesters(id) ON DELETE CASCADE')
+        
+    # Migration: Check if exam_date exists in subjects, if not add it
+    try:
+        cursor.execute('SELECT exam_date FROM subjects LIMIT 1')
+    except sqlite3.OperationalError:
+        cursor.execute('ALTER TABLE subjects ADD COLUMN exam_date DATE')
+
+    # Migration: Check if notes exists in subjects, if not add it
+    try:
+        cursor.execute('SELECT notes FROM subjects LIMIT 1')
+    except sqlite3.OperationalError:
+        cursor.execute('ALTER TABLE subjects ADD COLUMN notes TEXT')
     
     # Create Chapters table
     cursor.execute('''
@@ -173,11 +186,11 @@ def delete_semester(sem_id):
     conn.close()
 
 # --- Updated Subject Functions ---
-def add_subject(name, module_type, coefficient, credits, semester_id):
+def add_subject(name, module_type, coefficient, credits, semester_id, exam_date=None):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('INSERT INTO subjects (name, module_type, coefficient, credits, semester_id) VALUES (?, ?, ?, ?, ?)',
-                   (name, module_type, coefficient, credits, semester_id))
+    cursor.execute('INSERT INTO subjects (name, module_type, coefficient, credits, semester_id, exam_date) VALUES (?, ?, ?, ?, ?, ?)',
+                   (name, module_type, coefficient, credits, semester_id, exam_date))
     subject_id = cursor.lastrowid
     conn.commit()
     conn.close()
@@ -198,6 +211,20 @@ def update_subject_scores(subject_id, td, tp, exam):
                  (td, tp, exam, subject_id))
     conn.commit()
     conn.close()
+
+def update_subject_notes(subject_id, notes):
+    conn = get_db_connection()
+    conn.execute('UPDATE subjects SET notes = ? WHERE id = ?', (notes, subject_id))
+    conn.commit()
+    conn.close()
+
+def get_subject_notes(subject_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT notes FROM subjects WHERE id = ?', (subject_id,))
+    result = cursor.fetchone()
+    conn.close()
+    return result['notes'] if result else ""
 
 def delete_subject(subject_id):
     conn = get_db_connection()

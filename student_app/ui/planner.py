@@ -1,9 +1,10 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QListWidgetItem, 
     QLineEdit, QPushButton, QLabel, QComboBox, QSpinBox, QDoubleSpinBox, 
-    QMessageBox, QCheckBox, QGroupBox, QSplitter, QInputDialog, QProgressBar
+    QMessageBox, QCheckBox, QGroupBox, QSplitter, QInputDialog, QProgressBar,
+    QDateEdit
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QDate
 from student_app.database import (
     add_subject, get_all_subjects, delete_subject, 
     add_chapter, get_chapters_by_subject, toggle_chapter_status, delete_chapter,
@@ -75,12 +76,23 @@ class StudyPlanner(QWidget):
         row2.addWidget(self.coeff_input)
         row2.addWidget(self.credit_input)
 
+        # Exam Date Input
+        self.exam_date_input = QDateEdit()
+        self.exam_date_input.setCalendarPopup(True)
+        self.exam_date_input.setDate(QDate.currentDate().addDays(30)) # Default to next month
+        self.exam_date_input.setDisplayFormat("yyyy-MM-dd")
+        
+        row_date = QHBoxLayout()
+        row_date.addWidget(QLabel("Exam Date:"))
+        row_date.addWidget(self.exam_date_input)
+
         add_sub_btn = QPushButton("Add Subject")
         add_sub_btn.clicked.connect(self.handle_add_subject)
 
         form_layout.addWidget(self.name_input)
         form_layout.addLayout(row1)
         form_layout.addLayout(row2)
+        form_layout.addLayout(row_date)
         form_layout.addWidget(add_sub_btn)
         
         left_layout.addLayout(form_layout)
@@ -204,8 +216,9 @@ class StudyPlanner(QWidget):
         m_type = self.type_input.currentIndex()
         coeff = self.coeff_input.value()
         credits = self.credit_input.value()
+        exam_date = self.exam_date_input.date().toString("yyyy-MM-dd")
         
-        add_subject(name, m_type, coeff, credits, self.current_semester_id)
+        add_subject(name, m_type, coeff, credits, self.current_semester_id, exam_date)
         self.name_input.clear()
         self.refresh_subjects()
 
