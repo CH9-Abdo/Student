@@ -26,7 +26,7 @@ class ChapterWidget(QFrame):
         self.name_label.setStyleSheet("font-weight: bold; font-size: 14px;")
         layout.addWidget(self.name_label, 2)
         
-        self.video_check = QCheckBox("Course Video")
+        self.video_check = QCheckBox("Course")
         self.video_check.setChecked(bool(chapter['video_completed']))
         self.video_check.stateChanged.connect(self.on_video_toggled)
         layout.addWidget(self.video_check, 1)

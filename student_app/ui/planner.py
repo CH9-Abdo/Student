@@ -2,13 +2,14 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QListWidgetItem, 
     QLineEdit, QPushButton, QLabel, QComboBox, QSpinBox, QDoubleSpinBox, 
     QMessageBox, QCheckBox, QGroupBox, QSplitter, QInputDialog, QProgressBar,
-    QDateEdit
+    QDateEdit, QTextEdit
 )
 from PyQt5.QtCore import Qt, QDate
 from student_app.database import (
     add_subject, get_all_subjects, delete_subject, 
     add_chapter, get_chapters_by_subject, toggle_chapter_status, delete_chapter,
-    add_semester, get_all_semesters, delete_semester, get_subject_progress
+    add_semester, get_all_semesters, delete_semester, get_subject_progress,
+    get_subject_notes, update_subject_notes
 )
 from student_app.ui.subject_window import SubjectWindow
 
@@ -127,8 +128,20 @@ class StudyPlanner(QWidget):
         self.open_subject_btn.setFixedHeight(50)
         self.open_subject_btn.clicked.connect(self.handle_open_subject_window)
         right_layout.addWidget(self.open_subject_btn)
+
+        # Chapters Section
+        right_layout.addWidget(QLabel("Chapters:"))
+        self.chapter_list = QListWidget()
+        right_layout.addWidget(self.chapter_list)
         
-        right_layout.addStretch() # Push everything to top
+        # Notes Section
+        right_layout.addWidget(QLabel("Notes:"))
+        self.notes_area = QTextEdit()
+        right_layout.addWidget(self.notes_area)
+        
+        self.save_notes_btn = QPushButton("Save Notes")
+        self.save_notes_btn.clicked.connect(self.handle_save_notes)
+        right_layout.addWidget(self.save_notes_btn)
         
         self.right_panel.setLayout(right_layout)
         self.right_panel.setEnabled(False) # Disabled until subject selected
@@ -195,6 +208,15 @@ class StudyPlanner(QWidget):
 
     def refresh_subjects(self):
         self.subject_list.clear()
+        
+        # Reset selection and right panel
+        self.selected_subject_id = None
+        self.right_panel.setEnabled(False)
+        self.subject_title_label.setText("Select a subject to see progress")
+        self.subject_progress_bar.setValue(0)
+        self.chapter_list.clear()
+        self.notes_area.clear()
+        
         if not self.current_semester_id:
             return
 
@@ -245,6 +267,8 @@ class StudyPlanner(QWidget):
         self.right_panel.setTitle(f"Overview: {self.selected_subject_name}")
         self.subject_title_label.setText(self.selected_subject_name)
         self.update_subject_progress()
+        self.refresh_chapters()
+        self.refresh_notes()
 
     def update_subject_progress(self):
         if self.selected_subject_id is None:
@@ -266,10 +290,40 @@ class StudyPlanner(QWidget):
             self.subject_windows[self.selected_subject_id].activateWindow()
         else:
             win = SubjectWindow(self.selected_subject_id, self.selected_subject_name)
-            win.data_changed.connect(self.update_subject_progress)
+            win.data_changed.connect(self.refresh_all_progress)
             win.show()
             self.subject_windows[self.selected_subject_id] = win
+
+    def refresh_chapters(self):
+        self.chapter_list.clear()
+        if not self.selected_subject_id:
+            return
+            
+        chapters = get_chapters_by_subject(self.selected_subject_id)
+        for chap in chapters:
+            vid = "✓" if chap['video_completed'] else "✗"
+            ex = "✓" if chap['exercises_completed'] else "✗"
+            item = QListWidgetItem(f"{chap['name']} - Vid: {vid} | Ex: {ex}")
+            self.chapter_list.addItem(item)
+
+    def refresh_notes(self):
+        self.notes_area.clear()
+        if not self.selected_subject_id:
+            return
+            
+        notes = get_subject_notes(self.selected_subject_id)
+        self.notes_area.setText(notes)
+
+    def handle_save_notes(self):
+        if not self.selected_subject_id:
+            return
+            
+        notes = self.notes_area.toPlainText()
+        update_subject_notes(self.selected_subject_id, notes)
+        QMessageBox.information(self, "Success", "Notes saved successfully!")
 
     def refresh_all_progress(self):
         if self.selected_subject_id:
             self.update_subject_progress()
+            self.refresh_chapters()
+            self.refresh_notes()
