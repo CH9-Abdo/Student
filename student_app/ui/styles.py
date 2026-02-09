@@ -6,7 +6,7 @@ QMainWindow {
 
 QWidget {
     color: #212529;
-    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
     font-size: 14px;
 }
 

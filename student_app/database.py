@@ -1,10 +1,15 @@
 import sqlite3
 import os
-
-DB_NAME = "student_data.db"
+from student_app.settings import get_db_path
 
 def get_db_connection():
-    conn = sqlite3.connect(DB_NAME)
+    db_path = get_db_path()
+    # Ensure directory exists if it's a new path
+    db_dir = os.path.dirname(db_path)
+    if db_dir and not os.path.exists(db_dir):
+        os.makedirs(db_dir)
+        
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 
