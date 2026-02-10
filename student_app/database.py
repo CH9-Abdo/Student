@@ -155,14 +155,18 @@ def log_study_session(subject_id, duration_minutes):
     conn.commit()
     conn.close()
 
-def get_study_stats():
+def get_detailed_stats():
     conn = get_db_connection()
-    # Aggregate duration by subject
+    # Get total minutes and session count per subject
     query = '''
-        SELECT s.name, SUM(ss.duration_minutes) as total_minutes
-        FROM study_sessions ss
-        JOIN subjects s ON ss.subject_id = s.id
-        GROUP BY s.name
+        SELECT 
+            s.name, 
+            COALESCE(SUM(ss.duration_minutes), 0) as total_minutes,
+            COUNT(ss.id) as session_count
+        FROM subjects s
+        LEFT JOIN study_sessions ss ON s.id = ss.subject_id
+        GROUP BY s.id, s.name
+        ORDER BY total_minutes DESC
     '''
     stats = conn.execute(query).fetchall()
     conn.close()
