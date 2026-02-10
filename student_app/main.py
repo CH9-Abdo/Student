@@ -14,7 +14,7 @@ from student_app.sound_manager import create_app_sounds
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Student Study Manager")
+        self.setWindowTitle("Student Study Manager by Chenoufi Abderrahman")
         self.resize(1000, 700)
         
         self.tabs = QTabWidget()
