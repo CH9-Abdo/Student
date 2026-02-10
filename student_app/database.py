@@ -155,9 +155,9 @@ def log_study_session(subject_id, duration_minutes):
     conn.commit()
     conn.close()
 
-def get_detailed_stats():
+def get_detailed_stats(semester_id=None):
     conn = get_db_connection()
-    # Get total minutes and session count per subject
+    # Get total minutes and session count per subject, filtered by semester
     query = '''
         SELECT 
             s.name, 
@@ -165,8 +165,24 @@ def get_detailed_stats():
             COUNT(ss.id) as session_count
         FROM subjects s
         LEFT JOIN study_sessions ss ON s.id = ss.subject_id
+        WHERE s.semester_id = ? OR ? IS NULL
         GROUP BY s.id, s.name
         ORDER BY total_minutes DESC
+    '''
+    stats = conn.execute(query, (semester_id, semester_id)).fetchall()
+    conn.close()
+    return stats
+
+def get_semester_comparison_stats():
+    conn = get_db_connection()
+    query = '''
+        SELECT 
+            sem.name, 
+            COALESCE(SUM(ss.duration_minutes), 0) as total_minutes
+        FROM semesters sem
+        LEFT JOIN subjects s ON sem.id = s.semester_id
+        LEFT JOIN study_sessions ss ON s.id = ss.subject_id
+        GROUP BY sem.id, sem.name
     '''
     stats = conn.execute(query).fetchall()
     conn.close()
