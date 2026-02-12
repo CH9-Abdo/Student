@@ -1,5 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget, QWidget, QVBoxLayout
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from student_app.database import init_db
 from student_app.ui.styles import STYLESHEET
@@ -9,14 +10,20 @@ from student_app.ui.pomodoro import PomodoroTimer
 from student_app.ui.analytics import Analytics
 from student_app.ui.settings import SettingsTab
 from student_app.sound_manager import create_app_sounds
+from student_app.settings import get_language
+from student_app.ui.translations import TRANSLATIONS
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.lang = get_language()
+        self.texts = TRANSLATIONS.get(self.lang, TRANSLATIONS["English"])
         self.setWindowTitle("Student Study Manager by Chenoufi Abderrahman")
         self.resize(1000, 700)
         
         self.tabs = QTabWidget()
+        if self.lang == "Arabic":
+            self.tabs.setLayoutDirection(Qt.RightToLeft)
         self.setCentralWidget(self.tabs)
         
         # Initialize Tabs
@@ -26,11 +33,11 @@ class MainWindow(QMainWindow):
         self.analytics_tab = Analytics()
         self.settings_tab = SettingsTab()
         
-        self.tabs.addTab(self.dashboard_tab, "Dashboard")
-        self.tabs.addTab(self.planner_tab, "Study Planner")
-        self.tabs.addTab(self.pomodoro_tab, "Pomodoro Timer")
-        self.tabs.addTab(self.analytics_tab, "Analytics")
-        self.tabs.addTab(self.settings_tab, "Settings")
+        self.tabs.addTab(self.dashboard_tab, self.texts["dashboard"])
+        self.tabs.addTab(self.planner_tab, self.texts["planner"])
+        self.tabs.addTab(self.pomodoro_tab, self.texts["pomodoro"])
+        self.tabs.addTab(self.analytics_tab, self.texts["analytics"])
+        self.tabs.addTab(self.settings_tab, self.texts["settings"])
         
         # Connect tab change to refresh
         self.tabs.currentChanged.connect(self.on_tab_change)

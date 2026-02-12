@@ -9,10 +9,14 @@ from student_app.database import (
     add_xp, log_study_session
 )
 from student_app.sound_manager import play_sound, toggle_lofi
+from student_app.settings import get_language
+from student_app.ui.translations import TRANSLATIONS
 
 class PomodoroTimer(QWidget):
     def __init__(self):
         super().__init__()
+        self.lang = get_language()
+        self.texts = TRANSLATIONS.get(self.lang, TRANSLATIONS["English"])
         # Settings
         self.work_time = 25 * 60
         self.short_break = 5 * 60
@@ -32,6 +36,8 @@ class PomodoroTimer(QWidget):
 
     def init_ui(self):
         layout = QVBoxLayout()
+        if self.lang == "Arabic":
+            self.setLayoutDirection(Qt.RightToLeft)
         layout.setContentsMargins(30, 30, 30, 30)
         layout.setSpacing(15)
 
@@ -71,7 +77,7 @@ class PomodoroTimer(QWidget):
 
         # --- Subject Selection ---
         sel_layout = QHBoxLayout()
-        sel_layout.addWidget(QLabel("Focus Subject:"))
+        sel_layout.addWidget(QLabel(self.texts["focus_subject"] + ":"))
         self.subject_combo = QComboBox()
         self.subject_combo.setStyleSheet("padding: 5px; font-size: 14px;")
         self.subject_combo.currentIndexChanged.connect(self.update_suggestion)
@@ -103,12 +109,12 @@ class PomodoroTimer(QWidget):
         # --- Controls ---
         btn_layout = QHBoxLayout()
         
-        self.start_btn = QPushButton("Start Focus")
+        self.start_btn = QPushButton(self.texts["start_focus"])
         self.start_btn.setMinimumHeight(50)
         self.start_btn.setStyleSheet("font-size: 16px; background-color: #2ecc71; color: white; border-radius: 5px;")
         self.start_btn.clicked.connect(self.toggle_timer)
         
-        self.reset_btn = QPushButton("Reset")
+        self.reset_btn = QPushButton(self.texts["reset"])
         self.reset_btn.setMinimumHeight(50)
         self.reset_btn.setStyleSheet("font-size: 16px; background-color: #95a5a6; color: white; border-radius: 5px;")
         self.reset_btn.clicked.connect(self.reset_timer)
@@ -120,13 +126,13 @@ class PomodoroTimer(QWidget):
         # --- Audio & Stats ---
         extra_layout = QHBoxLayout()
         
-        self.lofi_check = QCheckBox("🎵 Lo-Fi Music")
+        self.lofi_check = QCheckBox("🎵 " + self.texts["lofi"])
         self.lofi_check.stateChanged.connect(self.toggle_music)
         extra_layout.addWidget(self.lofi_check)
         
         extra_layout.addStretch()
         
-        self.stats_text = QLabel("Sessions Today: 0")
+        self.stats_text = QLabel(f"{self.texts['sessions_today']}: 0")
         extra_layout.addWidget(self.stats_text)
         
         layout.addLayout(extra_layout)
@@ -224,7 +230,7 @@ class PomodoroTimer(QWidget):
     def toggle_timer(self):
         if self.is_running:
             self.timer.stop()
-            self.start_btn.setText("Resume")
+            self.start_btn.setText(self.texts["resume"])
             self.start_btn.setStyleSheet("font-size: 16px; background-color: #2ecc71; color: white; border-radius: 5px;")
             self.is_running = False
             # Pause music if enabled
@@ -232,7 +238,7 @@ class PomodoroTimer(QWidget):
                 toggle_lofi(False)
         else:
             self.timer.start(1000)
-            self.start_btn.setText("Pause")
+            self.start_btn.setText(self.texts["pause"])
             self.start_btn.setStyleSheet("font-size: 16px; background-color: #e67e22; color: white; border-radius: 5px;")
             self.is_running = True
             play_sound("start.wav")
@@ -250,7 +256,7 @@ class PomodoroTimer(QWidget):
         self.mode = "WORK"
         self.time_left = self.work_time
         self.update_display()
-        self.start_btn.setText("Start Focus")
+        self.start_btn.setText(self.texts["start_focus"])
         self.start_btn.setStyleSheet("font-size: 16px; background-color: #2ecc71; color: white; border-radius: 5px;")
         self.status_label.setText("Ready to Work?")
         toggle_lofi(False)
@@ -272,7 +278,7 @@ class PomodoroTimer(QWidget):
     def handle_timer_complete(self):
         if self.mode == "WORK":
             self.sessions_completed += 1
-            self.stats_text.setText(f"Sessions Today: {self.sessions_completed}")
+            self.stats_text.setText(f"{self.texts['sessions_today']}: {self.sessions_completed}")
             play_sound("complete.wav")
             toggle_lofi(False)
             
@@ -316,6 +322,6 @@ class PomodoroTimer(QWidget):
             self.mode = "WORK"
             self.time_left = self.work_time
             self.status_label.setText("Back to Work!")
-            self.start_btn.setText("Start Focus")
+            self.start_btn.setText(self.texts["start_focus"])
             
         self.update_display()

@@ -25,3 +25,12 @@ def set_db_path(path):
     settings = load_settings()
     settings["db_path"] = os.path.abspath(path)
     save_settings(settings)
+
+def get_language():
+    settings = load_settings()
+    return settings.get("language", "English")
+
+def set_language(lang):
+    settings = load_settings()
+    settings["language"] = lang
+    save_settings(settings)

@@ -12,10 +12,14 @@ from student_app.database import (
     get_subject_notes, update_subject_notes
 )
 from student_app.ui.subject_window import SubjectWindow
+from student_app.settings import get_language
+from student_app.ui.translations import TRANSLATIONS
 
 class StudyPlanner(QWidget):
     def __init__(self):
         super().__init__()
+        self.lang = get_language()
+        self.texts = TRANSLATIONS.get(self.lang, TRANSLATIONS["English"])
         self.selected_subject_id = None
         self.current_semester_id = None
         self.subject_windows = {} # Keep track of open windows
@@ -23,22 +27,24 @@ class StudyPlanner(QWidget):
 
     def init_ui(self):
         main_layout = QVBoxLayout() # Changed to VBox to hold Top Bar + Splitter
+        if self.lang == "Arabic":
+            self.setLayoutDirection(Qt.RightToLeft)
 
         # --- Top Bar: Semesters ---
         top_bar = QHBoxLayout()
-        top_bar.addWidget(QLabel("Current Semester:"))
+        top_bar.addWidget(QLabel(self.texts["current_semester"] + ":"))
         
         self.semester_combo = QComboBox()
         self.semester_combo.currentIndexChanged.connect(self.on_semester_changed)
         top_bar.addWidget(self.semester_combo)
         
-        add_sem_btn = QPushButton("+ New Semester")
+        add_sem_btn = QPushButton(self.texts["new_semester"])
         add_sem_btn.clicked.connect(self.handle_add_semester)
         add_sem_btn.setFixedWidth(120)
         top_bar.addWidget(add_sem_btn)
         
         # Delete Semester Button
-        del_sem_btn = QPushButton("Delete")
+        del_sem_btn = QPushButton(self.texts["delete"])
         del_sem_btn.setObjectName("dangerButton")
         del_sem_btn.setFixedWidth(80)
         del_sem_btn.clicked.connect(self.handle_delete_semester)
@@ -50,13 +56,13 @@ class StudyPlanner(QWidget):
         content_layout = QHBoxLayout() # This was the old main_layout
 
         # --- Left Panel: Subjects ---
-        left_panel = QGroupBox("Subjects")
+        left_panel = QGroupBox(self.texts["planner"])
         left_layout = QVBoxLayout()
         
         # Add Subject Form
         form_layout = QVBoxLayout()
         self.name_input = QLineEdit()
-        self.name_input.setPlaceholderText("Subject Name")
+        self.name_input.setPlaceholderText(self.texts["subject_name"])
         
         # Exam Date Input
         self.exam_date_input = QDateEdit()
@@ -65,10 +71,10 @@ class StudyPlanner(QWidget):
         self.exam_date_input.setDisplayFormat("yyyy-MM-dd")
         
         row_date = QHBoxLayout()
-        row_date.addWidget(QLabel("Exam Date:"))
+        row_date.addWidget(QLabel(self.texts["exam_date"] + ":"))
         row_date.addWidget(self.exam_date_input)
 
-        add_sub_btn = QPushButton("Add Subject")
+        add_sub_btn = QPushButton(self.texts["add_subject"])
         add_sub_btn.clicked.connect(self.handle_add_subject)
 
         form_layout.addWidget(self.name_input)
@@ -83,7 +89,7 @@ class StudyPlanner(QWidget):
         left_layout.addWidget(self.subject_list)
 
         # Delete Button
-        del_sub_btn = QPushButton("Delete Selected Subject")
+        del_sub_btn = QPushButton(self.texts["delete_subject"])
         del_sub_btn.setObjectName("dangerButton")
         del_sub_btn.clicked.connect(self.handle_delete_subject)
         left_layout.addWidget(del_sub_btn)
@@ -91,10 +97,10 @@ class StudyPlanner(QWidget):
         left_panel.setLayout(left_layout)
 
         # --- Right Panel: Subject Details & Progress ---
-        self.right_panel = QGroupBox("Subject Overview")
+        self.right_panel = QGroupBox(self.texts["subject_overview"])
         right_layout = QVBoxLayout()
         
-        self.subject_title_label = QLabel("Select a subject to see progress")
+        self.subject_title_label = QLabel(self.texts["subject_overview"])
         self.subject_title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
         right_layout.addWidget(self.subject_title_label)
         
@@ -102,23 +108,23 @@ class StudyPlanner(QWidget):
         self.subject_progress_bar.setFixedHeight(25)
         right_layout.addWidget(self.subject_progress_bar)
         
-        self.open_subject_btn = QPushButton("Open Subject Study Window")
+        self.open_subject_btn = QPushButton(self.texts["open_subject"])
         self.open_subject_btn.setObjectName("primaryButton")
         self.open_subject_btn.setFixedHeight(50)
         self.open_subject_btn.clicked.connect(self.handle_open_subject_window)
         right_layout.addWidget(self.open_subject_btn)
 
         # Chapters Section
-        right_layout.addWidget(QLabel("Chapters:"))
+        right_layout.addWidget(QLabel(self.texts["chapters"] + ":"))
         self.chapter_list = QListWidget()
         right_layout.addWidget(self.chapter_list)
         
         # Notes Section
-        right_layout.addWidget(QLabel("Notes:"))
+        right_layout.addWidget(QLabel(self.texts["notes"] + ":"))
         self.notes_area = QTextEdit()
         right_layout.addWidget(self.notes_area)
         
-        self.save_notes_btn = QPushButton("Save Notes")
+        self.save_notes_btn = QPushButton(self.texts["save_notes"])
         self.save_notes_btn.clicked.connect(self.handle_save_notes)
         right_layout.addWidget(self.save_notes_btn)
         

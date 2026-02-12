@@ -1,23 +1,38 @@
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFileDialog, QMessageBox, QGroupBox
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFileDialog, QMessageBox, QGroupBox, QComboBox
 )
 import os
 import shutil
-from student_app.settings import get_db_path, set_db_path
+from student_app.settings import get_db_path, set_db_path, get_language, set_language
+from student_app.ui.translations import TRANSLATIONS
 
 class SettingsTab(QWidget):
     def __init__(self):
         super().__init__()
+        self.lang = get_language()
+        self.texts = TRANSLATIONS.get(self.lang, TRANSLATIONS["English"])
         self.init_ui()
 
     def init_ui(self):
         layout = QVBoxLayout()
         
+        # Language Settings Group
+        lang_group = QGroupBox(self.texts["language"])
+        lang_layout = QVBoxLayout()
+        
+        self.lang_combo = QComboBox()
+        self.lang_combo.addItems(["English", "Arabic", "French"])
+        self.lang_combo.setCurrentText(self.lang)
+        self.lang_combo.currentTextChanged.connect(self.change_language)
+        lang_layout.addWidget(self.lang_combo)
+        lang_group.setLayout(lang_layout)
+        layout.addWidget(lang_group)
+
         # Database Settings Group
-        db_group = QGroupBox("Database Synchronization")
+        db_group = QGroupBox(self.texts["database_sync"])
         db_layout = QVBoxLayout()
         
-        db_layout.addWidget(QLabel("Current Database Location:"))
+        db_layout.addWidget(QLabel(self.texts["current_db"] + ":"))
         self.path_label = QLabel(get_db_path())
         self.path_label.setStyleSheet("font-weight: bold; color: #2980b9; padding: 5px; border: 1px solid #bdc3c7; border-radius: 4px;")
         db_layout.addWidget(self.path_label)
@@ -32,11 +47,11 @@ class SettingsTab(QWidget):
         
         btn_layout = QHBoxLayout()
         
-        self.change_btn = QPushButton("Change Database Location")
+        self.change_btn = QPushButton(self.texts["change_db"])
         self.change_btn.clicked.connect(self.change_db_location)
         btn_layout.addWidget(self.change_btn)
         
-        self.move_btn = QPushButton("Move Current DB to New Location")
+        self.move_btn = QPushButton(self.texts["move_db"])
         self.move_btn.clicked.connect(self.move_db_location)
         btn_layout.addWidget(self.move_btn)
         
@@ -48,17 +63,21 @@ class SettingsTab(QWidget):
         
         self.setLayout(layout)
 
+    def change_language(self, lang):
+        set_language(lang)
+        QMessageBox.information(self, self.texts["success"], self.texts["restart_msg"])
+
     def change_db_location(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Select Database File", "", "SQLite Database (*.db);;All Files (*)")
         if file_path:
             set_db_path(file_path)
             self.path_label.setText(file_path)
-            QMessageBox.information(self, "Success", "Database location updated! Please restart the application to ensure all connections are reset.")
+            QMessageBox.information(self, self.texts["success"], "Database location updated! Please restart the application to ensure all connections are reset.")
 
     def move_db_location(self):
         current_path = get_db_path()
         if not os.path.exists(current_path):
-             QMessageBox.warning(self, "Error", "Current database file not found.")
+             QMessageBox.warning(self, self.texts["error"], "Current database file not found.")
              return
 
         folder_path = QFileDialog.getExistingDirectory(self, "Select New Folder for Database")
@@ -74,6 +93,6 @@ class SettingsTab(QWidget):
                 shutil.copy2(current_path, new_path)
                 set_db_path(new_path)
                 self.path_label.setText(new_path)
-                QMessageBox.information(self, "Success", f"Database moved to {new_path}.\nLocation updated successfully!")
+                QMessageBox.information(self, self.texts["success"], f"Database moved to {new_path}.\nLocation updated successfully!")
             except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to move database: {str(e)}")
+                QMessageBox.critical(self, self.texts["error"], f"Failed to move database: {str(e)}")

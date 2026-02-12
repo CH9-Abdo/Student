@@ -4,25 +4,32 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 from student_app.database import get_todo_chapters, get_progress_stats
+from student_app.settings import get_language
+from student_app.ui.translations import TRANSLATIONS
 
 class Dashboard(QWidget):
     def __init__(self):
         super().__init__()
+        self.lang = get_language()
+        self.texts = TRANSLATIONS.get(self.lang, TRANSLATIONS["English"])
         self.init_ui()
 
     def init_ui(self):
         layout = QVBoxLayout()
+        if self.lang == "Arabic":
+            layout.setAlignment(Qt.AlignRight)
+            self.setLayoutDirection(Qt.RightToLeft)
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
         
         # Header
-        header = QLabel("Study Dashboard")
+        header = QLabel(self.texts["dashboard"])
         header.setObjectName("headerLabel")
         layout.addWidget(header)
 
         # Progress Section
         prog_layout = QVBoxLayout()
-        self.stats_label = QLabel("Overall Progress: 0/0 Tasks Completed")
+        self.stats_label = QLabel(f"{self.texts['overall_progress']}: 0/0 {self.texts['tasks_completed']}")
         self.stats_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #495057;")
         
         self.progress_bar = QProgressBar()
@@ -47,10 +54,10 @@ class Dashboard(QWidget):
         # To-Do Section Header
         layout.addSpacing(10)
         todo_header_layout = QHBoxLayout()
-        todo_title = QLabel("Up Next (To-Do List)")
+        todo_title = QLabel(self.texts["up_next"])
         todo_title.setStyleSheet("font-size: 20px; font-weight: bold; color: #2c3e50;")
         
-        refresh_btn = QPushButton("Refresh")
+        refresh_btn = QPushButton(self.texts["refresh"])
         refresh_btn.setFixedWidth(100)
         refresh_btn.clicked.connect(self.refresh_data)
         
@@ -80,7 +87,7 @@ class Dashboard(QWidget):
         total, completed = get_progress_stats()
         percentage = int((completed / total * 100)) if total > 0 else 0
         
-        self.stats_label.setText(f"Overall Progress: {completed}/{total} Tasks Completed")
+        self.stats_label.setText(f"{self.texts['overall_progress']}: {completed}/{total} {self.texts['tasks_completed']}")
         self.progress_bar.setValue(percentage)
 
         # Update To-Do List Grouped by Subject
