@@ -150,14 +150,13 @@ class PomodoroTimer(QWidget):
         # Sort Logic:
         # 1. Urgent Exam (within 7 days)
         # 2. Upcoming Exam (future)
-        # 3. No Exam (High Coef first)
+        # 3. No Exam (Name sorting)
         
         subjects_list = [dict(s) for s in subjects]
         today = datetime.now().date()
         
         def sort_key(s):
             exam_date_str = s.get('exam_date')
-            coef = s['coefficient']
             
             if exam_date_str:
                 exam_date = datetime.strptime(exam_date_str, "%Y-%m-%d").date()
@@ -168,9 +167,9 @@ class PomodoroTimer(QWidget):
                 elif days_until > 7:
                     return (1, days_until) # Upcoming: Priority 1
                 else:
-                    return (2, -coef) # Past exam: Priority 2 (fallback to coef)
+                    return (2, s['name']) # Past exam: Priority 2 (fallback to name)
             
-            return (2, -coef) # No exam: Priority 2 (fallback to coef)
+            return (2, s['name']) # No exam: Priority 2 (fallback to name)
 
         subjects_list.sort(key=sort_key)
         
@@ -178,10 +177,9 @@ class PomodoroTimer(QWidget):
         
         for i, sub in enumerate(subjects_list):
             name = sub['name']
-            coef = sub['coefficient']
             exam_str = sub.get('exam_date')
             
-            label = f"{name} (Coef: {coef})"
+            label = f"{name}"
             
             if exam_str:
                 exam_date = datetime.strptime(exam_str, "%Y-%m-%d").date()

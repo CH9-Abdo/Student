@@ -5,7 +5,6 @@ from student_app.database import init_db
 from student_app.ui.styles import STYLESHEET
 from student_app.ui.dashboard import Dashboard
 from student_app.ui.planner import StudyPlanner
-from student_app.ui.calculator import GradeCalculator
 from student_app.ui.pomodoro import PomodoroTimer
 from student_app.ui.analytics import Analytics
 from student_app.ui.settings import SettingsTab
@@ -23,14 +22,12 @@ class MainWindow(QMainWindow):
         # Initialize Tabs
         self.dashboard_tab = Dashboard()
         self.planner_tab = StudyPlanner()
-        self.calculator_tab = GradeCalculator()
         self.pomodoro_tab = PomodoroTimer()
         self.analytics_tab = Analytics()
         self.settings_tab = SettingsTab()
         
         self.tabs.addTab(self.dashboard_tab, "Dashboard")
         self.tabs.addTab(self.planner_tab, "Study Planner")
-        self.tabs.addTab(self.calculator_tab, "Grade Calculator")
         self.tabs.addTab(self.pomodoro_tab, "Pomodoro Timer")
         self.tabs.addTab(self.analytics_tab, "Analytics")
         self.tabs.addTab(self.settings_tab, "Settings")
@@ -44,13 +41,11 @@ class MainWindow(QMainWindow):
         elif index == 1:
             self.planner_tab.refresh_subjects()
         elif index == 2:
-            self.calculator_tab.load_data()
-        elif index == 3:
             self.pomodoro_tab.refresh_subjects()
             self.pomodoro_tab.refresh_profile()
-        elif index == 4:
+        elif index == 3:
             self.analytics_tab.refresh_data()
-        elif index == 5:
+        elif index == 4:
             # Settings tab - maybe refresh path display if changed externally?
             pass
 

@@ -32,12 +32,6 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             semester_id INTEGER,
             name TEXT NOT NULL,
-            module_type INTEGER NOT NULL, 
-            coefficient REAL NOT NULL,
-            credits INTEGER NOT NULL,
-            td_score REAL DEFAULT 0,
-            tp_score REAL DEFAULT 0,
-            exam_score REAL DEFAULT 0,
             exam_date DATE,
             FOREIGN KEY (semester_id) REFERENCES semesters (id) ON DELETE CASCADE
         )
@@ -211,11 +205,11 @@ def delete_semester(sem_id):
     conn.close()
 
 # --- Updated Subject Functions ---
-def add_subject(name, module_type, coefficient, credits, semester_id, exam_date=None):
+def add_subject(name, semester_id, exam_date=None):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('INSERT INTO subjects (name, module_type, coefficient, credits, semester_id, exam_date) VALUES (?, ?, ?, ?, ?, ?)',
-                   (name, module_type, coefficient, credits, semester_id, exam_date))
+    cursor.execute('INSERT INTO subjects (name, semester_id, exam_date) VALUES (?, ?, ?)',
+                   (name, semester_id, exam_date))
     subject_id = cursor.lastrowid
     conn.commit()
     conn.close()
@@ -229,13 +223,6 @@ def get_all_subjects(semester_id=None):
         subjects = conn.execute('SELECT * FROM subjects').fetchall()
     conn.close()
     return subjects
-
-def update_subject_scores(subject_id, td, tp, exam):
-    conn = get_db_connection()
-    conn.execute('UPDATE subjects SET td_score = ?, tp_score = ?, exam_score = ? WHERE id = ?',
-                 (td, tp, exam, subject_id))
-    conn.commit()
-    conn.close()
 
 def update_subject_notes(subject_id, notes):
     conn = get_db_connection()

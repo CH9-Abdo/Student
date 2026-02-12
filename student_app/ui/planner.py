@@ -58,25 +58,6 @@ class StudyPlanner(QWidget):
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText("Subject Name")
         
-        row1 = QHBoxLayout()
-        self.type_input = QComboBox()
-        self.type_input.addItems(["Type A (TD+Exam)", "Type B (TD+TP+Exam)", "Type C (Exam)"])
-        self.coeff_input = QDoubleSpinBox()
-        self.coeff_input.setRange(0, 20)
-        self.coeff_input.setPrefix("Coeff: ")
-        self.coeff_input.setValue(1)
-        
-        self.credit_input = QSpinBox()
-        self.credit_input.setRange(0, 30)
-        self.credit_input.setPrefix("Credits: ")
-        self.credit_input.setValue(1)
-        
-        row1.addWidget(self.type_input)
-        
-        row2 = QHBoxLayout()
-        row2.addWidget(self.coeff_input)
-        row2.addWidget(self.credit_input)
-
         # Exam Date Input
         self.exam_date_input = QDateEdit()
         self.exam_date_input.setCalendarPopup(True)
@@ -91,8 +72,6 @@ class StudyPlanner(QWidget):
         add_sub_btn.clicked.connect(self.handle_add_subject)
 
         form_layout.addWidget(self.name_input)
-        form_layout.addLayout(row1)
-        form_layout.addLayout(row2)
         form_layout.addLayout(row_date)
         form_layout.addWidget(add_sub_btn)
         
@@ -222,7 +201,7 @@ class StudyPlanner(QWidget):
 
         subjects = get_all_subjects(self.current_semester_id)
         for sub in subjects:
-            item = QListWidgetItem(f"{sub['name']} (C: {sub['coefficient']})")
+            item = QListWidgetItem(sub['name'])
             item.setData(Qt.UserRole, sub['id'])
             self.subject_list.addItem(item)
 
@@ -235,12 +214,9 @@ class StudyPlanner(QWidget):
             QMessageBox.warning(self, "Error", "Please select or create a semester first.")
             return
         
-        m_type = self.type_input.currentIndex()
-        coeff = self.coeff_input.value()
-        credits = self.credit_input.value()
         exam_date = self.exam_date_input.date().toString("yyyy-MM-dd")
         
-        add_subject(name, m_type, coeff, credits, self.current_semester_id, exam_date)
+        add_subject(name, self.current_semester_id, exam_date)
         self.name_input.clear()
         self.refresh_subjects()
 
