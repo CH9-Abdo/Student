@@ -3,14 +3,14 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget, QWidget, QVBo
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from student_app.database import init_db
-from student_app.ui.styles import STYLESHEET
+from student_app.ui.styles import STYLESHEET, DARK_STYLESHEET
 from student_app.ui.dashboard import Dashboard
 from student_app.ui.planner import StudyPlanner
 from student_app.ui.pomodoro import PomodoroTimer
 from student_app.ui.analytics import Analytics
 from student_app.ui.settings import SettingsTab
 from student_app.sound_manager import create_app_sounds
-from student_app.settings import get_language
+from student_app.settings import get_language, get_theme
 from student_app.ui.translations import TRANSLATIONS
 
 class MainWindow(QMainWindow):
@@ -64,7 +64,13 @@ def main():
     create_app_sounds()
     
     app = QApplication(sys.argv)
-    app.setStyleSheet(STYLESHEET)
+    
+    # Apply Theme
+    theme = get_theme()
+    if theme == "Dark":
+        app.setStyleSheet(DARK_STYLESHEET)
+    else:
+        app.setStyleSheet(STYLESHEET)
     
     window = MainWindow()
     window.show()

@@ -34,3 +34,12 @@ def set_language(lang):
     settings = load_settings()
     settings["language"] = lang
     save_settings(settings)
+
+def get_theme():
+    settings = load_settings()
+    return settings.get("theme", "Light")
+
+def set_theme(theme):
+    settings = load_settings()
+    settings["theme"] = theme
+    save_settings(settings)

@@ -115,6 +115,17 @@ def init_db():
     conn.commit()
     conn.close()
 
+def reset_all_data():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM study_sessions')
+    cursor.execute('DELETE FROM chapters')
+    cursor.execute('DELETE FROM subjects')
+    cursor.execute('DELETE FROM semesters')
+    cursor.execute('UPDATE user_profile SET xp = 0, level = 1, total_sessions = 0')
+    conn.commit()
+    conn.close()
+
 # --- User Profile Functions ---
 def get_user_profile():
     conn = get_db_connection()
