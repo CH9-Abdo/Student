@@ -33,6 +33,7 @@ def init_db():
             semester_id INTEGER,
             name TEXT NOT NULL,
             exam_date DATE,
+            test_date DATE,
             FOREIGN KEY (semester_id) REFERENCES semesters (id) ON DELETE CASCADE
         )
     ''')
@@ -49,6 +50,12 @@ def init_db():
         cursor.execute('SELECT exam_date FROM subjects LIMIT 1')
     except sqlite3.OperationalError:
         cursor.execute('ALTER TABLE subjects ADD COLUMN exam_date DATE')
+
+    # Migration: Check if test_date exists in subjects, if not add it
+    try:
+        cursor.execute('SELECT test_date FROM subjects LIMIT 1')
+    except sqlite3.OperationalError:
+        cursor.execute('ALTER TABLE subjects ADD COLUMN test_date DATE')
 
     # Migration: Check if notes exists in subjects, if not add it
     try:
@@ -216,15 +223,22 @@ def delete_semester(sem_id):
     conn.close()
 
 # --- Updated Subject Functions ---
-def add_subject(name, semester_id, exam_date=None):
+def add_subject(name, semester_id, exam_date=None, test_date=None):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('INSERT INTO subjects (name, semester_id, exam_date) VALUES (?, ?, ?)',
-                   (name, semester_id, exam_date))
+    cursor.execute('INSERT INTO subjects (name, semester_id, exam_date, test_date) VALUES (?, ?, ?, ?)',
+                   (name, semester_id, exam_date, test_date))
     subject_id = cursor.lastrowid
     conn.commit()
     conn.close()
     return subject_id
+
+def update_subject_dates(subject_id, exam_date, test_date):
+    conn = get_db_connection()
+    conn.execute('UPDATE subjects SET exam_date = ?, test_date = ? WHERE id = ?',
+                 (exam_date, test_date, subject_id))
+    conn.commit()
+    conn.close()
 
 def get_all_subjects(semester_id=None):
     conn = get_db_connection()

@@ -27,6 +27,7 @@ TRANSLATIONS = {
         "add_subject": "Add Subject",
         "subject_name": "Subject Name",
         "exam_date": "Exam Date",
+        "test_date": "Test Date",
         "delete_subject": "Delete Selected Subject",
         "subject_overview": "Subject Overview",
         "open_subject": "Open Subject Study Window",
@@ -43,6 +44,10 @@ TRANSLATIONS = {
         "reset_progress": "Reset All Progress",
         "reset_confirm": "Are you sure you want to reset all your study progress? This will delete all subjects, chapters, and study sessions!",
         "reset_success": "All data has been reset.",
+        "session_distribution": "Session Distribution",
+        "time_per_subject": "Time Spent per Subject",
+        "semester_comparison": "Semester Comparison (Minutes)",
+        "analytics_explorer": "Analytics Explorer",
     },
     "Arabic": {
         "dashboard": "لوحة القيادة",
@@ -88,6 +93,10 @@ TRANSLATIONS = {
         "reset_progress": "إعادة تعيين كافة التقدم",
         "reset_confirm": "هل أنت متأكد أنك تريد إعادة تعيين كافة تقدمك في الدراسة؟ سيؤدي هذا إلى حذف جميع المواد والفصول وجلسات الدراسة!",
         "reset_success": "تم إعادة تعيين كافة البيانات.",
+        "session_distribution": "توزيع الجلسات",
+        "time_per_subject": "الوقت المستغرق لكل مادة",
+        "semester_comparison": "مقارنة الفصول الدراسية (بالدقائق)",
+        "analytics_explorer": "مستكشف التحليلات",
     },
     "French": {
         "dashboard": "Tableau de bord",
@@ -133,5 +142,9 @@ TRANSLATIONS = {
         "reset_progress": "Réinitialiser toute la progression",
         "reset_confirm": "Êtes-vous sûr de vouloir réinitialiser toute votre progression d'étude ? Cela supprimera tous les sujets, chapitres et sessions d'étude !",
         "reset_success": "Toutes les données ont été réinitialisées.",
+        "session_distribution": "Distribution des sessions",
+        "time_per_subject": "Temps passé par sujet",
+        "semester_comparison": "Comparaison des semestres (Minutes)",
+        "analytics_explorer": "Explorateur d'analytique",
     }
 }

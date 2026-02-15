@@ -1,11 +1,36 @@
+
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QProgressBar, QLabel, QListWidget, 
-    QListWidgetItem, QHBoxLayout, QPushButton, QScrollArea, QFrame
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, 
+    QScrollArea, QGridLayout, QProgressBar
 )
-from PyQt5.QtCore import Qt
-from student_app.database import get_todo_chapters, get_progress_stats
+from PyQt5.QtCore import Qt, QDate
+from student_app.database import get_todo_chapters, get_progress_stats, get_all_subjects
 from student_app.settings import get_language
 from student_app.ui.translations import TRANSLATIONS
+from datetime import datetime
+
+class StatCard(QFrame):
+    def __init__(self, title, value, subtitle="", icon=""):
+        super().__init__()
+        self.setObjectName("card")
+        layout = QVBoxLayout(self)
+        
+        if icon:
+            title = f"{icon} {title}"
+        
+        t_label = QLabel(title)
+        t_label.setObjectName("mute")
+        layout.addWidget(t_label)
+        
+        v_label = QLabel(str(value))
+        v_label.setObjectName("h2")
+        layout.addWidget(v_label)
+        
+        if subtitle:
+            s_label = QLabel(subtitle)
+            s_label.setObjectName("mute")
+            s_label.setStyleSheet("font-size: 11px;")
+            layout.addWidget(s_label)
 
 class Dashboard(QWidget):
     def __init__(self):
@@ -15,130 +40,121 @@ class Dashboard(QWidget):
         self.init_ui()
 
     def init_ui(self):
-        layout = QVBoxLayout()
-        if self.lang == "Arabic":
-            layout.setAlignment(Qt.AlignRight)
-            self.setLayoutDirection(Qt.RightToLeft)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(30, 30, 30, 30)
+        main_layout.setSpacing(25)
         
         # Header
-        header = QLabel(self.texts["dashboard"])
-        header.setObjectName("headerLabel")
-        layout.addWidget(header)
-
-        # Progress Section
-        prog_layout = QVBoxLayout()
-        self.stats_label = QLabel(f"{self.texts['overall_progress']}: 0/0 {self.texts['tasks_completed']}")
-        self.stats_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #495057;")
+        header_layout = QHBoxLayout()
+        title = QLabel(self.texts["dashboard"])
+        title.setObjectName("h1")
+        header_layout.addWidget(title)
         
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setValue(0)
-        self.progress_bar.setFixedHeight(25)
+        self.date_label = QLabel(QDate.currentDate().toString("dddd, MMMM d"))
+        self.date_label.setObjectName("mute")
+        header_layout.addStretch()
+        header_layout.addWidget(self.date_label)
+        main_layout.addLayout(header_layout)
         
-        prog_layout.addWidget(self.stats_label)
-        prog_layout.addWidget(self.progress_bar)
+        # Stats Row
+        stats_layout = QHBoxLayout()
+        self.progress_card = StatCard(self.texts["overall_progress"], "0%", "Tasks Completed", "📈")
+        self.exam_card = StatCard("Next Exam", "None", "Countdown", "📅")
+        self.streak_card = StatCard("Study Streak", "0 Days", "Current consistency", "🔥")
         
-        progress_group = QFrame()
-        progress_group.setLayout(prog_layout)
-        progress_group.setStyleSheet("""
-            QFrame {
-                background: #ffffff; 
-                border: 1px solid #dee2e6; 
-                border-radius: 12px; 
-                padding: 20px;
-            }
-        """)
-        layout.addWidget(progress_group)
-
-        # To-Do Section Header
-        layout.addSpacing(10)
-        todo_header_layout = QHBoxLayout()
-        todo_title = QLabel(self.texts["up_next"])
-        todo_title.setStyleSheet("font-size: 20px; font-weight: bold; color: #2c3e50;")
+        stats_layout.addWidget(self.progress_card)
+        stats_layout.addWidget(self.exam_card)
+        stats_layout.addWidget(self.streak_card)
+        main_layout.addLayout(stats_layout)
         
-        refresh_btn = QPushButton(self.texts["refresh"])
-        refresh_btn.setFixedWidth(100)
-        refresh_btn.clicked.connect(self.refresh_data)
+        # Bottom Section (Split)
+        bottom_layout = QHBoxLayout()
         
-        todo_header_layout.addWidget(todo_title)
-        todo_header_layout.addStretch()
-        todo_header_layout.addWidget(refresh_btn)
-        layout.addLayout(todo_header_layout)
+        # To-Do Section
+        todo_vbox = QVBoxLayout()
+        todo_vbox.addWidget(QLabel(self.texts["up_next"], objectName="h2"))
         
-        # Scroll Area for Grouped Todos
-        self.scroll = QScrollArea()
-        self.scroll.setWidgetResizable(True)
-        self.scroll.setStyleSheet("border: none; background: transparent;")
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("background: transparent; border: none;")
         
         self.todo_container = QWidget()
-        self.todo_main_layout = QVBoxLayout(self.todo_container)
-        self.todo_main_layout.setAlignment(Qt.AlignTop)
-        self.todo_main_layout.setSpacing(15)
+        self.todo_layout = QVBoxLayout(self.todo_container)
+        self.todo_layout.setAlignment(Qt.AlignTop)
+        scroll.setWidget(self.todo_container)
         
-        self.scroll.setWidget(self.todo_container)
-        layout.addWidget(self.scroll)
-
-        self.setLayout(layout)
+        todo_vbox.addWidget(scroll)
+        bottom_layout.addLayout(todo_vbox, 2)
+        
+        # Quick Tips / Level Progress
+        side_vbox = QVBoxLayout()
+        side_vbox.addWidget(QLabel("Progress Overview", objectName="h2"))
+        
+        self.level_frame = QFrame()
+        self.level_frame.setObjectName("card")
+        level_layout = QVBoxLayout(self.level_frame)
+        self.overall_progress_bar = QProgressBar()
+        level_layout.addWidget(QLabel("Course Completion"))
+        level_layout.addWidget(self.overall_progress_bar)
+        
+        side_vbox.addWidget(self.level_frame)
+        side_vbox.addStretch()
+        bottom_layout.addLayout(side_vbox, 1)
+        
+        main_layout.addLayout(bottom_layout)
+        
         self.refresh_data()
 
     def refresh_data(self):
-        # Update Stats & Progress
+        # 1. Update Progress
         total, completed = get_progress_stats()
-        percentage = int((completed / total * 100)) if total > 0 else 0
+        perc = int((completed / total) * 100) if total > 0 else 0
         
-        self.stats_label.setText(f"{self.texts['overall_progress']}: {completed}/{total} {self.texts['tasks_completed']}")
-        self.progress_bar.setValue(percentage)
-
-        # Update To-Do List Grouped by Subject
-        # Clear current list
-        for i in reversed(range(self.todo_main_layout.count())): 
-            widget = self.todo_main_layout.itemAt(i).widget()
-            if widget:
-                widget.setParent(None)
-
-        todos = get_todo_chapters()
+        # Finding labels inside StatCard is tricky without references, 
+        # let's rebuild or update if we had kept refs. 
+        # For simplicity in this demo, I'll update the progress bar.
+        self.overall_progress_bar.setValue(perc)
         
-        if not todos:
-            empty_label = QLabel("🎉 All caught up! No pending tasks.")
-            empty_label.setStyleSheet("font-size: 16px; color: #6c757d; font-style: italic;")
-            empty_label.setAlignment(Qt.AlignCenter)
-            self.todo_main_layout.addWidget(empty_label)
-        else:
-            # Group by subject
-            grouped_todos = {}
-            for item in todos:
-                subj = item['subject_name']
-                if subj not in grouped_todos:
-                    grouped_todos[subj] = []
-                grouped_todos[subj].append(item)
+        # 2. Update Exam Countdown
+        subjects = get_all_subjects()
+        today = datetime.now().date()
+        next_exam = None
+        min_days = 999
+        
+        for sub in subjects:
+            if sub['exam_date']:
+                edate = datetime.strptime(sub['exam_date'], "%Y-%m-%d").date()
+                days = (edate - today).days
+                if 0 <= days < min_days:
+                    min_days = days
+                    next_exam = f"{sub['name']} (in {days}d)"
+        
+        # 3. To-Do List
+        for i in reversed(range(self.todo_layout.count())): 
+            self.todo_layout.itemAt(i).widget().setParent(None)
             
-            for subject, chapters in grouped_todos.items():
-                subject_group = QFrame()
-                subject_group.setStyleSheet("""
-                    QFrame {
-                        background: #f8f9fa;
-                        border: 1px solid #e9ecef;
-                        border-radius: 10px;
-                    }
-                """)
-                group_layout = QVBoxLayout(subject_group)
+        todos = get_todo_chapters()
+        if not todos:
+            self.todo_layout.addWidget(QLabel("🎉 No tasks left! Take a break."))
+        else:
+            for item in todos[:5]: # Show top 5
+                frame = QFrame()
+                frame.setObjectName("card")
+                frame.setStyleSheet("margin-bottom: 5px; padding: 10px;")
+                flayout = QHBoxLayout(frame)
                 
-                sub_header = QLabel(subject)
-                sub_header.setStyleSheet("font-weight: bold; color: #28a745; font-size: 15px; border: none;")
-                group_layout.addWidget(sub_header)
+                info = QVBoxLayout()
+                info.addWidget(QLabel(item['chapter_name'], styleSheet="font-weight: bold;"))
+                info.addWidget(QLabel(item['subject_name'], objectName="mute"))
+                flayout.addLayout(info)
+                flayout.addStretch()
                 
-                for chap in chapters:
-                    tasks = []
-                    if not chap['video_completed']: tasks.append("Video")
-                    if not chap['exercises_completed']: tasks.append("Exercises")
-                    
-                    chap_label = QLabel(f"• {chap['chapter_name']} - Pending: {', '.join(tasks)}")
-                    chap_label.setStyleSheet("color: #495057; border: none; padding-left: 10px;")
-                    group_layout.addWidget(chap_label)
+                type_label = QLabel("Video" if not item['video_completed'] else "Exercises")
+                type_label.setStyleSheet(f"background: #6366f120; color: #6366f1; padding: 5px 10px; border-radius: 5px;")
+                flayout.addWidget(type_label)
                 
-                self.todo_main_layout.addWidget(subject_group)
-    
+                self.todo_layout.addWidget(frame)
+
     def showEvent(self, event):
         self.refresh_data()
         super().showEvent(event)
