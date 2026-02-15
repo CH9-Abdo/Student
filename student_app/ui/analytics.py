@@ -4,7 +4,11 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QPainter, QColor, QBrush, QFont, QPen
 from PyQt5.QtCore import Qt, QRectF
-from student_app.database import get_detailed_stats, get_all_semesters, get_semester_comparison_stats
+from student_app.database import (
+    get_detailed_stats, get_all_semesters, 
+    get_semester_comparison_stats, get_daily_stats,
+    get_weekly_stats
+)
 from student_app.settings import get_theme, get_language
 from student_app.ui.styles import PALETTE
 from student_app.ui.translations import TRANSLATIONS
@@ -162,11 +166,23 @@ class Analytics(QWidget):
         
         self.content_layout.addLayout(grid)
         
-        # Semester Comparison Chart (New)
+        # Semester Comparison Chart
         self.compare_card = AnalyticsCard(self.texts.get("semester_comparison", "Semester Comparison (Minutes)"))
         self.compare_chart = ModernBarChart(self.theme)
         self.compare_card.layout.addWidget(self.compare_chart)
         self.content_layout.addWidget(self.compare_card)
+        
+        # Daily Progress Chart
+        self.daily_card = AnalyticsCard(self.texts.get("daily_progress", "Daily Progress (Last 7 Days)"))
+        self.daily_chart = ModernBarChart(self.theme)
+        self.daily_card.layout.addWidget(self.daily_chart)
+        self.content_layout.addWidget(self.daily_card)
+
+        # Weekly Progress Chart (New)
+        self.weekly_card = AnalyticsCard(self.texts.get("weekly_progress", "Weekly Progress (Last 8 Weeks)"))
+        self.weekly_chart = ModernBarChart(self.theme)
+        self.weekly_card.layout.addWidget(self.weekly_chart)
+        self.content_layout.addWidget(self.weekly_card)
         
         scroll.setWidget(scroll_content)
         self.main_layout.addWidget(scroll)
@@ -179,6 +195,8 @@ class Analytics(QWidget):
         self.pie_card.set_title(self.texts.get("session_distribution", "Session Distribution"))
         self.time_card.set_title(self.texts.get("time_per_subject", "Time Spent per Subject"))
         self.compare_card.set_title(self.texts.get("semester_comparison", "Semester Comparison (Minutes)"))
+        self.daily_card.set_title(self.texts.get("daily_progress", "Daily Progress (Last 7 Days)"))
+        self.weekly_card.set_title(self.texts.get("weekly_progress", "Weekly Progress (Last 8 Weeks)"))
         
         sem_id = self.sem_selector.currentData()
         if sem_id is None: return
@@ -209,6 +227,16 @@ class Analytics(QWidget):
         comp_stats = get_semester_comparison_stats()
         comp_data = [(s['name'], s['total_minutes']) for s in comp_stats]
         self.compare_chart.set_data(comp_data)
+
+        # Daily Stats
+        daily_stats = get_daily_stats()
+        daily_data = [(s['day'], s['total_minutes']) for s in daily_stats]
+        self.daily_chart.set_data(daily_data)
+
+        # Weekly Stats
+        weekly_stats = get_weekly_stats()
+        weekly_data = [(s['label'], s['total_minutes']) for s in weekly_stats]
+        self.weekly_chart.set_data(weekly_data)
 
     def showEvent(self, event):
         self.refresh_semesters()

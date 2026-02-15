@@ -16,11 +16,18 @@ A comprehensive desktop application designed to help university students manage 
 - **Challenges:** Daily goals to keep you engaged.
 - **Audio Feedback:** Celebratory sound effects for starting, finishing, and leveling up.
 
-### 3. 📊 Study Analytics
-- **Visual Data:** A dedicated Analytics tab with a **Pie Chart** visualizing time spent per subject.
+### 3. 📊 Advanced Study Analytics
+- **Visual Data Distribution:** Dedicated Analytics tab with a **Modern Pie Chart** visualizing time spent per subject.
+- **Semester Comparison:** Compare total study effort across different semesters with bar charts.
+- **Daily Progress:** Track your study consistency over the last 7 days.
+- **Weekly Trends:** Visualize your study habits over the past 8 weeks to identify long-term patterns.
 - **Reality Check:** Track exactly where your time goes to ensure you aren't neglecting difficult subjects.
 
-### 4. 📝 Subject Management & Notes
+### 4. 🌍 Localization & Theme
+- **Multi-language Support:** Fully localized in **English**, **Arabic** (with RTL support), and **French**.
+- **Dark & Light Mode:** Aesthetic theme switching to match your workspace environment.
+
+### 5. 📝 Subject Management & Notes
 - **Detailed Planning:** Add subjects with exam dates.
 - **Dedicated Notes:** A built-in notepad for every subject to store formulas, summaries, and key points directly in the database.
 - **Chapter Tracking:** Break down every subject into chapters with sub-tasks (Video/Exercises).

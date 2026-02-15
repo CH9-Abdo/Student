@@ -200,6 +200,48 @@ def get_semester_comparison_stats():
     conn.close()
     return stats
 
+def get_daily_stats():
+    conn = get_db_connection()
+    # Get last 7 days of activity
+    query = '''
+        SELECT 
+            strftime('%Y-%m-%d', timestamp) as day,
+            SUM(duration_minutes) as total_minutes
+        FROM study_sessions
+        WHERE timestamp >= date('now', '-7 days')
+        GROUP BY day
+        ORDER BY day ASC
+    '''
+    stats = conn.execute(query).fetchall()
+    conn.close()
+    return stats
+
+def get_weekly_stats():
+    conn = get_db_connection()
+    # Get last 8 weeks of activity
+    query = '''
+        SELECT 
+            strftime('%W', timestamp) as week_num,
+            strftime('%Y', timestamp) as year,
+            SUM(duration_minutes) as total_minutes
+        FROM study_sessions
+        WHERE timestamp >= date('now', '-8 weeks')
+        GROUP BY year, week_num
+        ORDER BY year ASC, week_num ASC
+    '''
+    stats = conn.execute(query).fetchall()
+    conn.close()
+    
+    # Format labels as "Week X"
+    formatted_stats = []
+    for s in stats:
+        formatted_stats.append({
+            'label': f"W{s['week_num']}",
+            'total_minutes': s['total_minutes']
+        })
+        
+    return formatted_stats
+
 # --- Semester Functions ---
 def add_semester(name):
     conn = get_db_connection()

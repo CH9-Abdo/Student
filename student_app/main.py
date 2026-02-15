@@ -73,7 +73,7 @@ class MainWindow(QMainWindow):
         sidebar_layout.addStretch()
         
         # Footer
-        footer = QLabel("v2.0 Beta")
+        footer = QLabel("v2.0 Beta By Chenoufi")
         footer.setObjectName("mute")
         footer.setAlignment(Qt.AlignCenter)
         sidebar_layout.addWidget(footer)
