@@ -422,3 +422,28 @@ def get_next_task(subject_id):
             return {'chapter_id': chap['id'], 'chapter_name': chap['name'], 'type': 'Exercises', 'completed': False}
             
     return None
+
+def get_next_exam_info():
+    """
+    Returns (subject_name, days_remaining) for the soonest upcoming exam.
+    """
+    from datetime import datetime
+    conn = get_db_connection()
+    subjects = conn.execute('SELECT name, exam_date FROM subjects WHERE exam_date IS NOT NULL').fetchall()
+    conn.close()
+    
+    today = datetime.now().date()
+    next_exam = None
+    min_days = 999
+    
+    for sub in subjects:
+        try:
+            edate = datetime.strptime(sub['exam_date'], "%Y-%m-%d").date()
+            days = (edate - today).days
+            if 0 <= days < min_days:
+                min_days = days
+                next_exam = (sub['name'], days)
+        except (ValueError, TypeError):
+            continue
+            
+    return next_exam

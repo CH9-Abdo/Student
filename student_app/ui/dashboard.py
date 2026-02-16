@@ -4,10 +4,9 @@ from PyQt5.QtWidgets import (
     QScrollArea, QGridLayout, QProgressBar
 )
 from PyQt5.QtCore import Qt, QDate
-from student_app.database import get_todo_chapters, get_progress_stats, get_all_subjects
+from student_app.database import get_todo_chapters, get_progress_stats, get_all_subjects, get_next_exam_info
 from student_app.settings import get_language
 from student_app.ui.translations import TRANSLATIONS
-from datetime import datetime
 
 class StatCard(QFrame):
     def __init__(self, title, value, subtitle="", icon=""):
@@ -22,15 +21,18 @@ class StatCard(QFrame):
         t_label.setObjectName("mute")
         layout.addWidget(t_label)
         
-        v_label = QLabel(str(value))
-        v_label.setObjectName("h2")
-        layout.addWidget(v_label)
+        self.v_label = QLabel(str(value))
+        self.v_label.setObjectName("h2")
+        layout.addWidget(self.v_label)
         
         if subtitle:
-            s_label = QLabel(subtitle)
-            s_label.setObjectName("mute")
-            s_label.setStyleSheet("font-size: 11px;")
-            layout.addWidget(s_label)
+            self.s_label = QLabel(subtitle)
+            self.s_label.setObjectName("mute")
+            self.s_label.setStyleSheet("font-size: 11px;")
+            layout.addWidget(self.s_label)
+
+    def update_value(self, value):
+        self.v_label.setText(str(value))
 
 class Dashboard(QWidget):
     def __init__(self):
@@ -110,24 +112,13 @@ class Dashboard(QWidget):
         total, completed = get_progress_stats()
         perc = int((completed / total) * 100) if total > 0 else 0
         
-        # Finding labels inside StatCard is tricky without references, 
-        # let's rebuild or update if we had kept refs. 
-        # For simplicity in this demo, I'll update the progress bar.
+        self.progress_card.update_value(f"{perc}%")
         self.overall_progress_bar.setValue(perc)
         
         # 2. Update Exam Countdown
-        subjects = get_all_subjects()
-        today = datetime.now().date()
-        next_exam = None
-        min_days = 999
-        
-        for sub in subjects:
-            if sub['exam_date']:
-                edate = datetime.strptime(sub['exam_date'], "%Y-%m-%d").date()
-                days = (edate - today).days
-                if 0 <= days < min_days:
-                    min_days = days
-                    next_exam = f"{sub['name']} (in {days}d)"
+        info = get_next_exam_info()
+        next_exam = f"{info[0]} (in {info[1]}d)" if info else "None"
+        self.exam_card.update_value(next_exam)
         
         # 3. To-Do List
         for i in reversed(range(self.todo_layout.count())): 

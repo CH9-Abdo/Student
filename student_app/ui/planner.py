@@ -8,7 +8,7 @@ from student_app.database import (
     add_subject, get_all_subjects, delete_subject, 
     add_chapter, get_chapters_by_subject, toggle_chapter_status, delete_chapter,
     add_semester, get_all_semesters, delete_semester, get_subject_progress,
-    get_subject_notes, update_subject_notes
+    get_subject_notes, update_subject_notes, get_next_exam_info
 )
 from student_app.ui.subject_window import SubjectWindow
 from student_app.settings import get_language
@@ -32,6 +32,12 @@ class StudyPlanner(QWidget):
         # Header
         header_layout = QHBoxLayout()
         header_layout.addWidget(QLabel(self.texts["planner"], objectName="h1"))
+        
+        self.next_exam_label = QLabel()
+        self.next_exam_label.setObjectName("mute")
+        self.next_exam_label.setStyleSheet("margin-left: 20px; font-weight: bold; color: #6366f1;")
+        header_layout.addWidget(self.next_exam_label)
+        
         header_layout.addStretch()
         
         self.sem_combo = QComboBox()
@@ -135,6 +141,14 @@ class StudyPlanner(QWidget):
         layout.addWidget(splitter)
         
         self.refresh_semesters()
+        self.refresh_next_exam()
+
+    def refresh_next_exam(self):
+        info = get_next_exam_info()
+        if info:
+            self.next_exam_label.setText(f"📅 Next Exam: {info[0]} (in {info[1]}d)")
+        else:
+            self.next_exam_label.setText("")
 
     def refresh_semesters(self):
         self.sem_combo.blockSignals(True)
@@ -162,14 +176,17 @@ class StudyPlanner(QWidget):
             item.setData(Qt.UserRole, s['id'])
             self.subject_list.addItem(item)
 
-    def on_subject_selected(self, item):
-        self.selected_subject_id = item.data(Qt.UserRole)
-        self.selected_name = item.text()
+    def on_subject_selected(self, item_or_none=None):
+        if isinstance(item_or_none, QListWidgetItem):
+            self.selected_subject_id = item_or_none.data(Qt.UserRole)
+            self.selected_name = item_or_none.text()
+        
         self.right_panel.setEnabled(True)
         self.title_label.setText(self.selected_name)
         self.update_progress()
         self.refresh_chapters()
         self.refresh_notes()
+        self.refresh_next_exam()
 
     def update_progress(self):
         total, completed = get_subject_progress(self.selected_subject_id)
@@ -183,12 +200,14 @@ class StudyPlanner(QWidget):
             add_subject(name, self.current_semester_id, date_str)
             self.name_input.clear()
             self.refresh_subjects()
+            self.refresh_next_exam()
 
     def handle_delete_subject(self):
         if self.selected_subject_id:
             delete_subject(self.selected_subject_id)
             self.selected_subject_id = None
             self.refresh_subjects()
+            self.refresh_next_exam()
             self.right_panel.setEnabled(False)
 
     def refresh_chapters(self):

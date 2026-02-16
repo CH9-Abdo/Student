@@ -112,7 +112,9 @@ class MainWindow(QMainWindow):
             
         # Refresh Logic
         if index == 0: self.dashboard_tab.refresh_data()
-        elif index == 1: self.planner_tab.refresh_subjects()
+        elif index == 1: 
+            self.planner_tab.refresh_subjects()
+            self.planner_tab.refresh_next_exam()
         elif index == 2: 
             self.pomodoro_tab.refresh_subjects()
             self.pomodoro_tab.refresh_profile()
