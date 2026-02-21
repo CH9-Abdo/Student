@@ -80,6 +80,22 @@ run.py                # Main entry point
 student_data.db       # Persistent SQLite storage
 ```
 
+## 📦 Distribution (Create Executable)
+
+To create a standalone executable for easy sharing:
+
+1. Install PyInstaller:
+   ```bash
+   pip install pyinstaller
+   ```
+
+2. Run the build command:
+   ```bash
+   pyinstaller run.spec
+   ```
+
+3. The executable will be created in the `dist/` folder.
+
 ## 📝 License
 This project is open-source and free to use for students worldwide.
 By Chenoufi Abderrahmane
