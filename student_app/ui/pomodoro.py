@@ -204,9 +204,12 @@ class PomodoroTimer(QWidget):
                 self.notify_callback("Pomodoro", "Work session finished! Time for a break.")
             
             sub_id = self.subject_combo.currentData()
-            if sub_id: log_study_session(sub_id, 25)
+            duration_mins = self.work_time // 60
+            if sub_id: log_study_session(sub_id, duration_mins)
             
-            leveled_up, new_level = add_xp(50, 1)
+            # Scale XP: 2 XP per minute (standard 25 min = 50 XP)
+            xp_to_add = duration_mins * 2
+            leveled_up, new_level = add_xp(xp_to_add, 1)
             self.refresh_profile()
             
             if self.sessions_completed % 4 == 0:
