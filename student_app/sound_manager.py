@@ -43,10 +43,13 @@ def create_app_sounds():
         if not os.path.exists(path):
             generate_beep(path, duration=dur, frequency=freq)
             
-    # Create a dummy lo-fi track if it doesn't exist (just a soft hum)
-    lofi_path = os.path.join(base_path, "lofi_rain.wav")
-    if not os.path.exists(lofi_path):
-        generate_beep(lofi_path, duration=5.0, frequency=220.0, volume=0.1) # Soft low hum
+    # Check if we have any lofi music
+    lofi_mp3 = os.path.join(base_path, "fassounds-lofi-study-calm-peaceful-chill-hop-112191.mp3")
+    lofi_wav = os.path.join(base_path, "lofi_rain.wav")
+    
+    # Create a dummy lo-fi track ONLY if no music exists
+    if not os.path.exists(lofi_mp3) and not os.path.exists(lofi_wav):
+        generate_beep(lofi_wav, duration=5.0, frequency=220.0, volume=0.1) # Soft low hum
 
 def play_sound(sound_name):
     """Plays a sound file using pygame."""
@@ -59,7 +62,14 @@ def play_sound(sound_name):
 
 def toggle_lofi(enable):
     """Toggles the background lo-fi track."""
-    sound_path = os.path.join(os.path.dirname(__file__), "assets", "sounds", "lofi_rain.wav")
+    base_path = os.path.join(os.path.dirname(__file__), "assets", "sounds")
+    
+    # Try the new MP3 first, then the old WAV
+    lofi_mp3 = os.path.join(base_path, "fassounds-lofi-study-calm-peaceful-chill-hop-112191.mp3")
+    lofi_wav = os.path.join(base_path, "lofi_rain.wav")
+    
+    sound_path = lofi_mp3 if os.path.exists(lofi_mp3) else lofi_wav
+    
     if not os.path.exists(sound_path):
         return
 
@@ -67,6 +77,7 @@ def toggle_lofi(enable):
         if enable:
             # Load and play indefinitely (-1)
             pygame.mixer.music.load(sound_path)
+            pygame.mixer.music.set_volume(0.4) # Set comfortable volume
             pygame.mixer.music.play(loops=-1)
         else:
             pygame.mixer.music.stop()
