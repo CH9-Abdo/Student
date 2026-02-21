@@ -4,16 +4,16 @@ A comprehensive desktop application designed to help university students manage 
 
 ## 🚀 Key Features
 
-### 1. 🍅 Pomodoro Timer & Smart Suggestions
-- **Focused Study:** Standard 25/5/15 Pomodoro intervals to maintain peak productivity.
+### 1. 🍅 Configurable Pomodoro Timer & Smart Suggestions
+- **Focused Study:** Adjustable work, short break, and long break intervals (default 25/5/15) via settings.
 - **Smart Priority:** Automatically suggests the most important task based on upcoming exams.
 - **Task Suggestions:** Specifically tells you whether to focus on **Videos** or **Exercises** for the next incomplete chapter.
 - **Lo-Fi Audio:** Integrated background focus music (Lo-Fi/Rain) to improve concentration.
 
-### 2. 🎮 Gamification (XP & Leveling)
+### 2. 🎮 Gamification & Streak Logic
+- **Study Streak:** Real-time tracking of consecutive study days to maintain consistency.
 - **Earn XP:** Gain 50 XP for every completed study session.
 - **Level Up:** Progress through student ranks as you accumulate XP.
-- **Challenges:** Daily goals to keep you engaged.
 - **Audio Feedback:** Celebratory sound effects for starting, finishing, and leveling up.
 
 ### 3. 📊 Advanced Study Analytics
@@ -23,12 +23,14 @@ A comprehensive desktop application designed to help university students manage 
 - **Weekly Trends:** Visualize your study habits over the past 8 weeks to identify long-term patterns.
 - **Reality Check:** Track exactly where your time goes to ensure you aren't neglecting difficult subjects.
 
-### 4. 🌍 Localization & Theme
+### 4. 🌍 Localization, Theme & Notifications
 - **Multi-language Support:** Fully localized in **English**, **Arabic** (with RTL support), and **French**.
 - **Dark & Light Mode:** Aesthetic theme switching to match your workspace environment.
+- **Desktop Notifications:** System-native alerts for timer completion and upcoming deadlines (exams and chapter due dates).
 
-### 5. 📝 Subject Management & Notes
-- **Detailed Planning:** Add subjects with exam dates.
+### 5. 📝 Subject Management & Chapter Scheduling
+- **Detailed Planning:** Add subjects with exam and test dates.
+- **Chapter Due Dates:** Assign specific deadlines to individual chapters for granular tracking.
 - **Dedicated Notes:** A built-in notepad for every subject to store formulas, summaries, and key points directly in the database.
 - **Chapter Tracking:** Break down every subject into chapters with sub-tasks (Video/Exercises).
 
@@ -79,4 +81,5 @@ student_data.db       # Persistent SQLite storage
 ```
 
 ## 📝 License
-This project is open-source and free to use.
+This project is open-source and free to use for students worldwide.
+By Chenoufi Abderrahmane

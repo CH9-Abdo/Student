@@ -43,3 +43,18 @@ def set_theme(theme):
     settings = load_settings()
     settings["theme"] = theme
     save_settings(settings)
+
+def get_pomodoro_settings():
+    settings = load_settings()
+    return {
+        "work": settings.get("pomodoro_work", 25),
+        "short_break": settings.get("pomodoro_short", 5),
+        "long_break": settings.get("pomodoro_long", 15)
+    }
+
+def set_pomodoro_settings(work, short, long):
+    settings = load_settings()
+    settings["pomodoro_work"] = work
+    settings["pomodoro_short"] = short
+    settings["pomodoro_long"] = long
+    save_settings(settings)

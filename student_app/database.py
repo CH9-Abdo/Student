@@ -82,6 +82,11 @@ def init_db():
     except sqlite3.OperationalError:
         cursor.execute('ALTER TABLE chapters ADD COLUMN video_completed BOOLEAN DEFAULT 0')
         cursor.execute('ALTER TABLE chapters ADD COLUMN exercises_completed BOOLEAN DEFAULT 0')
+    
+    try:
+        cursor.execute('SELECT due_date FROM chapters LIMIT 1')
+    except sqlite3.OperationalError:
+        cursor.execute('ALTER TABLE chapters ADD COLUMN due_date DATE')
 
     # Create User Profile table (Gamification)
     cursor.execute('''
@@ -311,9 +316,9 @@ def delete_subject(subject_id):
     conn.commit()
     conn.close()
 
-def add_chapter(subject_id, name):
+def add_chapter(subject_id, name, due_date=None):
     conn = get_db_connection()
-    conn.execute('INSERT INTO chapters (subject_id, name) VALUES (?, ?)', (subject_id, name))
+    conn.execute('INSERT INTO chapters (subject_id, name, due_date) VALUES (?, ?, ?)', (subject_id, name, due_date))
     conn.commit()
     conn.close()
 
@@ -356,6 +361,12 @@ def toggle_exercises_status(chapter_id, status):
 def delete_chapter(chapter_id):
     conn = get_db_connection()
     conn.execute('DELETE FROM chapters WHERE id = ?', (chapter_id,))
+    conn.commit()
+    conn.close()
+
+def update_chapter_due_date(chapter_id, due_date):
+    conn = get_db_connection()
+    conn.execute('UPDATE chapters SET due_date = ? WHERE id = ?', (due_date, chapter_id))
     conn.commit()
     conn.close()
 
@@ -447,3 +458,72 @@ def get_next_exam_info():
             continue
             
     return next_exam
+
+def get_study_streak():
+    """
+    Calculates the current study streak in days.
+    """
+    from datetime import datetime, timedelta
+    conn = get_db_connection()
+    # Get all unique dates where study sessions occurred, sorted descending
+    query = "SELECT DISTINCT date(timestamp) as study_date FROM study_sessions ORDER BY study_date DESC"
+    rows = conn.execute(query).fetchall()
+    conn.close()
+
+    if not rows:
+        return 0
+
+    today = datetime.now().date()
+    yesterday = today - timedelta(days=1)
+    
+    dates = [datetime.strptime(row['study_date'], "%Y-%m-%d").date() for row in rows]
+    
+    # If the latest study wasn't today or yesterday, the streak is broken
+    if dates[0] < yesterday:
+        return 0
+    
+    streak = 1
+    for i in range(len(dates) - 1):
+        if (dates[i] - dates[i+1]).days == 1:
+            streak += 1
+        else:
+            break
+            
+    return streak
+
+def get_upcoming_deadlines(days_limit=3):
+    """
+    Returns upcoming exams and chapter due dates within the next X days.
+    """
+    from datetime import datetime, timedelta
+    conn = get_db_connection()
+    today = datetime.now().date()
+    limit_date = today + timedelta(days=days_limit)
+    
+    deadlines = []
+    
+    # Exams
+    exams = conn.execute('SELECT name, exam_date FROM subjects WHERE exam_date IS NOT NULL').fetchall()
+    for e in exams:
+        try:
+            d = datetime.strptime(e['exam_date'], "%Y-%m-%d").date()
+            if today <= d <= limit_date:
+                deadlines.append(f"Exam: {e['name']} on {e['exam_date']}")
+        except: continue
+        
+    # Chapters
+    chapters = conn.execute('''
+        SELECT c.name as chap_name, s.name as sub_name, c.due_date 
+        FROM chapters c 
+        JOIN subjects s ON c.subject_id = s.id 
+        WHERE c.due_date IS NOT NULL AND c.is_completed = 0
+    ''').fetchall()
+    for c in chapters:
+        try:
+            d = datetime.strptime(c['due_date'], "%Y-%m-%d").date()
+            if today <= d <= limit_date:
+                deadlines.append(f"Chapter: {c['chap_name']} ({c['sub_name']}) due {c['due_date']}")
+        except: continue
+        
+    conn.close()
+    return deadlines

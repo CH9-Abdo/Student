@@ -11,7 +11,7 @@ from student_app.database import (
     add_xp, log_study_session
 )
 from student_app.sound_manager import play_sound, toggle_lofi
-from student_app.settings import get_language
+from student_app.settings import get_language, get_pomodoro_settings
 from student_app.ui.translations import TRANSLATIONS
 
 class CircularTimer(QWidget):
@@ -55,15 +55,17 @@ class CircularTimer(QWidget):
         painter.drawText(rect, Qt.AlignCenter, self.time_text)
 
 class PomodoroTimer(QWidget):
-    def __init__(self):
+    def __init__(self, notify_callback=None):
         super().__init__()
+        self.notify_callback = notify_callback
         self.lang = get_language()
         self.texts = TRANSLATIONS.get(self.lang, TRANSLATIONS["English"])
         
-        # Standard Pomodoro Settings
-        self.work_time = 25 * 60
-        self.short_break = 5 * 60
-        self.long_break = 15 * 60
+        # Load Pomodoro Settings
+        p_settings = get_pomodoro_settings()
+        self.work_time = p_settings["work"] * 60
+        self.short_break = p_settings["short_break"] * 60
+        self.long_break = p_settings["long_break"] * 60
         
         self.time_left = self.work_time
         self.is_running = False
@@ -76,6 +78,17 @@ class PomodoroTimer(QWidget):
         self.init_ui()
         self.refresh_subjects()
         self.refresh_profile()
+
+    def refresh_settings(self):
+        if not self.is_running:
+            p_settings = get_pomodoro_settings()
+            self.work_time = p_settings["work"] * 60
+            self.short_break = p_settings["short_break"] * 60
+            self.long_break = p_settings["long_break"] * 60
+            if self.mode == "WORK": self.time_left = self.work_time
+            elif self.mode == "SHORT_BREAK": self.time_left = self.short_break
+            else: self.time_left = self.long_break
+            self.update_display()
 
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -187,6 +200,9 @@ class PomodoroTimer(QWidget):
             self.sessions_label.setText(f"{self.texts['sessions_today']}: {self.sessions_completed}")
             play_sound("complete.wav")
             
+            if self.notify_callback:
+                self.notify_callback("Pomodoro", "Work session finished! Time for a break.")
+            
             sub_id = self.subject_combo.currentData()
             if sub_id: log_study_session(sub_id, 25)
             
@@ -200,6 +216,8 @@ class PomodoroTimer(QWidget):
         else:
             self.mode = "WORK"; self.time_left = self.work_time
             play_sound("break.wav")
+            if self.notify_callback:
+                self.notify_callback("Pomodoro", "Break finished! Time to focus.")
 
         self.update_display()
         self.start_btn.setText(self.texts["start_focus"])

@@ -1,0 +1,96 @@
+# Student Study Manager - Detailed Documentation
+==================================================
+
+Developed by Chenoufi Abderrahmane
+Version: 2.0 Beta
+
+1. Overview
+-----------
+The Student Study Manager is a cross-platform desktop application built with Python and PyQt5. It provides a centralized hub for university students to organize their curriculum, track progress, manage study time using the Pomodoro technique, and analyze their performance over time.
+
+2. Architecture and Technology Stack
+------------------------------------
+- Language: Python 3.x
+- GUI Framework: PyQt5 (Signals, Slots, QStackedWidget, QPainter for custom UI)
+- Database: SQLite (Embedded, no external server required)
+- Audio: Pygame Mixer (Handles multiple sound channels for effects and background music)
+- Styles: Custom QSS (Qt Style Sheets) with Light/Dark mode support.
+- Config: JSON-based configuration for persistence of user preferences (language, theme, database path).
+
+3. Core Data Model (SQLite Schema)
+----------------------------------
+- Semesters: Organizes subjects into academic periods.
+- Subjects: Stores subject names, exam dates, test dates, and custom notes.
+- Chapters: Breaks subjects into smaller units with "Video" and "Exercises" sub-tasks. Now supports specific "due_date".
+- Study Sessions: Logs every study interval with subject ID, duration (minutes), and timestamp for analytics.
+- User Profile: Tracks XP, Level, and Total Sessions for the gamification system.
+
+4. Functional Modules
+---------------------
+
+A. Dashboard (The Command Center)
+- Overall Progress: Calculates the percentage of completed sub-tasks across all chapters.
+- Next Exam: Displays a countdown to the nearest exam date.
+- Study Streak: A dynamic counter that increments for every consecutive day a study session is logged.
+- To-Do List: Shows the next 5 actionable tasks from any subject.
+- Progress Overview: Visual progress bar for overall course completion.
+
+B. Study Planner
+- Semester Management: Users can create and switch between different semesters.
+- Subject Management: Add, delete, and view subjects within the selected semester.
+- Quick View: View chapter completion status and notes for the selected subject.
+- Subject Window: A dedicated pop-up for deep-diving into a subject, managing its chapters, due dates, and rich text notes.
+
+C. Pomodoro Timer
+- Configurable Intervals: Work, short break, and long break times can be adjusted in settings.
+- Circular Progress: A custom-painted widget that visually represents time remaining.
+- Task Suggestion: Uses an algorithm to suggest which specific chapter and task (Video or Exercise) to focus on next.
+- Gamification: Awards 50 XP upon completion of a work session. Leveling up triggers sound effects.
+- Lo-Fi Music: Integrates a focus music player with multiple tracks (Lo-Fi, Rain, Nature).
+
+D. Analytics Explorer
+- Session Distribution: A pie chart showing which subjects consume the most study time.
+- Semester Comparison: A bar chart comparing productivity across academic periods.
+- Daily Progress: Line chart tracking total study minutes over the last 7 days.
+- Weekly Trends: Visualizes long-term consistency over the last 8 weeks.
+
+E. Settings and Customization
+- Localization: Supports English, Arabic (RTL), and French.
+- Theme: Toggle between Light and Dark mode with instant stylesheet swapping.
+- Database Management: Allows users to move or change the location of the `student_data.db` file (useful for cloud sync).
+- Pomodoro Config: Interface to set custom minute intervals for study/break cycles.
+
+5. Intelligent Systems
+----------------------
+
+A. Streak Logic
+The streak is calculated on-the-fly by querying unique dates from the `study_sessions` table. If the most recent study date is older than yesterday, the streak resets to zero.
+
+B. Desktop Notifications
+Using `QSystemTrayIcon`, the app sends native system notifications for:
+- Pomodoro session completion (Work/Break).
+- Upcoming exams (within 3 days).
+- Upcoming chapter deadlines (within 3 days).
+
+C. Smart Progress Tracking
+Each chapter is considered 50% done if the "Video" is watched, and 100% done only when "Exercises" are also completed. This reflects a realistic study workflow.
+
+6. File Structure (Key Files)
+-----------------------------
+- run.py: Application entry point.
+- config.json: Stores user settings.
+- student_data.db: The database file.
+- student_app/database.py: Contains all SQL queries and data logic.
+- student_app/sound_manager.py: Manages audio playback and Lo-Fi loop.
+- student_app/ui/styles.py: The "Theme Engine" of the app.
+- student_app/ui/translations.py: The dictionary for multi-language support.
+
+7. Future Roadmap
+-----------------
+- Cloud synchronization via API.
+- Exporting analytics to PDF/CSV.
+- Interactive calendar view for deadlines.
+- More granular sub-task management.
+
+==================================================
+Copyright 2026 - Chenoufi Abderrahmane

@@ -1,9 +1,12 @@
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFileDialog, QMessageBox, QGroupBox, QComboBox
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFileDialog, QMessageBox, QGroupBox, QComboBox, QSpinBox
 )
 import os
 import shutil
-from student_app.settings import get_db_path, set_db_path, get_language, set_language, get_theme, set_theme
+from student_app.settings import (
+    get_db_path, set_db_path, get_language, set_language, 
+    get_theme, set_theme, get_pomodoro_settings, set_pomodoro_settings
+)
 from student_app.ui.translations import TRANSLATIONS
 from student_app.database import reset_all_data
 
@@ -47,6 +50,38 @@ class SettingsTab(QWidget):
         appearance_layout.addLayout(h_layout)
         appearance_group.setLayout(appearance_layout)
         layout.addWidget(appearance_group)
+
+        # Pomodoro Settings Group
+        p_group = QGroupBox(self.texts["pomodoro"])
+        p_layout = QVBoxLayout()
+        
+        p_vals = get_pomodoro_settings()
+        
+        timer_row = QHBoxLayout()
+        
+        # Work
+        w_v = QVBoxLayout(); w_v.addWidget(QLabel("Work (min)"))
+        self.work_spin = QSpinBox(); self.work_spin.setRange(1, 120); self.work_spin.setValue(p_vals["work"])
+        w_v.addWidget(self.work_spin); timer_row.addLayout(w_v)
+        
+        # Short
+        s_v = QVBoxLayout(); s_v.addWidget(QLabel("Short Break"))
+        self.short_spin = QSpinBox(); self.short_spin.setRange(1, 30); self.short_spin.setValue(p_vals["short_break"])
+        s_v.addWidget(self.short_spin); timer_row.addLayout(s_v)
+        
+        # Long
+        l_v = QVBoxLayout(); l_v.addWidget(QLabel("Long Break"))
+        self.long_spin = QSpinBox(); self.long_spin.setRange(1, 60); self.long_spin.setValue(p_vals["long_break"])
+        l_v.addWidget(self.long_spin); timer_row.addLayout(l_v)
+        
+        p_layout.addLayout(timer_row)
+        
+        save_p_btn = QPushButton(self.texts["save"])
+        save_p_btn.clicked.connect(self.save_pomodoro_settings)
+        p_layout.addWidget(save_p_btn)
+        
+        p_group.setLayout(p_layout)
+        layout.addWidget(p_group)
 
         # Database Settings Group
         db_group = QGroupBox(self.texts["database_sync"])
@@ -103,6 +138,15 @@ class SettingsTab(QWidget):
     def change_theme(self, theme):
         set_theme(theme)
         QMessageBox.information(self, self.texts["success"], self.texts["restart_msg"])
+
+    def save_pomodoro_settings(self):
+        work = self.work_spin.value()
+        short = self.short_spin.value()
+        long = self.long_spin.value()
+        set_pomodoro_settings(work, short, long)
+        self.sender().setText(self.texts["success"])
+        from PyQt5.QtCore import QTimer
+        QTimer.singleShot(2000, lambda: self.sender().setText(self.texts["save"]))
 
     def handle_reset_data(self):
         ret = QMessageBox.question(self, self.texts["danger_zone"], self.texts["reset_confirm"],

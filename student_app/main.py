@@ -1,11 +1,13 @@
 import sys
+import os
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
-    QStackedWidget, QPushButton, QLabel, QFrame, QSpacerItem, QSizePolicy
+    QStackedWidget, QPushButton, QLabel, QFrame, QSpacerItem, QSizePolicy,
+    QSystemTrayIcon
 )
 from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect
 from PyQt5.QtGui import QIcon
-from student_app.database import init_db
+from student_app.database import init_db, get_upcoming_deadlines
 from student_app.ui.styles import get_stylesheet
 from student_app.ui.dashboard import Dashboard
 from student_app.ui.planner import StudyPlanner
@@ -27,6 +29,33 @@ class MainWindow(QMainWindow):
         self.resize(1100, 750)
         
         self.setup_ui()
+        self.setup_tray()
+
+    def setup_tray(self):
+        self.tray_icon = QSystemTrayIcon(self)
+        icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "130manstudent2_100617.ico")
+        if os.path.exists(icon_path):
+            self.tray_icon.setIcon(QIcon(icon_path))
+        else:
+            # Fallback to some generic icon if not found
+            self.tray_icon.setIcon(self.style().standardIcon(QSizePolicy.Policy(0))) 
+        
+        self.tray_icon.show()
+        
+        # Check for upcoming deadlines on startup
+        from PyQt5.QtCore import QTimer
+        QTimer.singleShot(2000, self.check_deadlines)
+
+    def check_deadlines(self):
+        deadlines = get_upcoming_deadlines()
+        if deadlines:
+            msg = "\n".join(deadlines[:3]) # Show top 3
+            if len(deadlines) > 3:
+                msg += f"\n...and {len(deadlines)-3} more."
+            self.notify("Upcoming Deadlines", msg)
+
+    def notify(self, title, message):
+        self.tray_icon.showMessage(title, message, QSystemTrayIcon.Information, 5000)
 
     def setup_ui(self):
         central_widget = QWidget()
@@ -85,7 +114,7 @@ class MainWindow(QMainWindow):
         
         self.dashboard_tab = Dashboard()
         self.planner_tab = StudyPlanner()
-        self.pomodoro_tab = PomodoroTimer()
+        self.pomodoro_tab = PomodoroTimer(notify_callback=self.notify)
         self.analytics_tab = Analytics()
         self.settings_tab = SettingsTab()
         
@@ -118,6 +147,7 @@ class MainWindow(QMainWindow):
         elif index == 2: 
             self.pomodoro_tab.refresh_subjects()
             self.pomodoro_tab.refresh_profile()
+            self.pomodoro_tab.refresh_settings()
         elif index == 3: self.analytics_tab.refresh_data()
 
 def main():

@@ -8,7 +8,7 @@ from student_app.database import (
     add_chapter, get_chapters_by_subject, toggle_video_status, 
     toggle_exercises_status, delete_chapter, get_subject_progress,
     update_subject_notes, get_subject_notes, update_subject_dates,
-    get_all_subjects
+    get_all_subjects, update_chapter_due_date
 )
 from student_app.settings import get_language
 from student_app.ui.translations import TRANSLATIONS
@@ -28,6 +28,15 @@ class ChapterWidget(QFrame):
         self.name_label = QLabel(chapter['name'])
         self.name_label.setStyleSheet("font-weight: bold; font-size: 14px;")
         layout.addWidget(self.name_label, 2)
+
+        self.due_date_edit = QDateEdit()
+        self.due_date_edit.setCalendarPopup(True)
+        if chapter['due_date']:
+            self.due_date_edit.setDate(QDate.fromString(chapter['due_date'], "yyyy-MM-dd"))
+        else:
+            self.due_date_edit.setDate(QDate.currentDate())
+        self.due_date_edit.dateChanged.connect(self.on_due_date_changed)
+        layout.addWidget(self.due_date_edit, 1)
         
         self.video_check = QCheckBox("Course")
         self.video_check.setChecked(bool(chapter['video_completed']))
@@ -55,6 +64,10 @@ class ChapterWidget(QFrame):
     def on_exercises_toggled(self, state):
         status = 1 if state == Qt.Checked else 0
         toggle_exercises_status(self.chapter_id, status)
+        self.status_changed.emit()
+
+    def on_due_date_changed(self, date):
+        update_chapter_due_date(self.chapter_id, date.toString("yyyy-MM-dd"))
         self.status_changed.emit()
 
     def on_delete(self):
@@ -133,10 +146,15 @@ class SubjectWindow(QMainWindow):
         self.chapter_input.setPlaceholderText(self.texts.get("add_chapter", "Add Chapter") + "...")
         self.chapter_input.returnPressed.connect(self.handle_add_chapter)
         
+        self.chapter_due_date_input = QDateEdit()
+        self.chapter_due_date_input.setCalendarPopup(True)
+        self.chapter_due_date_input.setDate(QDate.currentDate())
+        
         add_btn = QPushButton(self.texts.get("add_chapter", "Add Chapter"))
         add_btn.clicked.connect(self.handle_add_chapter)
         
         add_chap_layout.addWidget(self.chapter_input)
+        add_chap_layout.addWidget(self.chapter_due_date_input)
         add_chap_layout.addWidget(add_btn)
         chap_layout.addLayout(add_chap_layout)
 
@@ -225,7 +243,8 @@ class SubjectWindow(QMainWindow):
 
     def handle_add_chapter(self):
         name = self.chapter_input.text().strip()
+        due_date = self.chapter_due_date_input.date().toString("yyyy-MM-dd")
         if name:
-            add_chapter(self.subject_id, name)
+            add_chapter(self.subject_id, name, due_date)
             self.chapter_input.clear()
             self.refresh_data()

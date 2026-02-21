@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
     QScrollArea, QGridLayout, QProgressBar
 )
 from PyQt5.QtCore import Qt, QDate
-from student_app.database import get_todo_chapters, get_progress_stats, get_all_subjects, get_next_exam_info
+from student_app.database import get_todo_chapters, get_progress_stats, get_all_subjects, get_next_exam_info, get_study_streak
 from student_app.settings import get_language
 from student_app.ui.translations import TRANSLATIONS
 
@@ -120,6 +120,10 @@ class Dashboard(QWidget):
         next_exam = f"{info[0]} (in {info[1]}d)" if info else "None"
         self.exam_card.update_value(next_exam)
         
+        # 2.5 Update Streak
+        streak = get_study_streak()
+        self.streak_card.update_value(f"{streak} Days")
+
         # 3. To-Do List
         for i in reversed(range(self.todo_layout.count())): 
             self.todo_layout.itemAt(i).widget().setParent(None)
