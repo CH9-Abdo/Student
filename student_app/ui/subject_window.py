@@ -228,9 +228,13 @@ class SubjectWindow(QMainWindow):
     def handle_save_notes(self):
         notes = self.notes_edit.toPlainText()
         update_subject_notes(self.subject_id, notes)
-        # Optional: Show a small "Saved" tooltip or message?
-        self.sender().setText(self.texts.get("success", "Success"))
-        QTimer.singleShot(2000, lambda: self.sender().setText(self.texts.get("save_notes", "Save Notes"))) # Reset text after 2s
+        
+        btn = self.sender()
+        if btn and hasattr(btn, "setText"):
+            btn.setText(self.texts.get("success", "Success"))
+            QTimer.singleShot(2000, lambda: btn.setText(self.texts.get("save_notes", "Save Notes")))
+        
+        self.data_changed.emit()
 
     def handle_save_dates(self):
         exam_date = self.exam_date_edit.date().toString("yyyy-MM-dd")
