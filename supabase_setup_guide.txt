@@ -1,0 +1,109 @@
+================================================================================
+           SUPABASE TABLES SETUP GUIDE (FOR STUDENT APP SYNC)
+================================================================================
+
+هذا الدليل يشرح لك كيفية إنشاء الجداول في Supabase لتتوافق مع تطبيقك الحالي 
+(Student App) لتمكين المزامنة بين الأجهزة مجانًا.
+
+--------------------------------------------------------------------------------
+1. الخطوات الأولى (First Steps):
+--------------------------------------------------------------------------------
+1. اذهب إلى https://supabase.com وأنشئ حساباً (مجاني).
+2. أنشئ مشروعاً جديداً (New Project).
+3. اختر اسماً للمشروع (مثلاً: StudentSync) وكلمة سر لقاعدة البيانات.
+4. انتظر بضع دقائق حتى يتم تجهيز المشروع.
+
+--------------------------------------------------------------------------------
+2. طريقتان لإضافة الجداول (Two Ways to Add Tables):
+--------------------------------------------------------------------------------
+
+الطريقة الأولى: استخدام محرر الجداول (Table Editor - الواجهة الرسومية):
+- من القائمة اليسرى، اختر "Table Editor".
+- اضغط على "New Table".
+- أدخل اسم الجدول (مثلاً: subjects).
+- أضف الأعمدة (Columns) وحدد نوعها (int8, text, date, bool).
+- اضغط "Save".
+
+الطريقة الثانية (الأفضل والأسرع): استخدام محرر SQL (SQL Editor):
+- هذه الطريقة تضمن أن تكون الجداول مطابقة تماماً لما في تطبيقك.
+- من القائمة اليسرى، اختر "SQL Editor".
+- اضغط على "New Query".
+- انسخ الكود الموجود في القسم التالي (رقم 3) والصقه هناك.
+- اضغط على زر "Run".
+
+--------------------------------------------------------------------------------
+3. كود SQL لإنشاء جداولك (Ready-to-use SQL Code):
+--------------------------------------------------------------------------------
+انسخ هذا الكود بالكامل لتجهيز قاعدة البيانات السحابية:
+
+-- 1. جدول الفصول الدراسية
+CREATE TABLE semesters (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name TEXT NOT NULL,
+    user_id UUID REFERENCES auth.users(id) -- لربط البيانات بالمستخدم (للمزامنة)
+);
+
+-- 2. جدول المواد الدراسية
+CREATE TABLE subjects (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    semester_id BIGINT REFERENCES semesters(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    exam_date DATE,
+    test_date DATE,
+    notes TEXT,
+    user_id UUID REFERENCES auth.users(id)
+);
+
+-- 3. جدول الشباتر/الفصول
+CREATE TABLE chapters (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    subject_id BIGINT REFERENCES subjects(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    video_completed BOOLEAN DEFAULT FALSE,
+    exercises_completed BOOLEAN DEFAULT FALSE,
+    is_completed BOOLEAN DEFAULT FALSE,
+    due_date DATE,
+    user_id UUID REFERENCES auth.users(id)
+);
+
+-- 4. جدول جلسات المذاكرة
+CREATE TABLE study_sessions (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    subject_id BIGINT REFERENCES subjects(id) ON DELETE CASCADE,
+    duration_minutes INTEGER,
+    timestamp TIMESTAMPTZ DEFAULT NOW(),
+    user_id UUID REFERENCES auth.users(id)
+);
+
+-- 5. جدول بروفايل المستخدم
+CREATE TABLE user_profile (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    xp INTEGER DEFAULT 0,
+    level INTEGER DEFAULT 1,
+    total_sessions INTEGER DEFAULT 0,
+    user_id UUID REFERENCES auth.users(id) UNIQUE
+);
+
+--------------------------------------------------------------------------------
+4. ملاحظات هامة جداً (Critical Notes):
+--------------------------------------------------------------------------------
+
+أ- عمود user_id: 
+ستلاحظ أنني أضفت عمود `user_id` في كل الجداول. هذا هو "السر" في المزامنة. 
+بدونه، ستختلط بياناتك مع بيانات أي شخص آخر يستخدم التطبيق. 
+بواسطته، يمكن لكل جهاز تسجيل الدخول بنفس الإيميل ورؤية نفس البيانات.
+
+ب- حماية البيانات (Row Level Security - RLS):
+بشكل افتراضي، Supabase يمنع الوصول للبيانات لحمايتها. لتفعيل المزامنة:
+1. اذهب لـ "Authentication" في Supabase.
+2. فعل خيار "Email Auth".
+3. في كل جدول أنشأته، اضغط على "RLS is disabled" واجعلها "Enabled".
+4. أضف "Policy" تسمح للمستخدم بقراءة وكتابة بياناته فقط (Select a template: Enable access to users based on user_id).
+
+ج- الربط مع تطبيقك:
+بمجرد إنشاء الجداول، ستحتاج لاستخدام "Project URL" و "Anon Key" (تجدها في Settings -> API) 
+لربط تطبيق الـ PyQt5 الخاص بك بالسحابة.
+
+================================================================================
+تم إعداد هذا الدليل بناءً على تحليل الكود الحالي لتطبيقك.
+================================================================================

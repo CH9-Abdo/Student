@@ -1,46 +1,45 @@
-# Student Study Manager 🎓
+# Student Study Manager 🎓 (Cloud-Powered)
 
-A comprehensive desktop application designed to help university students manage their academic life. It allows for tracking subjects, planning study chapters, and maintaining a high-focus study routine with gamified elements.
+A comprehensive desktop application designed to help university students manage their academic life. It allows for tracking subjects, planning study chapters, and maintaining a high-focus study routine with gamified elements, now featuring **Cloud Synchronization**.
 
 ## 🚀 Key Features
 
-### 1. 🍅 Configurable Pomodoro Timer & Smart Suggestions
-- **Focused Study:** Adjustable work, short break, and long break intervals (default 25/5/15) via settings.
+### 1. ☁️ Cloud Synchronization & Multi-Device Support (New!)
+- **Sync Anywhere:** Your study progress, subjects, and XP are now stored in the cloud using **Supabase**.
+- **User Accounts:** Secure Login and Signup system to protect your personal study data.
+- **Offline Fallback:** If you're not logged in, the app automatically switches to a local **SQLite** database.
+- **Real-time Updates:** Changes made on one device are instantly available on others.
+
+### 2. 🍅 Configurable Pomodoro Timer & Smart Suggestions
+- **Focused Study:** Adjustable work, short break, and long break intervals (default 25/5/15).
 - **Smart Priority:** Automatically suggests the most important task based on upcoming exams.
 - **Task Suggestions:** Specifically tells you whether to focus on **Videos** or **Exercises** for the next incomplete chapter.
 - **Lo-Fi Audio:** Integrated background focus music (Lo-Fi/Rain) to improve concentration.
 
-### 2. 🎮 Gamification & Streak Logic
+### 3. 🎮 Gamification & Streak Logic
 - **Study Streak:** Real-time tracking of consecutive study days to maintain consistency.
 - **Earn XP:** Gain 50 XP for every completed study session.
 - **Level Up:** Progress through student ranks as you accumulate XP.
 - **Audio Feedback:** Celebratory sound effects for starting, finishing, and leveling up.
 
-### 3. 📊 Advanced Study Analytics
-- **Visual Data Distribution:** Dedicated Analytics tab with a **Modern Pie Chart** visualizing time spent per subject.
+### 4. 📊 Advanced Study Analytics
+- **Visual Data Distribution:** Modern Pie Charts visualizing time spent per subject.
 - **Semester Comparison:** Compare total study effort across different semesters with bar charts.
 - **Daily Progress:** Track your study consistency over the last 7 days.
-- **Weekly Trends:** Visualize your study habits over the past 8 weeks to identify long-term patterns.
-- **Reality Check:** Track exactly where your time goes to ensure you aren't neglecting difficult subjects.
 
-### 4. 🌍 Localization, Theme & Notifications
+### 5. 🌍 Localization, Theme & Notifications
 - **Multi-language Support:** Fully localized in **English**, **Arabic** (with RTL support), and **French**.
 - **Dark & Light Mode:** Aesthetic theme switching to match your workspace environment.
-- **Desktop Notifications:** System-native alerts for timer completion and upcoming deadlines (exams and chapter due dates).
-
-### 5. 📝 Subject Management & Chapter Scheduling
-- **Detailed Planning:** Add subjects with exam and test dates.
-- **Chapter Due Dates:** Assign specific deadlines to individual chapters for granular tracking.
-- **Dedicated Notes:** A built-in notepad for every subject to store formulas, summaries, and key points directly in the database.
-- **Chapter Tracking:** Break down every subject into chapters with sub-tasks (Video/Exercises).
+- **Desktop Notifications:** System-native alerts for timer completion and upcoming deadlines.
 
 ## 🛠️ Technology Stack
 - **Language:** Python 3
 - **GUI Framework:** PyQt5
+- **Cloud Backend:** Supabase (PostgreSQL + Auth)
 - **Audio Engine:** Pygame (Cross-platform audio mixer)
-- **Database:** SQLite (Built-in persistence)
+- **Database:** SQLite (Local fallback)
 
-## 📦 Installation
+## 📦 Installation & Setup
 
 1. **Clone the repository:**
    ```bash
@@ -48,53 +47,53 @@ A comprehensive desktop application designed to help university students manage 
    cd student-study-manager
    ```
 
-2. **Install Dependencies:**
-   Ensure you have Python installed. Then install the required libraries:
+2. **Create a Virtual Environment (Recommended):**
    ```bash
-   pip install PyQt5 pygame
+   python3 -m venv venv
+   source venv/bin/activate  # On Linux/macOS
+   # venv\Scripts\activate   # On Windows
    ```
+
+3. **Install Dependencies:**
+   ```bash
+   pip install PyQt5 pygame supabase python-dotenv
+   ```
+
+4. **Configure Supabase Cloud (Mandatory for Sync):**
+   - Create a project on [Supabase.com](https://supabase.com).
+   - Follow the instructions in `supabase_setup_guide.txt` to create your tables.
+   - Create a file named `.env` in the root directory and add your credentials:
+     ```env
+     SUPABASE_URL="your-project-url"
+     SUPABASE_KEY="your-anon-key"
+     ```
 
 ## ▶️ How to Run
 
-Execute the `run.py` script from the project root:
+Ensure your virtual environment is active, then run:
 
 ```bash
-python run.py
+export PYTHONPATH=$PYTHONPATH:.  # On Linux/macOS
+python3 student_app/main.py
 ```
 
-## 📂 Project Structure
+## 📂 New Project Structure
 
 ```
 student_app/
-├── database.py       # Database schema and business logic
-├── sound_manager.py  # Pygame-powered audio handling
-├── main.py           # Application entry and tab navigation
+├── auth_manager.py   # Cloud Authentication logic (Supabase)
+├── database.py       # Dual-mode data logic (SQLite + Supabase)
+├── sound_manager.py  # Audio handling
+├── main.py           # App entry point with Login Check
 └── ui/
+    ├── login.py      # New Login & Signup interface
     ├── dashboard.py  # Overview and quick to-dos
     ├── planner.py    # Subject and semester organization
-    ├── pomodoro.py   # Timer logic, XP system, and smart suggestions
-    ├── analytics.py  # Data visualization and charts
-    ├── subject_window.py # Chapter management and notes
-    └── styles.py     # Global application styling
-run.py                # Main entry point
-student_data.db       # Persistent SQLite storage
+    └── ...
+.env                  # API Credentials (Private)
+supabase_setup_guide.txt # Step-by-step SQL setup guide
+student_data.db       # Local SQLite storage
 ```
-
-## 📦 Distribution (Create Executable)
-
-To create a standalone executable for easy sharing:
-
-1. Install PyInstaller:
-   ```bash
-   pip install pyinstaller
-   ```
-
-2. Run the build command:
-   ```bash
-   pyinstaller run.spec
-   ```
-
-3. The executable will be created in the `dist/` folder.
 
 ## 📝 License
 This project is open-source and free to use for students worldwide.

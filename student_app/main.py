@@ -7,23 +7,30 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect
 from PyQt5.QtGui import QIcon
-from student_app.database import init_db, get_upcoming_deadlines
+from student_app.database import init_db, get_upcoming_deadlines, sync_from_cloud
 from student_app.ui.styles import get_stylesheet
 from student_app.ui.dashboard import Dashboard
 from student_app.ui.planner import StudyPlanner
 from student_app.ui.pomodoro import PomodoroTimer
 from student_app.ui.analytics import Analytics
 from student_app.ui.settings import SettingsTab
+from student_app.ui.login import LoginWindow
+from student_app.auth_manager import AuthManager
 from student_app.sound_manager import create_app_sounds
 from student_app.settings import get_language, get_theme
 from student_app.ui.translations import TRANSLATIONS
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, user=None):
         super().__init__()
+        self.user = user # Supabase User Object
         self.lang = get_language()
         self.theme = get_theme()
         self.texts = TRANSLATIONS.get(self.lang, TRANSLATIONS["English"])
+        
+        # Performance: Sync from cloud once at startup
+        if self.user:
+            sync_from_cloud()
         
         self.setWindowTitle("Student Study Manager By Chenoufi Abderrahmane")
         self.resize(1100, 750)
@@ -77,9 +84,24 @@ class MainWindow(QMainWindow):
         sidebar_layout.setContentsMargins(10, 20, 10, 20)
         
         # Logo / Title
+        logo_container = QVBoxLayout()
         logo = QLabel("🎓 StudentPro")
-        logo.setStyleSheet("font-size: 22px; font-weight: 800; color: #6366f1; margin-bottom: 20px; padding: 10px;")
-        sidebar_layout.addWidget(logo)
+        logo.setStyleSheet("font-size: 22px; font-weight: 800; color: #6366f1; padding: 10px 10px 0 10px;")
+        logo_container.addWidget(logo)
+        
+        if self.user:
+            user_label = QLabel(f"👤 {self.user.email}")
+            user_label.setStyleSheet("font-size: 11px; color: #64748b; padding-left: 15px; margin-bottom: 5px;")
+            logo_container.addWidget(user_label)
+            
+            # Last Sync Label
+            from datetime import datetime
+            now = datetime.now().strftime("%H:%M")
+            self.sync_label = QLabel(f"🔄 Last sync: {now}")
+            self.sync_label.setStyleSheet("font-size: 10px; color: #94a3b8; padding-left: 15px; margin-bottom: 20px;")
+            logo_container.addWidget(self.sync_label)
+        
+        sidebar_layout.addLayout(logo_container)
         
         # Navigation Buttons
         self.nav_buttons = []
@@ -101,6 +123,12 @@ class MainWindow(QMainWindow):
             
         sidebar_layout.addStretch()
         
+        # Logout Button
+        logout_btn = QPushButton("Logout")
+        logout_btn.setObjectName("navButton")
+        logout_btn.clicked.connect(self.handle_logout)
+        sidebar_layout.addWidget(logout_btn)
+
         # Footer
         footer = QLabel("v2.0 Beta By Chenoufi")
         footer.setObjectName("mute")
@@ -128,6 +156,11 @@ class MainWindow(QMainWindow):
         
         # Initial Selection
         self.switch_tab(0)
+
+    def handle_logout(self):
+        AuthManager().sign_out()
+        python = sys.executable
+        os.execl(python, python, *sys.argv)
 
     def switch_tab(self, index):
         self.content_stack.setCurrentIndex(index)
@@ -159,9 +192,29 @@ def main():
     theme = get_theme()
     app.setStyleSheet(get_stylesheet(theme))
     
-    window = MainWindow()
-    window.show()
+    # Check Auth
+    auth = AuthManager()
+    user = auth.get_current_user()
+    
+    def start_main_app(user_obj):
+        window = MainWindow(user=user_obj)
+        window.show()
+        # Close login window if it exists
+        if 'login_win' in globals():
+            login_win.close()
+        # Keep a reference to prevent GC
+        app.main_window = window
+
+    if user:
+        start_main_app(user)
+    else:
+        global login_win
+        login_win = LoginWindow()
+        login_win.login_successful.connect(start_main_app)
+        login_win.show()
+        
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()
