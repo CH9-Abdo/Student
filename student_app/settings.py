@@ -58,3 +58,12 @@ def set_pomodoro_settings(work, short, long):
     settings["pomodoro_short"] = short
     settings["pomodoro_long"] = long
     save_settings(settings)
+
+def get_sync_mode():
+    settings = load_settings()
+    return settings.get("sync_mode", "Automatic")
+
+def set_sync_mode(mode):
+    settings = load_settings()
+    settings["sync_mode"] = mode
+    save_settings(settings)

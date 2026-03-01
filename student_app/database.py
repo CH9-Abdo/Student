@@ -1,7 +1,7 @@
 import sqlite3
 import os
 from datetime import datetime, timedelta
-from student_app.settings import get_db_path
+from student_app.settings import get_db_path, get_sync_mode
 from student_app.auth_manager import AuthManager
 
 # Initialize AuthManager to check session
@@ -23,6 +23,105 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+def push_to_cloud():
+    uid = get_uid()
+    if not uid: return False
+    try:
+        print("[Python Sync] Smart Upload starting...")
+        conn = get_db_connection()
+        
+        # 1. Push Profile
+        try:
+            p = conn.execute('SELECT * FROM user_profile LIMIT 1').fetchone()
+            if p:
+                get_supabase().table("user_profile").upsert({
+                    "user_id": uid, "xp": p['xp'], "level": p['level'], "total_sessions": p['total_sessions']
+                }, on_conflict='user_id').execute()
+        except Exception as e: print(f"[Push] Profile Error: {e}")
+
+        # 2. Push Semesters
+        sems = conn.execute('SELECT * FROM semesters').fetchall()
+        for s in sems:
+            try:
+                payload = {"name": s['name'], "user_id": uid}
+                # If we already have a cloud_id, we update. If not, we let Supabase generate one.
+                if s['cloud_id']: payload["id"] = s['cloud_id']
+                
+                res = get_supabase().table("semesters").upsert(payload).execute()
+                if res.data and len(res.data) > 0:
+                    new_cloud_id = res.data[0]['id']
+                    conn.execute('UPDATE semesters SET cloud_id = ? WHERE id = ?', (new_cloud_id, s['id']))
+            except Exception as e: print(f"[Push] Semester '{s['name']}' Error: {e}")
+
+        conn.commit()
+
+        # 3. Push Subjects
+        subs = conn.execute('SELECT * FROM subjects').fetchall()
+        for s in subs:
+            try:
+                # Get the cloud_id of the parent semester
+                sem = conn.execute('SELECT cloud_id FROM semesters WHERE id = ?', (s['semester_id'],)).fetchone()
+                cloud_sem_id = sem['cloud_id'] if sem else None
+                
+                payload = {
+                    "semester_id": cloud_sem_id, "name": s['name'], 
+                    "exam_date": s['exam_date'], "test_date": s['test_date'], 
+                    "notes": s['notes'], "user_id": uid
+                }
+                if s['cloud_id']: payload["id"] = s['cloud_id']
+                
+                res = get_supabase().table("subjects").upsert(payload).execute()
+                if res.data and len(res.data) > 0:
+                    new_cloud_id = res.data[0]['id']
+                    conn.execute('UPDATE subjects SET cloud_id = ? WHERE id = ?', (new_cloud_id, s['id']))
+            except Exception as e: print(f"[Push] Subject '{s['name']}' Error: {e}")
+
+        conn.commit()
+
+        # 4. Push Chapters
+        chaps = conn.execute('SELECT * FROM chapters').fetchall()
+        for c in chaps:
+            try:
+                sub = conn.execute('SELECT cloud_id FROM subjects WHERE id = ?', (c['subject_id'],)).fetchone()
+                cloud_sub_id = sub['cloud_id'] if sub else None
+                
+                payload = {
+                    "subject_id": cloud_sub_id, "name": c['name'],
+                    "video_completed": bool(c['video_completed']), 
+                    "exercises_completed": bool(c['exercises_completed']), 
+                    "is_completed": bool(c['is_completed']), 
+                    "due_date": c['due_date'], "user_id": uid
+                }
+                if c['cloud_id']: payload["id"] = c['cloud_id']
+                
+                res = get_supabase().table("chapters").upsert(payload).execute()
+                if res.data and len(res.data) > 0:
+                    conn.execute('UPDATE chapters SET cloud_id = ? WHERE id = ?', (res.data[0]['id'], c['id']))
+            except Exception as e: print(f"[Push] Chapter '{c['name']}' Error: {e}")
+
+        # 5. Push Sessions
+        sess = conn.execute('SELECT * FROM study_sessions').fetchall()
+        for s in sess:
+            try:
+                sub = conn.execute('SELECT cloud_id FROM subjects WHERE id = ?', (s['subject_id'],)).fetchone()
+                cloud_sub_id = sub['cloud_id'] if sub else None
+                
+                payload = {
+                    "subject_id": cloud_sub_id, "duration_minutes": s['duration_minutes'], 
+                    "timestamp": s['timestamp'], "user_id": uid
+                }
+                if s['cloud_id']: payload["id"] = s['cloud_id']
+                get_supabase().table("study_sessions").upsert(payload).execute()
+            except Exception as e: print(f"[Push] Session Error: {e}")
+
+        conn.commit()
+        conn.close()
+        print("[Python Sync] Smart Upload Complete!")
+        return True
+    except Exception as e:
+        print(f"[Python Sync] Critical Push failed: {e}")
+        return False
+
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -43,6 +142,14 @@ def init_db():
     cursor.execute('CREATE TABLE IF NOT EXISTS user_profile (id INTEGER PRIMARY KEY AUTOINCREMENT, xp INTEGER DEFAULT 0, level INTEGER DEFAULT 1, total_sessions INTEGER DEFAULT 0)')
     cursor.execute('CREATE TABLE IF NOT EXISTS study_sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, subject_id INTEGER, duration_minutes INTEGER, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, cloud_id BIGINT, FOREIGN KEY (subject_id) REFERENCES subjects (id) ON DELETE CASCADE)')
     
+    # Migration: Add cloud_id column if missing
+    tables_to_fix = ['semesters', 'subjects', 'chapters', 'study_sessions']
+    for table in tables_to_fix:
+        cursor.execute(f"PRAGMA table_info({table})")
+        columns = [column[1] for column in cursor.fetchall()]
+        if 'cloud_id' not in columns:
+            cursor.execute(f"ALTER TABLE {table} ADD COLUMN cloud_id BIGINT")
+    
     cursor.execute('SELECT count(*) FROM user_profile')
     if cursor.fetchone()[0] == 0:
         cursor.execute('INSERT INTO user_profile (xp, level, total_sessions) VALUES (0, 1, 0)')
@@ -54,30 +161,68 @@ def sync_from_cloud():
     uid = get_uid()
     if not uid: return False
     try:
-        # 1. Sync Semesters
-        res = get_supabase().table("semesters").select("*").eq("user_id", uid).execute()
+        print(f"[Python Sync] Pulling from cloud for user {uid}...")
         conn = get_db_connection()
-        for s in res.data:
-            conn.execute('INSERT OR REPLACE INTO semesters (id, name, cloud_id) VALUES (?, ?, ?)', (s['id'], s['name'], s['id']))
-        # 2. Sync Subjects
-        res = get_supabase().table("subjects").select("*").eq("user_id", uid).execute()
-        for s in res.data:
-            conn.execute('INSERT OR REPLACE INTO subjects (id, semester_id, name, exam_date, test_date, notes, cloud_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                         (s['id'], s['semester_id'], s['name'], s['exam_date'], s['test_date'], s['notes'], s['id']))
-        # 3. Sync Chapters
-        res = get_supabase().table("chapters").select("*").eq("user_id", uid).execute()
-        for c in res.data:
-            conn.execute('INSERT OR REPLACE INTO chapters (id, subject_id, name, video_completed, exercises_completed, is_completed, due_date, cloud_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                         (c['id'], c['subject_id'], c['name'], c['video_completed'], c['exercises_completed'], c['is_completed'], c['due_date'], c['id']))
-        # 4. Sync Profile
-        res = get_supabase().table("user_profile").select("*").eq("user_id", uid).single().execute()
-        if res.data:
-            conn.execute('UPDATE user_profile SET xp = ?, level = ?, total_sessions = ?', (res.data['xp'], res.data['level'], res.data['total_sessions']))
-        conn.commit(); conn.close()
-        return True
-    except: return False
+        
+        # 1. Sync Semesters
+        try:
+            res = get_supabase().table("semesters").select("*").eq("user_id", uid).execute()
+            for s in res.data:
+                conn.execute('INSERT OR REPLACE INTO semesters (id, name, cloud_id) VALUES (?, ?, ?)', (s['id'], s['name'], s['id']))
+        except Exception as e: print(f"[Sync] Semesters Error: {e}")
 
-# --- User Profile ---
+        # 2. Sync Subjects
+        try:
+            res = get_supabase().table("subjects").select("*").eq("user_id", uid).execute()
+            for s in res.data:
+                # Provide defaults for Python-only columns
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA table_info(subjects)")
+                cols = [c[1] for c in cursor.fetchall()]
+                if 'module_type' in cols:
+                    conn.execute('''
+                        INSERT OR REPLACE INTO subjects 
+                        (id, semester_id, name, exam_date, test_date, notes, cloud_id, module_type, coefficient, credits) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (s['id'], s['semester_id'], s['name'], s['exam_date'], s['test_date'], s['notes'], s['id'], 1, 1.0, 1))
+                else:
+                    conn.execute('INSERT OR REPLACE INTO subjects (id, semester_id, name, exam_date, test_date, notes, cloud_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                                 (s['id'], s['semester_id'], s['name'], s['exam_date'], s['test_date'], s['notes'], s['id']))
+        except Exception as e: print(f"[Sync] Subjects Error: {e}")
+
+        # 3. Sync Chapters
+        try:
+            res = get_supabase().table("chapters").select("*").eq("user_id", uid).execute()
+            for c in res.data:
+                conn.execute('INSERT OR REPLACE INTO chapters (id, subject_id, name, video_completed, exercises_completed, is_completed, due_date, cloud_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                             (c['id'], c['subject_id'], c['name'], c['video_completed'], c['exercises_completed'], c['is_completed'], c['due_date'], c['id']))
+        except Exception as e: print(f"[Sync] Chapters Error: {e}")
+
+        # 4. Sync Profile
+        try:
+            res = get_supabase().table("user_profile").select("*").eq("user_id", uid).execute()
+            if res.data and len(res.data) > 0:
+                p = res.data[0]
+                conn.execute('UPDATE user_profile SET xp = ?, level = ?, total_sessions = ?', (p['xp'], p['level'], p['total_sessions']))
+        except Exception as e: print(f"[Sync] Profile Error: {e}")
+
+        # 5. Sync Sessions
+        try:
+            res = get_supabase().table("study_sessions").select("*").eq("user_id", uid).execute()
+            for s in res.data:
+                conn.execute('INSERT OR REPLACE INTO study_sessions (id, subject_id, duration_minutes, timestamp, cloud_id) VALUES (?, ?, ?, ?, ?)',
+                             (s['id'], s['subject_id'], s['duration_minutes'], s['timestamp'], s['id']))
+        except Exception as e: print(f"[Sync] Sessions Error: {e}")
+
+        conn.commit()
+        conn.close()
+        print("[Python Sync] Pull Complete!")
+        return True
+    except Exception as e:
+        print(f"[Python Sync] Critical Sync failed: {e}")
+        return False
+
+# --- Remaining code same ---
 def get_user_profile():
     conn = get_db_connection(); p = conn.execute('SELECT * FROM user_profile LIMIT 1').fetchone(); conn.close(); return p
 
@@ -90,26 +235,26 @@ def add_xp(amount, session_increment=0):
     cursor.execute('UPDATE user_profile SET xp = ?, level = ?, total_sessions = ?', (current_xp, new_level, current_sessions))
     conn.commit(); conn.close()
     uid = get_uid()
-    if uid:
-        try: get_supabase().table("user_profile").update({"xp": current_xp, "level": new_level, "total_sessions": current_sessions}).eq("user_id", uid).execute()
+    if uid and get_sync_mode() == "Automatic":
+        try: get_supabase().table("user_profile").upsert({"user_id": uid, "xp": current_xp, "level": new_level, "total_sessions": current_sessions}, on_conflict='user_id').execute()
         except: pass
     return leveled_up, new_level
 
 def log_study_session(subject_id, duration_minutes):
     conn = get_db_connection(); conn.execute('INSERT INTO study_sessions (subject_id, duration_minutes) VALUES (?, ?)', (subject_id, duration_minutes)); conn.commit(); conn.close()
     uid = get_uid()
-    if uid:
+    if uid and get_sync_mode() == "Automatic":
         try: get_supabase().table("study_sessions").insert({"subject_id": subject_id, "duration_minutes": duration_minutes, "user_id": uid}).execute()
         except: pass
 
-# --- Semesters ---
 def add_semester(name):
     conn = get_db_connection(); c = conn.cursor(); c.execute('INSERT INTO semesters (name) VALUES (?)', (name,)); lid = c.lastrowid; conn.commit(); conn.close()
     uid = get_uid()
-    if uid:
+    if uid and get_sync_mode() == "Automatic":
         try:
             res = get_supabase().table("semesters").insert({"name": name, "user_id": uid}).execute()
-            cid = res.data[0]['id']; conn = get_db_connection(); conn.execute('UPDATE semesters SET id = ?, cloud_id = ? WHERE id = ?', (cid, cid, lid)); conn.commit(); conn.close(); return cid
+            if res.data:
+                cid = res.data[0]['id']; conn = get_db_connection(); conn.execute('UPDATE semesters SET cloud_id = ? WHERE id = ?', (cid, lid)); conn.commit(); conn.close()
         except: pass
     return lid
 
@@ -119,18 +264,25 @@ def get_all_semesters():
 def delete_semester(sem_id):
     conn = get_db_connection(); conn.execute('DELETE FROM semesters WHERE id = ?', (sem_id,)); conn.commit(); conn.close()
     uid = get_uid()
-    if uid:
+    if uid and get_sync_mode() == "Automatic":
         try: get_supabase().table("semesters").delete().eq("id", sem_id).execute()
         except: pass
 
-# --- Subjects ---
 def add_subject(name, semester_id, exam_date=None, test_date=None):
-    conn = get_db_connection(); c = conn.cursor(); c.execute('INSERT INTO subjects (name, semester_id, exam_date, test_date) VALUES (?, ?, ?, ?)', (name, semester_id, exam_date, test_date)); lid = c.lastrowid; conn.commit(); conn.close()
+    conn = get_db_connection(); c = conn.cursor()
+    c.execute("PRAGMA table_info(subjects)")
+    cols = [col[1] for col in c.fetchall()]
+    if 'module_type' in cols:
+        c.execute('INSERT INTO subjects (name, semester_id, exam_date, test_date, module_type, coefficient, credits) VALUES (?, ?, ?, ?, ?, ?, ?)', (name, semester_id, exam_date, test_date, 1, 1.0, 1))
+    else:
+        c.execute('INSERT INTO subjects (name, semester_id, exam_date, test_date) VALUES (?, ?, ?, ?)', (name, semester_id, exam_date, test_date))
+    lid = c.lastrowid; conn.commit(); conn.close()
     uid = get_uid()
-    if uid:
+    if uid and get_sync_mode() == "Automatic":
         try:
             res = get_supabase().table("subjects").insert({"name": name, "semester_id": semester_id, "exam_date": exam_date, "test_date": test_date, "user_id": uid}).execute()
-            cid = res.data[0]['id']; conn = get_db_connection(); conn.execute('UPDATE subjects SET id = ?, cloud_id = ? WHERE id = ?', (cid, cid, lid)); conn.commit(); conn.close(); return cid
+            if res.data:
+                cid = res.data[0]['id']; conn = get_db_connection(); conn.execute('UPDATE subjects SET cloud_id = ? WHERE id = ?', (cid, lid)); conn.commit(); conn.close()
         except: pass
     return lid
 
@@ -142,9 +294,9 @@ def get_all_subjects(semester_id=None):
 
 def update_subject_notes(subject_id, notes):
     conn = get_db_connection(); conn.execute('UPDATE subjects SET notes = ? WHERE id = ?', (notes, subject_id)); conn.commit(); conn.close()
-    uid = get_uid(); 
-    if uid:
-        try: get_supabase().table("subjects").update({"notes": notes}).eq("id", subject_id).execute()
+    uid = get_uid()
+    if uid and get_sync_mode() == "Automatic":
+        try: get_supabase().table("subjects").update({"notes": notes}).eq("user_id", uid).execute()
         except: pass
 
 def get_subject_notes(subject_id):
@@ -152,26 +304,26 @@ def get_subject_notes(subject_id):
 
 def delete_subject(subject_id):
     conn = get_db_connection(); conn.execute('DELETE FROM subjects WHERE id = ?', (subject_id,)); conn.commit(); conn.close()
-    uid = get_uid(); 
-    if uid:
+    uid = get_uid()
+    if uid and get_sync_mode() == "Automatic":
         try: get_supabase().table("subjects").delete().eq("id", subject_id).execute()
         except: pass
 
 def update_subject_dates(subject_id, exam_date, test_date):
     conn = get_db_connection(); conn.execute('UPDATE subjects SET exam_date = ?, test_date = ? WHERE id = ?', (exam_date, test_date, subject_id)); conn.commit(); conn.close()
-    uid = get_uid(); 
-    if uid:
+    uid = get_uid()
+    if uid and get_sync_mode() == "Automatic":
         try: get_supabase().table("subjects").update({"exam_date": exam_date, "test_date": test_date}).eq("id", subject_id).execute()
         except: pass
 
-# --- Chapters ---
 def add_chapter(subject_id, name, due_date=None):
     conn = get_db_connection(); c = conn.cursor(); c.execute('INSERT INTO chapters (subject_id, name, due_date) VALUES (?, ?, ?)', (subject_id, name, due_date)); lid = c.lastrowid; conn.commit(); conn.close()
     uid = get_uid()
-    if uid:
+    if uid and get_sync_mode() == "Automatic":
         try:
             res = get_supabase().table("chapters").insert({"subject_id": subject_id, "name": name, "due_date": due_date, "user_id": uid}).execute()
-            cid = res.data[0]['id']; conn = get_db_connection(); conn.execute('UPDATE chapters SET id = ?, cloud_id = ? WHERE id = ?', (cid, cid, lid)); conn.commit(); conn.close()
+            if res.data:
+                cid = res.data[0]['id']; conn = get_db_connection(); conn.execute('UPDATE chapters SET cloud_id = ? WHERE id = ?', (cid, lid)); conn.commit(); conn.close()
         except: pass
 
 def get_chapters_by_subject(subject_id):
@@ -181,8 +333,8 @@ def toggle_video_status(chapter_id, status):
     conn = get_db_connection(); c = conn.cursor(); c.execute('UPDATE chapters SET video_completed = ? WHERE id = ?', (status, chapter_id))
     c.execute('SELECT exercises_completed FROM chapters WHERE id = ?', (chapter_id,)); ex_done = c.fetchone()[0]; is_done = 1 if status and ex_done else 0
     c.execute('UPDATE chapters SET is_completed = ? WHERE id = ?', (is_done, chapter_id)); conn.commit(); conn.close()
-    uid = get_uid(); 
-    if uid:
+    uid = get_uid()
+    if uid and get_sync_mode() == "Automatic":
         try: get_supabase().table("chapters").update({"video_completed": status, "is_completed": is_done}).eq("id", chapter_id).execute()
         except: pass
 
@@ -190,33 +342,32 @@ def toggle_exercises_status(chapter_id, status):
     conn = get_db_connection(); c = conn.cursor(); c.execute('UPDATE chapters SET exercises_completed = ? WHERE id = ?', (status, chapter_id))
     c.execute('SELECT video_completed FROM chapters WHERE id = ?', (chapter_id,)); vid_done = c.fetchone()[0]; is_done = 1 if status and vid_done else 0
     c.execute('UPDATE chapters SET is_completed = ? WHERE id = ?', (is_done, chapter_id)); conn.commit(); conn.close()
-    uid = get_uid(); 
-    if uid:
+    uid = get_uid()
+    if uid and get_sync_mode() == "Automatic":
         try: get_supabase().table("chapters").update({"exercises_completed": status, "is_completed": is_done}).eq("id", chapter_id).execute()
         except: pass
 
 def delete_chapter(chapter_id):
     conn = get_db_connection(); conn.execute('DELETE FROM chapters WHERE id = ?', (chapter_id,)); conn.commit(); conn.close()
-    uid = get_uid(); 
-    if uid:
+    uid = get_uid()
+    if uid and get_sync_mode() == "Automatic":
         try: get_supabase().table("chapters").delete().eq("id", chapter_id).execute()
         except: pass
 
 def toggle_chapter_status(chapter_id, status):
     conn = get_db_connection(); conn.execute('UPDATE chapters SET is_completed = ? WHERE id = ?', (status, chapter_id)); conn.commit(); conn.close()
-    uid = get_uid(); 
-    if uid:
+    uid = get_uid()
+    if uid and get_sync_mode() == "Automatic":
         try: get_supabase().table("chapters").update({"is_completed": status}).eq("id", chapter_id).execute()
         except: pass
 
 def update_chapter_due_date(chapter_id, due_date):
     conn = get_db_connection(); conn.execute('UPDATE chapters SET due_date = ? WHERE id = ?', (due_date, chapter_id)); conn.commit(); conn.close()
-    uid = get_uid(); 
-    if uid:
+    uid = get_uid()
+    if uid and get_sync_mode() == "Automatic":
         try: get_supabase().table("chapters").update({"due_date": due_date}).eq("id", chapter_id).execute()
         except: pass
 
-# --- Stats ---
 def get_todo_chapters():
     conn = get_db_connection(); query = 'SELECT c.id, c.name as chapter_name, s.name as subject_name, c.is_completed, c.video_completed, c.exercises_completed FROM chapters c JOIN subjects s ON c.subject_id = s.id WHERE c.is_completed = 0'; todos = conn.execute(query).fetchall(); conn.close(); return todos
 

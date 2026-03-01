@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QListWidgetItem, 
     QLineEdit, QPushButton, QLabel, QComboBox, QGroupBox, 
-    QSplitter, QProgressBar, QDateEdit, QTextEdit, QScrollArea, QFrame
+    QSplitter, QProgressBar, QDateEdit, QTextEdit, QScrollArea, QFrame,
+    QMessageBox
 )
 from PyQt5.QtCore import Qt, QDate
 from student_app.database import (
@@ -49,6 +50,13 @@ class StudyPlanner(QWidget):
         add_sem_btn.setFixedWidth(40)
         add_sem_btn.clicked.connect(self.handle_add_semester)
         header_layout.addWidget(add_sem_btn)
+
+        del_sem_btn = QPushButton("-")
+        del_sem_btn.setFixedWidth(40)
+        del_sem_btn.setObjectName("dangerButton")
+        del_sem_btn.clicked.connect(self.handle_delete_semester)
+        header_layout.addWidget(del_sem_btn)
+        
         layout.addLayout(header_layout)
 
         # Main Splitter
@@ -232,6 +240,16 @@ class StudyPlanner(QWidget):
         if ok and text:
             add_semester(text)
             self.refresh_semesters()
+
+    def handle_delete_semester(self):
+        if self.current_semester_id:
+            ret = QMessageBox.question(self, "Delete Semester", 
+                                     f"Are you sure you want to delete this semester and all its subjects?",
+                                     QMessageBox.Yes | QMessageBox.No)
+            if ret == QMessageBox.Yes:
+                delete_semester(self.current_semester_id)
+                self.current_semester_id = None
+                self.refresh_semesters()
 
     def handle_open_subject_window(self):
         if not self.selected_subject_id: return

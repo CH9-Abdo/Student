@@ -5,10 +5,11 @@ import os
 import shutil
 from student_app.settings import (
     get_db_path, set_db_path, get_language, set_language, 
-    get_theme, set_theme, get_pomodoro_settings, set_pomodoro_settings
+    get_theme, set_theme, get_pomodoro_settings, set_pomodoro_settings,
+    get_sync_mode, set_sync_mode
 )
 from student_app.ui.translations import TRANSLATIONS
-from student_app.database import reset_all_data
+from student_app.database import reset_all_data, sync_from_cloud, push_to_cloud
 
 class SettingsTab(QWidget):
     def __init__(self):
@@ -83,8 +84,34 @@ class SettingsTab(QWidget):
         p_group.setLayout(p_layout)
         layout.addWidget(p_group)
 
+        # Cloud Sync Settings Group
+        sync_group = QGroupBox(self.texts["database_sync"])
+        sync_layout = QVBoxLayout()
+        
+        mode_row = QHBoxLayout()
+        mode_row.addWidget(QLabel(self.texts["sync_mode"]))
+        self.sync_mode_combo = QComboBox()
+        self.sync_mode_combo.addItems([self.texts["automatic"], self.texts["manual"]])
+        self.sync_mode_combo.setCurrentText(self.texts["automatic"] if get_sync_mode() == "Automatic" else self.texts["manual"])
+        self.sync_mode_combo.currentTextChanged.connect(self.change_sync_mode)
+        mode_row.addWidget(self.sync_mode_combo)
+        sync_layout.addLayout(mode_row)
+        
+        sync_btns = QHBoxLayout()
+        self.upload_btn = QPushButton(self.texts["upload"])
+        self.upload_btn.clicked.connect(self.handle_upload)
+        sync_btns.addWidget(self.upload_btn)
+        
+        self.download_btn = QPushButton(self.texts["download"])
+        self.download_btn.clicked.connect(self.handle_download)
+        sync_btns.addWidget(self.download_btn)
+        sync_layout.addLayout(sync_btns)
+        
+        sync_group.setLayout(sync_layout)
+        layout.addWidget(sync_group)
+
         # Database Settings Group
-        db_group = QGroupBox(self.texts["database_sync"])
+        db_group = QGroupBox("Local Database Settings")
         db_layout = QVBoxLayout()
         
         db_layout.addWidget(QLabel(self.texts["current_db"] + ":"))
@@ -130,6 +157,30 @@ class SettingsTab(QWidget):
         layout.addStretch()
         
         self.setLayout(layout)
+
+    def change_sync_mode(self, text):
+        mode = "Automatic" if text == self.texts["automatic"] else "Manual"
+        set_sync_mode(mode)
+
+    def handle_upload(self):
+        self.upload_btn.setEnabled(False)
+        self.upload_btn.setText("Uploading...")
+        if push_to_cloud():
+            QMessageBox.information(self, self.texts["success"], self.texts["sync_success"])
+        else:
+            QMessageBox.critical(self, self.texts["error"], self.texts["sync_failed"])
+        self.upload_btn.setEnabled(True)
+        self.upload_btn.setText(self.texts["upload"])
+
+    def handle_download(self):
+        self.download_btn.setEnabled(False)
+        self.download_btn.setText("Downloading...")
+        if sync_from_cloud():
+            QMessageBox.information(self, self.texts["success"], self.texts["sync_success"])
+        else:
+            QMessageBox.critical(self, self.texts["error"], self.texts["sync_failed"])
+        self.download_btn.setEnabled(True)
+        self.download_btn.setText(self.texts["download"])
 
     def change_language(self, lang):
         set_language(lang)

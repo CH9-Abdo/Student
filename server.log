@@ -1,0 +1,92 @@
+127.0.0.1 - - [01/Mar/2026 20:45:16] "GET /webversion/ HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 20:45:16] "GET /webversion/style.css HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 20:45:16] "GET /webversion/auth.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 20:45:16] "GET /webversion/translations.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 20:45:16] "GET /webversion/db.js HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 20:45:16] "GET /webversion/app.js HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 20:45:16] "GET /webversion/assets/sounds/tada.wav HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 20:45:16] code 404, message File not found
+127.0.0.1 - - [01/Mar/2026 20:45:16] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [01/Mar/2026 21:02:10] "GET /webversion/ HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 21:02:10] "GET /webversion/style.css HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:02:10] "GET /webversion/translations.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:02:10] "GET /webversion/auth.js HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 21:02:10] "GET /webversion/app.js HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 21:02:10] "GET /webversion/db.js HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 21:07:09] "GET /webversion/ HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:07:09] "GET /webversion/style.css HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:07:09] "GET /webversion/translations.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:07:09] "GET /webversion/db.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:07:09] "GET /webversion/auth.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:07:09] "GET /webversion/app.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:11:43] "GET /webversion/ HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:11:43] "GET /webversion/auth.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:11:43] "GET /webversion/translations.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:11:43] "GET /webversion/app.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:11:43] "GET /webversion/db.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:15:50] "GET /webversion/ HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:15:50] "GET /webversion/style.css HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:15:50] "GET /webversion/auth.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:15:50] "GET /webversion/db.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:15:50] "GET /webversion/app.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:29:12] "GET /webversion/ HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 21:29:12] "GET /webversion/style.css HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 21:29:12] "GET /webversion/db.js HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 21:29:12] "GET /webversion/translations.js HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 21:29:12] "GET /webversion/auth.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:29:12] "GET /webversion/app.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:29:13] code 404, message File not found
+127.0.0.1 - - [01/Mar/2026 21:29:13] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [01/Mar/2026 21:37:34] "GET /webversion/ HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:37:34] "GET /webversion/style.css HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:37:34] "GET /webversion/translations.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:37:34] "GET /webversion/auth.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:37:34] "GET /webversion/app.js HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 21:37:34] "GET /webversion/db.js HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 21:38:36] "GET /webversion/ HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:38:36] "GET /webversion/style.css HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:38:36] "GET /webversion/app.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:38:36] "GET /webversion/translations.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:38:36] "GET /webversion/db.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:51:26] "GET /webversion/ HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 21:51:26] "GET /webversion/style.css HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 21:51:26] "GET /webversion/app.js HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 21:51:26] "GET /webversion/translations.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:51:26] "GET /webversion/auth.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 21:51:26] "GET /webversion/db.js HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 21:51:26] code 404, message File not found
+127.0.0.1 - - [01/Mar/2026 21:51:26] "GET /favicon.ico HTTP/1.1" 404 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 38014)
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/http/server.py", line 731, in send_head
+    f = open(path, 'rb')
+        ^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/chenoufi/Documents/Student/favicon.ico'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/socketserver.py", line 692, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/usr/lib/python3.12/http/server.py", line 1311, in finish_request
+    self.RequestHandlerClass(request, client_address, self,
+  File "/usr/lib/python3.12/http/server.py", line 672, in __init__
+    super().__init__(*args, **kwargs)
+  File "/usr/lib/python3.12/socketserver.py", line 761, in __init__
+    self.handle()
+  File "/usr/lib/python3.12/http/server.py", line 436, in handle
+    self.handle_one_request()
+  File "/usr/lib/python3.12/http/server.py", line 424, in handle_one_request
+    method()
+  File "/usr/lib/python3.12/http/server.py", line 676, in do_GET
+    f = self.send_head()
+        ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/http/server.py", line 733, in send_head
+    self.send_error(HTTPStatus.NOT_FOUND, "File not found")
+  File "/usr/lib/python3.12/http/server.py", line 491, in send_error
+    self.wfile.write(body)
+  File "/usr/lib/python3.12/socketserver.py", line 840, in write
+    self._sock.sendall(b)
+BrokenPipeError: [Errno 32] Broken pipe
+----------------------------------------
