@@ -1,0 +1,19 @@
+# Environments
+.env
+.session.json
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Database
+student_data.db
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temp files
+run.txt
