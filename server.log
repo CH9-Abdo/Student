@@ -112,3 +112,9 @@ BrokenPipeError: [Errno 32] Broken pipe
 127.0.0.1 - - [01/Mar/2026 22:24:24] "GET /webversion/ HTTP/1.1" 304 -
 127.0.0.1 - - [01/Mar/2026 22:24:24] "GET /webversion/db.js HTTP/1.1" 304 -
 127.0.0.1 - - [01/Mar/2026 22:24:24] "GET /webversion/app.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 22:36:14] "GET /webversion/ HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 22:36:14] "GET /webversion/style.css HTTP/1.1" 200 -
+127.0.0.1 - - [01/Mar/2026 22:36:14] "GET /webversion/translations.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 22:36:14] "GET /webversion/auth.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 22:36:14] "GET /webversion/db.js HTTP/1.1" 304 -
+127.0.0.1 - - [01/Mar/2026 22:36:14] "GET /webversion/app.js HTTP/1.1" 200 -
