@@ -1,0 +1,94 @@
+================================================================================
+           STUDENT STUDY MANAGER - TECHNICAL ARCHITECTURE & CODE EXPLANATION
+================================================================================
+
+This document provides a detailed breakdown of how the Student Study Manager
+works under the hood, covering both the Python Desktop and Web versions.
+
+--------------------------------------------------------------------------------
+1. CORE ARCHITECTURE: DUAL-HYBRID SYSTEM
+--------------------------------------------------------------------------------
+The app is designed as a "Hybrid" system. It uses a local database for speed 
+and offline access, but links to a Supabase cloud database for synchronization.
+
+- DESKTOP: Python (PyQt5) + SQLite (Local) + Supabase (Cloud)
+- WEB: HTML/CSS/JS + LocalStorage (Local) + Supabase (Cloud)
+
+The "Brain" of the app is the Synchronization Engine, which ensures that 
+whether you use your PC or your Phone, your study data is the same.
+
+--------------------------------------------------------------------------------
+2. DATABASE STRUCTURE (SCHEMA)
+--------------------------------------------------------------------------------
+Both versions use the exact same table structure to remain compatible:
+
+- user_profile: Stores XP, Level, and Total Sessions. Linked by 'user_id'.
+- semesters: The top-level category (e.g., "Semester 1").
+- subjects: Linked to a Semester. Stores exam dates and notes.
+- chapters: Linked to a Subject. Tracks 'video_completed' and 'exercises_completed'.
+- study_sessions: History of every Pomodoro session completed.
+
+RELATIONSHIPS:
+Chapters -> Subjects -> Semesters -> User
+All tables contain a 'user_id' (UUID) to keep your data private from other users.
+
+--------------------------------------------------------------------------------
+3. SYNCHRONIZATION LOGIC (THE "WIPE & REWRITE" MIRROR)
+--------------------------------------------------------------------------------
+To prevent complex ID conflicts and duplicates, the app uses a "V6 Mirror Engine":
+
+UPLOAD PROCESS (Python & Web):
+1. CLEANUP: The app sends a command to Supabase to DELETE all existing records 
+   for the current user in all tables.
+2. RE-UPLOAD: The app then loops through the local database and re-inserts 
+   everything as a fresh copy.
+3. RE-LINKING: As each item is uploaded, the app captures the new IDs generated 
+   by the cloud and updates the local 'cloud_id' columns to keep them in sync.
+
+DOWNLOAD PROCESS:
+The app pulls all data from Supabase and performs an 'INSERT OR REPLACE' into 
+ the local SQLite/LocalStorage.
+
+--------------------------------------------------------------------------------
+4. THE XP & LEVELING SYSTEM
+--------------------------------------------------------------------------------
+The app uses a gamified progression system:
+- XP GAIN: You earn 2 XP for every 1 minute of study. 
+  (Standard 25min Pomodoro = 50 XP).
+- LEVEL FORMULA: Level = 1 + (Total_XP / 500).
+- STREAK CALCULATION: The app scans 'study_sessions' timestamps. It calculates 
+  consecutive days of study. If you skip a day, the streak resets to 0.
+
+--------------------------------------------------------------------------------
+5. GUI EXPLANATION
+--------------------------------------------------------------------------------
+PYTHON (PyQt5):
+- main.py: The 'Conductor'. It handles the sidebar navigation and tab switching.
+- subject_window.py: A specialized "Study Window" that opens for each subject.
+- database.py: Contains all SQL queries and cloud API calls.
+
+WEB (HTML/CSS/JS):
+- style.css: Uses CSS Media Queries. When screen width < 768px, the sidebar 
+  hides and a Bottom Navigation Bar appears.
+- app.js: Uses the Web Audio API for the timer and Chart.js for analytics.
+- db.js: Replicates the Python database.py logic using JavaScript.
+
+--------------------------------------------------------------------------------
+6. SECURITY & PRIVACY
+--------------------------------------------------------------------------------
+- Supabase Auth: Uses JWT (JSON Web Tokens) to verify your identity.
+- RLS (Row Level Security): This is the most critical part. Supabase is 
+  configured to only allow a user to see rows where 'auth.uid() = user_id'. 
+  This prevents any user from accidentally seeing someone else's data.
+
+--------------------------------------------------------------------------------
+7. RECENT FIXES & IMPROVEMENTS
+--------------------------------------------------------------------------------
+- Mobile UI: Added responsive classes for phone compatibility.
+- V6 Cleanup: Added a local deduplication function to merge duplicate chapters.
+- Error Handling: Wrapped all cloud calls in Try/Catch blocks to prevent crashes 
+  if the internet is disconnected.
+
+================================================================================
+Developed by Chenoufi Abderrahmane
+================================================================================

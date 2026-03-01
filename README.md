@@ -1,45 +1,41 @@
-# Student Study Manager 🎓 (Cloud-Powered)
+# Student Study Manager 🎓 (Cloud-Powered & Mobile-Ready)
 
-A comprehensive application designed to help university students manage their academic life. It allows for tracking subjects, planning study chapters, and maintaining a high-focus study routine with gamified elements, featuring **Full Cloud Synchronization**.
+A professional full-stack application designed to help university students manage their academic life. It allows for tracking subjects, planning study chapters, and maintaining a high-focus study routine with gamified elements, featuring **Full Cloud Synchronization** and a **Responsive Web Interface**.
 
 ## 🚀 Key Features
 
 ### 1. ☁️ Cloud Synchronization & Multi-Device Support
-
 - **Sync Anywhere:** Your study progress, subjects, and XP are stored in the cloud using **Supabase**.
 - **User Accounts:** Secure Login and Signup system to protect your personal study data.
-- **Web Version:** Access your studies from any browser via the integrated **Web Version**.
+- **Web Version:** Access your studies from any browser (Desktop or Mobile).
 - **Flexible Sync Modes:** 
     - **Automatic:** Changes are saved to the cloud instantly.
     - **Manual:** Take full control by using the **Upload** and **Download** buttons in Settings.
+- **Mirror Logic:** The "Upload" feature performs a clean mirror of your local database to the cloud, preventing duplicates and ensuring data integrity.
 
-### 2. 🍅 Configurable Pomodoro Timer & Smart Suggestions
+### 2. 📱 Mobile Optimized Web Version
+- **Responsive Design:** The web version automatically transforms into a mobile app layout on phones.
+- **Bottom Navigation:** Easy thumb-access menu for switching tabs on mobile devices.
+- **Touch Friendly:** Large buttons and optimized inputs for a smooth mobile experience.
 
+### 3. 🍅 Configurable Pomodoro Timer & Smart Suggestions
 - **Focused Study:** Adjustable work, short break, and long break intervals.
 - **Smart Priority:** Automatically suggests the most important task based on upcoming exams.
-- **Task Suggestions:** Specifically tells you whether to focus on **Videos** or **Exercises**.
+- **Visual Progress:** Circular timer with real-time XP and Level tracking.
 - **Lo-Fi Audio:** Integrated background focus music (Lo-Fi, Rain, Nature).
 
-### 3. 🎮 Gamification & Streak Logic
-
+### 4. 🎮 Gamification & Streak Logic
 - **Study Streak:** Real-time tracking of consecutive study days.
 - **Earn XP:** Gain XP for every completed study session.
-- **Level Up:** Progress through student ranks as you accumulate XP.
+- **Level Up:** Progress through student ranks as you accumulate XP (Level = 1 + XP/500).
 
-### 4. 📊 Advanced Study Analytics
-
-- **Visual Data Distribution:** Modern Pie/Doughnut Charts visualizing time spent per subject.
-- **Progress Tracking:** Monitor course completion and exam countdowns.
-
-### 5. 🌍 Localization & Theme
-
-- **Multi-language Support:** Fully localized in **English**, **Arabic** (with RTL support), and **French**.
-- **Dark & Light Mode:** Aesthetic theme switching for all environments.
+### 5. 📊 Advanced Study Analytics
+- **Data Visualization:** Modern Pie/Doughnut charts for subject time distribution.
+- **Consistency Tracking:** Weekly progress bars and completion stats.
 
 ## 🛠️ Technology Stack
-
 - **Desktop:** Python 3 + PyQt5
-- **Web:** HTML5, CSS3, JavaScript (ES6)
+- **Web:** HTML5, CSS3 (Modern Flexbox/Grid), JavaScript (ES6)
 - **Cloud Backend:** Supabase (PostgreSQL + Auth)
 - **Audio Engine:** Pygame (Desktop) / Web Audio API
 - **Database:** SQLite (Desktop Local Cache)
@@ -60,8 +56,13 @@ A comprehensive application designed to help university students manage their ac
    ```
 
 3. **Supabase Configuration:**
-   - Follow `supabase_setup_guide.txt` to set up your database.
-   - Configure your `.env` file with `SUPABASE_URL` and `SUPABASE_KEY`.
+   - Follow `supabase_setup_guide.txt` to set up your cloud tables.
+   - Run the SQL migration commands provided in the guide to allow ID syncing.
+   - Create a `.env` file in the root directory:
+     ```env
+     SUPABASE_URL="your-project-url"
+     SUPABASE_KEY="your-anon-key"
+     ```
 
 ## ▶️ How to Run
 
@@ -71,21 +72,23 @@ python3 run.py
 ```
 
 ### Web Version
-Simply open `webversion/index.html` in your browser or run a local server:
+Simply open `webversion/index.html` in your browser. For full cloud functionality, use a local server:
 ```bash
 python3 -m http.server 8000
 ```
+Then visit: `http://localhost:8000/`
 
 ## 📂 Project Structure
-
 ```
-student_app/          # Python Desktop Source
-webversion/           # Web Version Source (HTML/CSS/JS)
-├── assets/           # Shared Sound Assets
-├── auth.js           # Web Auth Logic
-├── db.js             # Web Sync Engine
-└── app.js            # Web UI Controller
-run.py                # Desktop Entry Point
+student_app/          # Python Source Code
+webversion/           # Web Source (Mobile Responsive)
+├── assets/           # Sounds and Icons
+├── auth.js           # Supabase Auth Logic
+├── db.js             # V6 Sync & Cleanup Engine
+└── app.js            # Web UI Logic
+index.html            # Main Redirect for GitHub Pages
+student_data.db       # Local SQLite Database
+CODE_EXPLANATION.txt  # Detailed technical breakdown
 README.md             # This guide
 ```
 
