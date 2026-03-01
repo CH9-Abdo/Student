@@ -127,6 +127,8 @@ class StudentProApp {
         });
 
         document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
+        const mobileLogout = document.getElementById('mobile-logout-btn');
+        if (mobileLogout) mobileLogout.addEventListener('click', () => auth.signOut());
 
         // --- Tabs ---
         document.querySelectorAll('.nav-btn[data-tab]').forEach(btn => {

@@ -517,6 +517,113 @@ input:focus, select:focus {
     background: none; border: none; cursor: pointer; color: var(--text-mute);
 }
 
+/* --- MOBILE RESPONSIVE STYLES --- */
+@media (max-width: 768px) {
+    #app {
+        flex-direction: column;
+    }
+
+    #sidebar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 65px;
+        flex-direction: row;
+        border-right: none;
+        border-top: 1px solid var(--border);
+        padding: 0;
+        z-index: 1000;
+    }
+
+    .logo-container, #user-info-sidebar, .sidebar-footer {
+        display: none !important;
+    }
+
+    #navigation {
+        flex-direction: row;
+        width: 100%;
+        justify-content: space-around;
+        padding: 0 5px;
+        align-items: center;
+    }
+
+    .nav-btn {
+        flex-direction: column;
+        gap: 4px;
+        padding: 8px 0;
+        font-size: 10px;
+        flex: 1;
+        text-align: center;
+        margin: 0;
+    }
+
+    .nav-btn i {
+        font-size: 18px;
+    }
+
+    .nav-text {
+        display: block;
+    }
+
+    #content {
+        padding: 15px;
+        padding-top: 70px; /* Space for mobile header */
+        padding-bottom: 80px; /* Space for bottom nav */
+    }
+
+    #mobile-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 60px;
+        background-color: var(--sidebar);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        z-index: 1000;
+    }
+
+    .stats-row {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .dashboard-bottom {
+        grid-template-columns: 1fr;
+    }
+
+    .planner-split {
+        grid-template-columns: 1fr;
+    }
+
+    .timer-container {
+        width: 260px;
+        height: 260px;
+    }
+
+    .timer-text {
+        font-size: 42px;
+    }
+
+    .modal, .large-modal {
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    .h1 { font-size: 22px; }
+    .h2 { font-size: 18px; }
+}
+
+@media (min-width: 769px) {
+    #mobile-header {
+        display: none !important;
+    }
+}
+
 .sync-buttons {
     display: flex;
     gap: 10px;

@@ -27,99 +27,69 @@ def push_to_cloud():
     uid = get_uid()
     if not uid: return False
     try:
-        print("[Python Sync] Smart Upload starting...")
+        print("[Python Sync] Mirroring local database to cloud (Wipe & Rewrite)...")
         conn = get_db_connection()
+        sb = get_supabase()
         
-        # 1. Push Profile
-        try:
-            p = conn.execute('SELECT * FROM user_profile LIMIT 1').fetchone()
-            if p:
-                get_supabase().table("user_profile").upsert({
-                    "user_id": uid, "xp": p['xp'], "level": p['level'], "total_sessions": p['total_sessions']
-                }, on_conflict='user_id').execute()
-        except Exception as e: print(f"[Push] Profile Error: {e}")
+        # 1. DELETE EVERYTHING IN CLOUD FIRST (Reverse order of FKs)
+        print("[Push] Cleaning up cloud storage...")
+        sb.table("study_sessions").delete().eq("user_id", uid).execute()
+        sb.table("chapters").delete().eq("user_id", uid).execute()
+        sb.table("subjects").delete().eq("user_id", uid).execute()
+        sb.table("semesters").delete().eq("user_id", uid).execute()
 
-        # 2. Push Semesters
+        # 2. PUSH PROFILE (Upsert)
+        p = conn.execute('SELECT * FROM user_profile LIMIT 1').fetchone()
+        if p:
+            sb.table("user_profile").upsert({
+                "user_id": uid, "xp": p['xp'], "level": p['level'], "total_sessions": p['total_sessions']
+            }, on_conflict='user_id').execute()
+
+        # 3. PUSH SEMESTERS & CAPTURE NEW IDS
         sems = conn.execute('SELECT * FROM semesters').fetchall()
         for s in sems:
-            try:
-                payload = {"name": s['name'], "user_id": uid}
-                # If we already have a cloud_id, we update. If not, we let Supabase generate one.
-                if s['cloud_id']: payload["id"] = s['cloud_id']
+            res = sb.table("semesters").insert({"name": s['name'], "user_id": uid}).execute()
+            if res.data:
+                new_cloud_id = res.data[0]['id']
+                conn.execute('UPDATE semesters SET cloud_id = ? WHERE id = ?', (new_cloud_id, s['id']))
                 
-                res = get_supabase().table("semesters").upsert(payload).execute()
-                if res.data and len(res.data) > 0:
-                    new_cloud_id = res.data[0]['id']
-                    conn.execute('UPDATE semesters SET cloud_id = ? WHERE id = ?', (new_cloud_id, s['id']))
-            except Exception as e: print(f"[Push] Semester '{s['name']}' Error: {e}")
-
-        conn.commit()
-
-        # 3. Push Subjects
-        subs = conn.execute('SELECT * FROM subjects').fetchall()
-        for s in subs:
-            try:
-                # Get the cloud_id of the parent semester
-                sem = conn.execute('SELECT cloud_id FROM semesters WHERE id = ?', (s['semester_id'],)).fetchone()
-                cloud_sem_id = sem['cloud_id'] if sem else None
-                
-                payload = {
-                    "semester_id": cloud_sem_id, "name": s['name'], 
-                    "exam_date": s['exam_date'], "test_date": s['test_date'], 
-                    "notes": s['notes'], "user_id": uid
-                }
-                if s['cloud_id']: payload["id"] = s['cloud_id']
-                
-                res = get_supabase().table("subjects").upsert(payload).execute()
-                if res.data and len(res.data) > 0:
-                    new_cloud_id = res.data[0]['id']
-                    conn.execute('UPDATE subjects SET cloud_id = ? WHERE id = ?', (new_cloud_id, s['id']))
-            except Exception as e: print(f"[Push] Subject '{s['name']}' Error: {e}")
-
-        conn.commit()
-
-        # 4. Push Chapters
-        chaps = conn.execute('SELECT * FROM chapters').fetchall()
-        for c in chaps:
-            try:
-                sub = conn.execute('SELECT cloud_id FROM subjects WHERE id = ?', (c['subject_id'],)).fetchone()
-                cloud_sub_id = sub['cloud_id'] if sub else None
-                
-                payload = {
-                    "subject_id": cloud_sub_id, "name": c['name'],
-                    "video_completed": bool(c['video_completed']), 
-                    "exercises_completed": bool(c['exercises_completed']), 
-                    "is_completed": bool(c['is_completed']), 
-                    "due_date": c['due_date'], "user_id": uid
-                }
-                if c['cloud_id']: payload["id"] = c['cloud_id']
-                
-                res = get_supabase().table("chapters").upsert(payload).execute()
-                if res.data and len(res.data) > 0:
-                    conn.execute('UPDATE chapters SET cloud_id = ? WHERE id = ?', (res.data[0]['id'], c['id']))
-            except Exception as e: print(f"[Push] Chapter '{c['name']}' Error: {e}")
-
-        # 5. Push Sessions
-        sess = conn.execute('SELECT * FROM study_sessions').fetchall()
-        for s in sess:
-            try:
-                sub = conn.execute('SELECT cloud_id FROM subjects WHERE id = ?', (s['subject_id'],)).fetchone()
-                cloud_sub_id = sub['cloud_id'] if sub else None
-                
-                payload = {
-                    "subject_id": cloud_sub_id, "duration_minutes": s['duration_minutes'], 
-                    "timestamp": s['timestamp'], "user_id": uid
-                }
-                if s['cloud_id']: payload["id"] = s['cloud_id']
-                get_supabase().table("study_sessions").upsert(payload).execute()
-            except Exception as e: print(f"[Push] Session Error: {e}")
+                # 4. PUSH SUBJECTS FOR THIS SEMESTER
+                subs = conn.execute('SELECT * FROM subjects WHERE semester_id = ?', (s['id'],)).fetchall()
+                for sub in subs:
+                    sub_res = sb.table("subjects").insert({
+                        "semester_id": new_cloud_id, "name": sub['name'], 
+                        "exam_date": sub['exam_date'], "test_date": sub['test_date'], 
+                        "notes": sub['notes'], "user_id": uid
+                    }).execute()
+                    if sub_res.data:
+                        new_sub_cloud_id = sub_res.data[0]['id']
+                        conn.execute('UPDATE subjects SET cloud_id = ? WHERE id = ?', (new_sub_cloud_id, sub['id']))
+                        
+                        # 5. PUSH CHAPTERS FOR THIS SUBJECT
+                        chaps = conn.execute('SELECT * FROM chapters WHERE subject_id = ?', (sub['id'],)).fetchall()
+                        for c in chaps:
+                            sb.table("chapters").insert({
+                                "subject_id": new_sub_cloud_id, "name": c['name'],
+                                "video_completed": bool(c['video_completed']), 
+                                "exercises_completed": bool(c['exercises_completed']), 
+                                "is_completed": bool(c['is_completed']), 
+                                "due_date": c['due_date'], "user_id": uid
+                            }).execute()
+                        
+                        # 6. PUSH SESSIONS FOR THIS SUBJECT
+                        sess = conn.execute('SELECT * FROM study_sessions WHERE subject_id = ?', (sub['id'],)).fetchall()
+                        for sn in sess:
+                            sb.table("study_sessions").insert({
+                                "subject_id": new_sub_cloud_id, "duration_minutes": sn['duration_minutes'], 
+                                "timestamp": sn['timestamp'], "user_id": uid
+                            }).execute()
 
         conn.commit()
         conn.close()
-        print("[Python Sync] Smart Upload Complete!")
+        print("[Python Sync] Cloud Mirroring Complete!")
         return True
     except Exception as e:
-        print(f"[Python Sync] Critical Push failed: {e}")
+        print(f"[Python Sync] Mirroring Failed: {e}")
         return False
 
 def init_db():
