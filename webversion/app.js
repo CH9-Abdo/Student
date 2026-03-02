@@ -25,7 +25,8 @@ class StudentProApp {
     }
 
     async onLogin(user) {
-        document.getElementById('sidebar-user-email').textContent = `👤 ${user.email}`;
+        const name = db.data.user_profile.display_name || user.email;
+        document.getElementById('sidebar-user-email').textContent = `👤 ${name}`;
         document.getElementById('user-info-sidebar').classList.remove('hidden');
         
         const syncLabel = document.getElementById('last-sync-label');
@@ -124,7 +125,8 @@ class StudentProApp {
 
     setupEventListeners() {
         // --- Auth ---
-        document.getElementById('do-login-btn').addEventListener('click', async () => {
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
             const btn = document.getElementById('do-login-btn');
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
@@ -255,17 +257,32 @@ class StudentProApp {
         // --- Onboarding ---
         this.selectedTemplate = null;
         document.getElementById('start-onboarding-btn').addEventListener('click', async () => {
+            const displayName = document.getElementById('user-display-name').value.trim();
+            if (displayName) {
+                db.data.user_profile.display_name = displayName;
+                db.save();
+                await db.pushToCloud("user_profile", db.data.user_profile);
+            }
+
             if (this.selectedTemplate) {
                 const btn = document.getElementById('start-onboarding-btn');
                 btn.textContent = "Applying..."; btn.disabled = true;
                 await db.applyTemplate(this.selectedTemplate);
                 this.closeModal('welcome-modal');
+                this.onLogin(auth.user); // Refresh name in sidebar
                 this.refreshAll();
             }
         });
 
-        document.getElementById('skip-onboarding-btn').addEventListener('click', () => {
+        document.getElementById('skip-onboarding-btn').addEventListener('click', async () => {
+            const displayName = document.getElementById('user-display-name').value.trim();
+            if (displayName) {
+                db.data.user_profile.display_name = displayName;
+                db.save();
+                await db.pushToCloud("user_profile", db.data.user_profile);
+            }
             this.closeModal('welcome-modal');
+            this.onLogin(auth.user); // Refresh name in sidebar
             this.showModal('add-semester-modal');
         });
 

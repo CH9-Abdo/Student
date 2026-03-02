@@ -11,13 +11,13 @@ class Database {
         console.log(`[DB] ${msg}`);
         // UI debug log disabled
     }
-
-    load() {
-        const saved = localStorage.getItem(DB_KEY);
-        if (saved) return JSON.parse(saved);
-        return {
-            user_profile: { xp: 0, level: 1, total_sessions: 0 },
-            semesters: [],
+load() {
+    const saved = localStorage.getItem(DB_KEY);
+    if (saved) return JSON.parse(saved);
+    return {
+        user_profile: { xp: 0, level: 1, total_sessions: 0, display_name: '' },
+        semesters: [],
+...
             subjects: [],
             chapters: [],
             study_sessions: [],
