@@ -269,7 +269,6 @@ class StudentProApp {
                 const subId = parseInt(e.target.value);
                 const suggestion = db.getSmartSuggestion(subId);
                 document.getElementById('smart-suggestion').innerHTML = `💡 Suggestion: ${suggestion}`;
-                this.updateMiniChallenge(subId); // استدعاء التحديث هنا
             });
         }
 
@@ -622,7 +621,7 @@ class StudentProApp {
         if (sessionsLabel) sessionsLabel.textContent = `Sessions Today: ${todaySessions}`;
         
         this.updateTimerDisplay();
-        if (currentVal) this.updateMiniChallenge(parseInt(currentVal));
+        this.updateMiniChallenge();
     }
 
     toggleTimer() { if (this.timerRunning) this.pauseTimer(); else this.startTimer(); }
@@ -657,32 +656,36 @@ class StudentProApp {
         if (subId) this.updateMiniChallenge(subId);
     }
 
-    updateMiniChallenge(subId) {
+    updateMiniChallenge() {
         const card = document.getElementById('mini-challenge-card');
         const text = document.getElementById('mini-challenge-text');
         
-        if (!subId) { 
-            const today = new Date().toISOString().split('T')[0];
-            const totalToday = db.data.study_sessions.filter(s => s.timestamp && s.timestamp.startsWith(today)).length;
-            if (totalToday === 0) {
-                text.innerHTML = "Start your first study session of the day! 🚀";
-            } else {
-                text.innerHTML = `You've done <b>${totalToday}</b> sessions today. Keep going! 🔥`;
-            }
-            return; 
+        if (db.data.subjects.length === 0) {
+            text.innerHTML = "Add some subjects in the Planner to start your first challenge! 📚";
+            return;
         }
+
+        // Calculate total minutes per subject
+        const stats = {};
+        db.data.subjects.forEach(s => stats[s.id] = 0);
+        db.data.study_sessions.forEach(s => {
+            if (stats[s.subject_id] !== undefined) stats[s.subject_id] += (s.duration_minutes || 0);
+        });
+
+        // Find subject with minimum study time
+        let minId = null;
+        let minTime = Infinity;
         
-        const sub = db.data.subjects.find(s => s.id === subId);
-        const today = new Date().toISOString().split('T')[0];
-        const subSessionsToday = db.data.study_sessions.filter(s => s.subject_id === subId && s.timestamp.startsWith(today)).length;
-        
-        const target = subSessionsToday < 2 ? 2 : (subSessionsToday + 1);
-        
-        card.classList.remove('hidden');
-        if (subSessionsToday >= target) {
-            text.innerHTML = `✅ Goal Reached! You completed <b>${subSessionsToday}</b> sessions of <b>${sub.name}</b> today.`;
-        } else {
-            text.innerHTML = `Complete <b>${target}</b> sessions of <b>${sub.name}</b> today. <br>Progress: <b>${subSessionsToday}/${target}</b>`;
+        for (let subId in stats) {
+            if (stats[subId] < minTime) {
+                minTime = stats[subId];
+                minId = parseInt(subId);
+            }
+        }
+
+        const weakestSub = db.data.subjects.find(s => s.id === minId);
+        if (weakestSub) {
+            text.innerHTML = `⚖️ <b>Balance Challenge:</b> Study <b>${weakestSub.name}</b> next! You only have ${minTime}m recorded. <br>Goal: Complete 1 session to balance your schedule.`;
         }
     }
 
