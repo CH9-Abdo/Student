@@ -8,22 +8,33 @@ def load_settings():
     if os.path.exists(CONFIG_FILE):
         try:
             with open(CONFIG_FILE, 'r') as f:
-                return json.load(f)
+                settings = json.load(f)
+                # If path doesn't exist or is invalid, reset to default
+                db_p = settings.get("db_path", DEFAULT_DB_NAME)
+                if not os.path.isabs(db_p):
+                    db_p = os.path.abspath(db_p)
+                return settings
         except json.JSONDecodeError:
             pass
     return {"db_path": os.path.abspath(DEFAULT_DB_NAME)}
 
 def save_settings(settings):
+    # Keep paths relative in config if possible for portability
+    if "db_path" in settings and settings["db_path"].startswith(os.getcwd()):
+        settings["db_path"] = os.path.relpath(settings["db_path"], os.getcwd())
     with open(CONFIG_FILE, 'w') as f:
         json.dump(settings, f, indent=4)
 
 def get_db_path():
     settings = load_settings()
-    return settings.get("db_path", os.path.abspath(DEFAULT_DB_NAME))
+    path = settings.get("db_path", DEFAULT_DB_NAME)
+    if not os.path.isabs(path):
+        path = os.path.abspath(path)
+    return path
 
 def set_db_path(path):
     settings = load_settings()
-    settings["db_path"] = os.path.abspath(path)
+    settings["db_path"] = path # Will be made relative in save_settings if in project root
     save_settings(settings)
 
 def get_language():
