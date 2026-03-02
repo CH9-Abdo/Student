@@ -22,6 +22,28 @@ class SettingsTab(QWidget):
     def init_ui(self):
         layout = QVBoxLayout()
         
+        # Account Profile Group
+        acc_group = QGroupBox("👤 Account Profile")
+        acc_layout = QVBoxLayout()
+        
+        from student_app.auth_manager import AuthManager
+        from student_app.database import get_user_profile
+        auth = AuthManager()
+        user = auth.get_current_user()
+        profile = get_user_profile()
+        
+        name = profile.get('display_name') if profile else "Not Set"
+        email = user.email if user else "Local Mode"
+        level = profile.get('level', 1) if profile else 1
+        xp = profile.get('xp', 0) if profile else 0
+        
+        acc_layout.addWidget(QLabel(f"<b>Name:</b> {name}"))
+        acc_layout.addWidget(QLabel(f"<b>Email:</b> {email}"))
+        acc_layout.addWidget(QLabel(f"<b>Status:</b> Level {level} Student ({xp} XP)"))
+        
+        acc_group.setLayout(acc_layout)
+        layout.addWidget(acc_group)
+
         # Appearance Group
         appearance_group = QGroupBox(self.texts["theme"])
         appearance_layout = QVBoxLayout()

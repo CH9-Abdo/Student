@@ -64,10 +64,16 @@ class StudentProApp {
 
     loadSettings() {
         const s = db.data.settings;
+        const p = db.data.user_profile;
         document.body.setAttribute('data-theme', s.theme);
         document.getElementById('theme-select').value = s.theme;
         document.getElementById('lang-select').value = s.lang;
         
+        // Update Account Details
+        document.getElementById('acc-display-name').textContent = p.display_name || "Not Set";
+        document.getElementById('acc-email').textContent = auth.user ? auth.user.email : "Not Logged In";
+        document.getElementById('acc-stats').textContent = `Level ${p.level} Student (${p.xp} XP)`;
+
         if (document.getElementById('sync-mode-select')) {
             document.getElementById('sync-mode-select').value = s.sync_mode || 'Automatic';
         }
