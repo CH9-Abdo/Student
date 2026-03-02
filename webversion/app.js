@@ -25,29 +25,41 @@ class StudentProApp {
     }
 
     async onLogin(user) {
-        const name = db.data.user_profile.display_name || user.email;
-        document.getElementById('sidebar-user-email').textContent = `👤 ${name}`;
-        document.getElementById('user-info-sidebar').classList.remove('hidden');
-        
+        console.log("[App] Login success. Starting sync...");
         const syncLabel = document.getElementById('last-sync-label');
-        syncLabel.textContent = "🔄 Syncing...";
+        syncLabel.textContent = "🔄 Syncing with Cloud...";
         
-        const success = await db.syncFromCloud();
-        if (success) {
-            syncLabel.textContent = `🔄 Last sync: ${db.lastSync}`;
-        } else {
-            syncLabel.textContent = "⚠️ Sync failed";
+        // Ensure UI elements exist
+        document.getElementById('sidebar-user-email').textContent = `👤 ${user.email}`;
+        document.getElementById('user-info-sidebar').classList.remove('hidden');
+
+        try {
+            const success = await db.syncFromCloud();
+            if (success) {
+                console.log("[App] Sync success. Refreshing UI...");
+                syncLabel.textContent = `🔄 Last sync: ${db.lastSync}`;
+                
+                // Set name if available in profile
+                if (db.data.user_profile.display_name) {
+                    document.getElementById('sidebar-user-email').textContent = `👤 ${db.data.user_profile.display_name}`;
+                }
+            } else {
+                syncLabel.textContent = "⚠️ Sync failed. Using local data.";
+            }
+        } catch (e) {
+            console.error("[App] Sync Error:", e);
+            syncLabel.textContent = "⚠️ Sync error.";
         }
 
         this.loadSettings();
         this.refreshAll();
 
-        // Onboarding Check: If no semesters exist, show welcome modal
+        // Onboarding Check
         setTimeout(() => {
-            if (db.data.semesters.length === 0) {
+            if (!db.data.semesters || db.data.semesters.length === 0) {
                 this.showModal('welcome-modal');
             }
-        }, 1000); // Give UI time to breathe
+        }, 500); 
     }
 
     loadSettings() {

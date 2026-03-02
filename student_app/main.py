@@ -199,8 +199,12 @@ def main():
     user = auth.get_current_user()
     
     def start_main_app(user_obj):
-        # Show Onboarding if empty
-        from student_app.database import get_all_semesters
+        # 1. Sync from Cloud first to get latest data
+        from student_app.database import sync_from_cloud, get_all_semesters
+        print(f"[Main] User {user_obj.email} logged in. Fetching cloud data...")
+        sync_from_cloud()
+        
+        # 2. Show Onboarding if empty after sync
         if not get_all_semesters():
             diag = OnboardingDialog()
             diag.exec_()

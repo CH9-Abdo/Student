@@ -65,7 +65,15 @@ load() {
             if (rSub.data) this.data.subjects = rSub.data;
             if (rChap.data) this.data.chapters = rChap.data;
             if (rSess.data) this.data.study_sessions = rSess.data;
-            if (rProf.data) this.data.user_profile = { xp: rProf.data.xp, level: rProf.data.level, total_sessions: rProf.data.total_sessions };
+            
+            if (rProf.data) {
+                this.data.user_profile = { 
+                    xp: rProf.data.xp || 0, 
+                    level: rProf.data.level || 1, 
+                    total_sessions: rProf.data.total_sessions || 0,
+                    display_name: rProf.data.display_name || ''
+                };
+            }
 
             this.lastSync = new Date().toLocaleTimeString();
             localStorage.setItem('last_sync_v6', this.lastSync);
