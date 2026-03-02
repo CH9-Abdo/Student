@@ -661,7 +661,16 @@ class StudentProApp {
         const card = document.getElementById('mini-challenge-card');
         const text = document.getElementById('mini-challenge-text');
         
-        if (!subId) { card.classList.add('hidden'); return; }
+        if (!subId) { 
+            const today = new Date().toISOString().split('T')[0];
+            const totalToday = db.data.study_sessions.filter(s => s.timestamp && s.timestamp.startsWith(today)).length;
+            if (totalToday === 0) {
+                text.innerHTML = "Start your first study session of the day! 🚀";
+            } else {
+                text.innerHTML = `You've done <b>${totalToday}</b> sessions today. Keep going! 🔥`;
+            }
+            return; 
+        }
         
         const sub = db.data.subjects.find(s => s.id === subId);
         const today = new Date().toISOString().split('T')[0];

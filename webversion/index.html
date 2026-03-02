@@ -203,9 +203,9 @@
                         </select>
                     </div>
                     <p id="smart-suggestion" class="mute">💡 Select a subject to start</p>
-                    <div id="mini-challenge-card" class="card hidden" style="margin: 10px 0; background: rgba(16, 185, 129, 0.05); border: 1px dashed var(--success); padding: 10px;">
+                    <div id="mini-challenge-card" class="card" style="margin: 10px 0; background: rgba(16, 185, 129, 0.05); border: 1px dashed var(--success); padding: 10px;">
                         <span style="font-size: 12px; font-weight: bold; color: var(--success);">🎯 MINI CHALLENGE</span>
-                        <p id="mini-challenge-text" style="font-size: 13px; margin: 5px 0;"></p>
+                        <p id="mini-challenge-text" style="font-size: 13px; margin: 5px 0;">Select a subject to see your specific challenge!</p>
                     </div>
 
                     <div id="challenge-indicator" class="hidden" style="margin-bottom: 15px; color: var(--primary); font-weight: bold; animation: pulse 2s infinite;">
@@ -266,10 +266,39 @@
             </section>
 
             <section id="analytics" class="tab-content">
-                <div class="header"><h2 class="h1">Analytics</h2></div>
+                <div class="header">
+                    <h2 class="h1">Analytics Explorer</h2>
+                </div>
+
+                <!-- Summary Stats -->
+                <div class="stats-row" style="margin-bottom: 20px;">
+                    <div class="stat-card card" style="border-bottom: 3px solid var(--primary);">
+                        <p class="mute">⏱️ Total Study Time</p>
+                        <h2 id="total-time-val">0m</h2>
+                    </div>
+                    <div class="stat-card card" style="border-bottom: 3px solid var(--success);">
+                        <p class="mute">📚 Top Subject</p>
+                        <h2 id="top-subject-val">None</h2>
+                    </div>
+                    <div class="stat-card card" style="border-bottom: 3px solid var(--warning);">
+                        <p class="mute">🔥 Focus Level</p>
+                        <h2 id="focus-level-val">Beginner</h2>
+                    </div>
+                </div>
+
                 <div class="analytics-grid">
-                    <div class="card chart-card"><h3>Time Distribution</h3><canvas id="time-dist-chart"></canvas></div>
-                    <div class="card chart-card"><h3>Weekly Progress</h3><canvas id="weekly-progress-chart"></canvas></div>
+                    <div class="card chart-card">
+                        <h3>Distribution by Subject</h3>
+                        <div style="max-width: 300px; margin: auto;">
+                            <canvas id="time-dist-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card chart-card">
+                        <h3>Subject Time Breakdown</h3>
+                        <div id="subject-breakdown-list" class="list-widget" style="margin-top: 15px;">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
                 </div>
             </section>
 
