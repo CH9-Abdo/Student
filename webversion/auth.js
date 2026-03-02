@@ -22,16 +22,24 @@ class AuthManager {
                 this.log(`Logged in: ${session.user.email}`);
                 this.user = session.user;
 
-                // Detect if coming from a password reset link
-                // Supabase adds #type=recovery or has a specific session flag
+                // Seamless Reset: Auto-update if we have a pending password from earlier
                 const hash = window.location.hash;
-                if (hash && hash.includes("type=recovery")) {
-                    this.log("Password recovery detected.");
-                    setTimeout(() => {
-                        if (window.app && window.app.showModal) {
-                            window.app.showModal('update-password-modal');
-                        }
-                    }, 1000);
+                const pendingPass = localStorage.getItem('pending_new_password');
+                
+                if (hash && hash.includes("type=recovery") && pendingPass) {
+                    this.log("Seamless password recovery detected.");
+                    try {
+                        await this.updatePassword(pendingPass);
+                        localStorage.removeItem('pending_new_password');
+                        alert("Password updated automatically! Welcome back.");
+                    } catch (e) {
+                        this.log("Auto-update failed: " + e.message);
+                        // Fallback: Show manual update modal if auto-update fails
+                        if (window.app && window.app.showModal) window.app.showModal('update-password-modal');
+                    }
+                } else if (hash && hash.includes("type=recovery")) {
+                    // Manual recovery if no pending password found
+                    if (window.app && window.app.showModal) window.app.showModal('update-password-modal');
                 }
 
                 this.onAuthSuccess(this.user);

@@ -226,28 +226,33 @@ class StudentProApp {
 
         document.getElementById('do-reset-btn').addEventListener('click', async () => {
             const email = document.getElementById('login-email').value;
-            const token = document.getElementById('reset-code').value;
             const newPass = document.getElementById('reset-new-password').value;
             const btn = document.getElementById('do-reset-btn');
             const err = document.getElementById('login-error');
             
-            if (!token || !newPass) {
-                err.textContent = "Please enter both code and new password";
+            if (!email || !newPass || newPass.length < 6) {
+                err.textContent = "Please enter email and a valid new password (min 6 chars)";
                 err.classList.remove('hidden');
                 return;
             }
 
             try {
-                btn.textContent = "Updating..."; btn.disabled = true;
-                await auth.verifyOtpForRecovery(email, token, newPass);
-                alert("Password Updated Successfully! Logging you in...");
-                window.location.reload();
+                btn.textContent = "Processing..."; btn.disabled = true;
+                // Store password locally to update after user clicks email link
+                localStorage.setItem('pending_new_password', newPass);
+                
+                await auth.resetPassword(email);
+                alert("A reset link has been sent to your email! Click it to finish updating your password.");
+                
+                // Reset UI
+                document.getElementById('back-to-login-btn').click();
             } catch (e) {
                 err.textContent = e.message;
                 err.classList.remove('hidden');
+                localStorage.removeItem('pending_new_password');
             } finally {
                 btn.disabled = false;
-                btn.textContent = "Update Password & Login";
+                btn.textContent = "Send Reset Link 📧";
             }
         });
 
