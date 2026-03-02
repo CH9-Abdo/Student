@@ -203,12 +203,16 @@ def main():
     user = auth.get_current_user()
     
     def start_main_app(user_obj):
-        # 1. Sync from Cloud first to get latest data
-        from student_app.database import sync_from_cloud, get_all_semesters
-        print(f"[Main] User {user_obj.email} logged in. Fetching cloud data...")
-        sync_from_cloud()
+        from student_app.database import sync_from_cloud, get_all_semesters, init_db
+        init_db() # Ensure tables exist
         
-        # 2. Show Onboarding if empty after sync
+        print(f"[Main] Attempting to sync cloud data for {user_obj.email}...")
+        if sync_from_cloud():
+            print("[Main] Cloud sync successful.")
+        else:
+            print("[Main] Cloud sync failed or offline. Using local database.")
+        
+        # Show Onboarding if still empty
         if not get_all_semesters():
             diag = OnboardingDialog()
             diag.exec_()
