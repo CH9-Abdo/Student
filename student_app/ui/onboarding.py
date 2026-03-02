@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 from student_app.database import apply_template, get_uid, get_supabase
-from student_app.settings import get_language
+from student_app.settings import get_language, get_app_root
 from student_app.ui.translations import TRANSLATIONS
 
 def parse_templates():
@@ -14,7 +14,7 @@ def parse_templates():
     current_sub = None
     
     try:
-        path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "templates.txt")
+        path = os.path.join(get_app_root(), "templates.txt")
         if not os.path.exists(path): return []
         
         with open(path, 'r', encoding='utf-8') as f:

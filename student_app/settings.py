@@ -1,12 +1,20 @@
 import json
 import os
+import sys
+
+def get_app_root():
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    if getattr(sys, 'frozen', False):
+        return sys._MEIPASS
+    return os.getcwd()
 
 CONFIG_FILE = "config.json"
 DEFAULT_DB_NAME = "student_data.db"
 
 def load_settings():
-    if os.path.exists(CONFIG_FILE):
-        try:
+    config_path = os.path.join(os.getcwd(), CONFIG_FILE)
+    if os.path.exists(config_path):
+...
             with open(CONFIG_FILE, 'r') as f:
                 settings = json.load(f)
                 # If path doesn't exist or is invalid, reset to default
