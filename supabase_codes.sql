@@ -1,13 +1,12 @@
 -- ==========================================
--- SUPABASE SETUP CODES FOR STUDENTPRO
+-- SUPABASE SETUP CODES (FIXED & COMPLETE)
 -- Run these commands in the SQL Editor
 -- ==========================================
 
--- 1. Enable RLS and add Display Name to user_profile
+-- 1. Fix User Profile (Add display_name)
 ALTER TABLE IF EXISTS user_profile ADD COLUMN IF NOT EXISTS display_name TEXT;
 
--- 2. Create the Weekly Leaderboard View
--- This view automatically calculates study sessions for the current week
+-- 2. Create the Weekly Leaderboard View (Fixed Group By)
 CREATE OR REPLACE VIEW weekly_leaderboard AS
 SELECT 
     up.display_name,
@@ -16,19 +15,26 @@ SELECT
     up.user_id
 FROM user_profile up
 LEFT JOIN study_sessions ss ON up.user_id = ss.user_id
--- Filter sessions from the start of the current week
 WHERE ss.timestamp >= date_trunc('week', now()) OR ss.timestamp IS NULL
 GROUP BY up.user_id, up.display_name, up.level
-ORDER BY sessions_count DESC
-LIMIT 10;
+ORDER BY sessions_count DESC;
 
--- 3. Grant public access to the Leaderboard (Important!)
--- This allows users to see the ranking without seeing each other's private data
-ALTER VIEW weekly_leaderboard OWNER TO postgres;
+-- 3. Grant Access to Leaderboard
 GRANT SELECT ON weekly_leaderboard TO anon, authenticated;
 
--- 4. Ensure RLS Policies allow users to update their own profile
--- (Run this if you have trouble saving your name)
-CREATE POLICY "Users can update their own profile" 
-ON user_profile FOR UPDATE 
-USING (auth.uid() = user_id);
+-- 4. ENABLE RLS & CREATE POLICIES (Fixes "Synchronization Failed")
+-- Run this block to allow users to manage their own data
+ALTER TABLE semesters ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Manage own semesters" ON semesters FOR ALL USING (auth.uid() = user_id);
+
+ALTER TABLE subjects ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Manage own subjects" ON subjects FOR ALL USING (auth.uid() = user_id);
+
+ALTER TABLE chapters ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Manage own chapters" ON chapters FOR ALL USING (auth.uid() = user_id);
+
+ALTER TABLE study_sessions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Manage own sessions" ON study_sessions FOR ALL USING (auth.uid() = user_id);
+
+ALTER TABLE user_profile ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Manage own profile" ON user_profile FOR ALL USING (auth.uid() = user_id);
