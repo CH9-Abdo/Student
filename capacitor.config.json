@@ -1,0 +1,10 @@
+{
+  "appId": "com.ch9abdo.student",
+  "appName": "StudentPro",
+  "webDir": "webversion",
+  "server": {
+    "url": "https://ch9-abdo.github.io/Student/webversion/index.html",
+    "cleartext": true
+  },
+  "bundledWebRuntime": false
+}

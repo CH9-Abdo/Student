@@ -1,17 +1,19 @@
 {
-  "dependencies": {
-    "@supabase/supabase-js": "^2.98.0"
-  },
   "name": "student",
   "version": "1.0.0",
-  "description": "A comprehensive desktop application designed to help university students manage their academic life. It allows for tracking subjects, planning study chapters, and maintaining a high-focus study routine with gamified elements.",
-  "main": "test-supabase.js",
-  "devDependencies": {},
+  "description": "StudentPro Study Manager",
+  "main": "index.html",
+  "type": "module",
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@supabase/supabase-js": "^2.48.1"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Chenoufi Abderrahmane",
   "license": "ISC"
-  "type": "module",
 }

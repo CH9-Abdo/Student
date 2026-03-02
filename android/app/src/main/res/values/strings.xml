@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">StudentPro</string>
+    <string name="title_activity_main">StudentPro</string>
+    <string name="package_name">com.ch9abdo.student</string>
+    <string name="custom_url_scheme">com.ch9abdo.student</string>
+</resources>
