@@ -110,6 +110,11 @@
                         <p class="mute" id="dash-challenge-label">🚀 Study Challenge</p>
                         <button id="start-challenge-btn" class="primary-btn small-btn full-width" style="margin-top: 10px;">Start Focus</button>
                     </div>
+                    <div class="stat-card card daily-challenge-card">
+                        <p class="mute">📅 Daily Goal</p>
+                        <h2 id="daily-goal-val">0/3</h2>
+                        <div class="progress-bar-container"><div id="daily-goal-bar" class="progress-bar" style="width: 0%"></div></div>
+                    </div>
                 </div>
 
                 <div class="dashboard-bottom">
@@ -199,6 +204,9 @@
                     </div>
                     <p id="smart-suggestion" class="mute">💡 Select a subject to start</p>
 
+                    <div id="challenge-indicator" class="hidden" style="margin-bottom: 15px; color: var(--primary); font-weight: bold; animation: pulse 2s infinite;">
+                        <i class="fas fa-fire"></i> CHALLENGE MODE ACTIVE
+                    </div>
                     <div class="timer-container">
                         <svg class="timer-svg" viewBox="0 0 100 100">
                             <circle class="timer-bg" cx="50" cy="50" r="45"></circle>

@@ -75,11 +75,25 @@ class Dashboard(QWidget):
         self.start_btn.setObjectName("primaryButton")
         self.start_btn.clicked.connect(self.start_challenge_requested.emit)
         challenge_vbox.addWidget(self.start_btn)
+
+        # Daily Goal Card
+        self.daily_card = QFrame()
+        self.daily_card.setObjectName("card")
+        daily_vbox = QVBoxLayout(self.daily_card)
+        daily_vbox.addWidget(QLabel("📅 Daily Goal", objectName="mute"))
+        self.daily_goal_label = QLabel("0/3")
+        self.daily_goal_label.setObjectName("h2")
+        daily_vbox.addWidget(self.daily_goal_label)
+        self.daily_progress = QProgressBar()
+        self.daily_progress.setRange(0, 3)
+        self.daily_progress.setFixedHeight(10)
+        daily_vbox.addWidget(self.daily_progress)
         
         stats_layout.addWidget(self.progress_card)
         stats_layout.addWidget(self.exam_card)
         stats_layout.addWidget(self.streak_card)
         stats_layout.addWidget(self.challenge_card)
+        stats_layout.addWidget(self.daily_card)
         main_layout.addLayout(stats_layout)
         
         # Bottom Section (Split)
@@ -136,6 +150,18 @@ class Dashboard(QWidget):
         # 2.5 Update Streak
         streak = get_study_streak()
         self.streak_card.update_value(f"{streak} Days")
+
+        # 2.6 Daily Goal Logic
+        from student_app.database import get_db_connection
+        from datetime import datetime
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        conn = get_db_connection()
+        today_sessions = conn.execute("SELECT COUNT(*) FROM study_sessions WHERE date(timestamp) = ?", (today_str,)).fetchone()[0]
+        conn.close()
+        
+        self.daily_goal_label.setText(f"{today_sessions}/3")
+        self.daily_progress.setValue(min(today_sessions, 3))
+        if today_sessions >= 3: self.daily_goal_label.setText(f"{today_sessions}/3 ✅")
 
         # 3. To-Do List
         for i in reversed(range(self.todo_layout.count())): 

@@ -264,6 +264,7 @@ class StudentProApp {
         
         document.getElementById('start-challenge-btn').addEventListener('click', () => {
             this.switchTab('pomodoro');
+            document.getElementById('challenge-indicator').classList.remove('hidden');
         });
 
         // --- Onboarding ---
@@ -450,6 +451,15 @@ class StudentProApp {
         document.getElementById('next-exam-val').textContent = exam ? `${exam.name} (${exam.days}d)` : "None";
 
         document.getElementById('streak-val').textContent = `${db.getStudyStreak()} Days`;
+
+        // Daily Challenge Logic
+        const today = new Date().toISOString().split('T')[0];
+        const todaySessions = db.data.study_sessions.filter(s => s.timestamp && s.timestamp.startsWith(today)).length;
+        const dailyGoal = 3;
+        const goalPerc = Math.min((todaySessions / dailyGoal) * 100, 100);
+        document.getElementById('daily-goal-val').textContent = `${todaySessions}/${dailyGoal}`;
+        document.getElementById('daily-goal-bar').style.width = `${goalPerc}%`;
+        if (goalPerc === 100) document.getElementById('daily-goal-val').innerHTML += " ✅";
 
         const container = document.getElementById('todo-container');
         container.innerHTML = '';
