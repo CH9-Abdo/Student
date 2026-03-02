@@ -221,12 +221,21 @@
                     </div>
 
                     <div class="pomodoro-extra">
-                        <label class="checkbox-container">
-                            <input type="checkbox" id="lofi-toggle">
-                            <span class="checkmark"></span> 🎵 Lo-Fi Music
-                        </label>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; justify-content: center;">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="lofi-toggle">
+                                <span class="checkmark"></span> 🎵
+                            </label>
+                            <select id="lofi-music-select" class="small-select" style="padding: 5px; border-radius: 5px; border: 1px solid var(--border); background: var(--card); color: var(--text);">
+                                <option value="fassounds-lofi-study-calm-peaceful-chill-hop-112191.mp3">Lo-Fi Study</option>
+                                <option value="lofi_rain.wav">Rain Focus</option>
+                                <option value="nature.mp3">Nature Calm</option>
+                            </select>
+                        </div>
                         <span id="sessions-today-label" class="mute">Sessions Today: 0</span>
                     </div>
+                    <!-- Background Audio -->
+                    <audio id="bg-music-player" loop></audio>
                 </div>
             </section>
 

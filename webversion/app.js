@@ -272,6 +272,21 @@ class StudentProApp {
             });
         }
 
+        // --- Lo-Fi Music ---
+        const musicPlayer = document.getElementById('bg-music-player');
+        const lofiToggle = document.getElementById('lofi-toggle');
+        const musicSelect = document.getElementById('lofi-music-select');
+
+        const updateMusic = () => {
+            const track = musicSelect.value;
+            musicPlayer.src = `assets/sounds/${track}`;
+            if (lofiToggle.checked) musicPlayer.play().catch(e => console.log("Music play blocked by browser. Interaction needed."));
+            else musicPlayer.pause();
+        };
+
+        lofiToggle.addEventListener('change', updateMusic);
+        musicSelect.addEventListener('change', updateMusic);
+
         // --- Timer ---
         document.getElementById('timer-start').addEventListener('click', () => this.toggleTimer());
         document.getElementById('timer-reset').addEventListener('click', () => this.resetTimer());
