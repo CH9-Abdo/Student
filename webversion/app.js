@@ -269,6 +269,7 @@ class StudentProApp {
                 const subId = parseInt(e.target.value);
                 const suggestion = db.getSmartSuggestion(subId);
                 document.getElementById('smart-suggestion').innerHTML = `💡 Suggestion: ${suggestion}`;
+                this.updateMiniChallenge(subId); // استدعاء التحديث هنا
             });
         }
 
@@ -712,11 +713,47 @@ class StudentProApp {
         if (existingEmpty) existingEmpty.classList.add('hidden');
 
         const dist = {};
+        let totalMinutes = 0;
+        
         db.data.study_sessions.forEach(s => {
             const sub = db.data.subjects.find(sub => sub.id === s.subject_id);
             const name = sub ? sub.name : "Other";
             dist[name] = (dist[name] || 0) + (s.duration_minutes || 0);
+            totalMinutes += (s.duration_minutes || 0);
         });
+
+        // Update Summary Cards
+        document.getElementById('total-time-val').textContent = `${totalMinutes}m`;
+        
+        const sortedSubs = Object.entries(dist).sort((a, b) => b[1] - a[1]);
+        document.getElementById('top-subject-val').textContent = sortedSubs.length > 0 ? sortedSubs[0][0] : "None";
+        
+        const focusLevels = ["Novice", "Learner", "Dedicated", "Scholar", "Master"];
+        const levelIdx = Math.min(Math.floor(totalMinutes / 500), 4);
+        document.getElementById('focus-level-val').textContent = focusLevels[levelIdx];
+
+        // Update Breakdown List
+        const breakdownList = document.getElementById('subject-breakdown-list');
+        breakdownList.innerHTML = '';
+        sortedSubs.forEach(([name, mins]) => {
+            const perc = totalMinutes > 0 ? Math.round((mins / totalMinutes) * 100) : 0;
+            const item = document.createElement('div');
+            item.className = 'list-item';
+            item.style.cursor = 'default';
+            item.innerHTML = `
+                <div style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <strong>${name}</strong>
+                        <span>${mins} mins (${perc}%)</span>
+                    </div>
+                    <div class="progress-bar-container" style="height: 6px;">
+                        <div class="progress-bar" style="width: ${perc}%"></div>
+                    </div>
+                </div>
+            `;
+            breakdownList.appendChild(item);
+        });
+
         if (this.timeChart) {
             this.timeChart.data.labels = Object.keys(dist);
             this.timeChart.data.datasets[0].data = Object.values(dist);
