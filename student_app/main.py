@@ -14,6 +14,7 @@ from student_app.ui.planner import StudyPlanner
 from student_app.ui.pomodoro import PomodoroTimer
 from student_app.ui.analytics import Analytics
 from student_app.ui.settings import SettingsTab
+from student_app.ui.onboarding import OnboardingDialog
 from student_app.ui.login import LoginWindow
 from student_app.auth_manager import AuthManager
 from student_app.sound_manager import create_app_sounds
@@ -141,6 +142,7 @@ class MainWindow(QMainWindow):
         self.content_stack = QStackedWidget()
         
         self.dashboard_tab = Dashboard()
+        self.dashboard_tab.start_challenge_requested.connect(lambda: self.switch_tab(2))
         self.planner_tab = StudyPlanner()
         self.pomodoro_tab = PomodoroTimer(notify_callback=self.notify)
         self.analytics_tab = Analytics()
@@ -197,6 +199,12 @@ def main():
     user = auth.get_current_user()
     
     def start_main_app(user_obj):
+        # Show Onboarding if empty
+        from student_app.database import get_all_semesters
+        if not get_all_semesters():
+            diag = OnboardingDialog()
+            diag.exec_()
+            
         window = MainWindow(user=user_obj)
         window.show()
         # Close login window if it exists

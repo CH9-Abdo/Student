@@ -12,8 +12,7 @@ class AuthManager {
 
     log(msg) {
         console.log(`[Auth] ${msg}`);
-        const debug = document.getElementById('debug-log');
-        if (debug) debug.innerHTML += `<div>${msg}</div>`;
+        // UI debug log disabled
     }
 
     async checkSession() {

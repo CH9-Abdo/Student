@@ -35,7 +35,12 @@ const TRANSLATIONS = {
         "upload": "Upload to Cloud",
         "download": "Download from Cloud",
         "sync_success": "Sync successful!",
-        "sync_failed": "Sync failed!"
+        "sync_failed": "Sync failed!",
+        "challenge": "Study Challenge",
+        "start_challenge": "Start Focus 🚀",
+        "welcome_title": "Welcome to StudentPro!",
+        "welcome_desc": "Your ultimate study companion is ready. Let's set up your first semester to begin tracking your progress.",
+        "welcome_btn": "Let's Get Started! 🚀"
     },
     "Arabic": {
         "dashboard": "لوحة القيادة",
@@ -73,7 +78,12 @@ const TRANSLATIONS = {
         "upload": "رفع إلى السحابة",
         "download": "تحميل من السحابة",
         "sync_success": "تمت المزامنة!",
-        "sync_failed": "فشلت المزامنة!"
+        "sync_failed": "فشلت المزامنة!",
+        "challenge": "تحدي الدراسة",
+        "start_challenge": "ابدأ التحدي 🚀",
+        "welcome_title": "مرحباً بك في StudentPro!",
+        "welcome_desc": "رفيقك الدراسي المثالي جاهز. لنقم بإعداد أول فصل دراسي لك للبدء في تتبع تقدمك.",
+        "welcome_btn": "لنبدأ الآن! 🚀"
     },
     "French": {
         "dashboard": "Tableau de bord",
@@ -111,6 +121,11 @@ const TRANSLATIONS = {
         "upload": "Téléverser",
         "download": "Télécharger",
         "sync_success": "Sync réussie !",
-        "sync_failed": "Sync échouée !"
+        "sync_failed": "Sync échouée !",
+        "challenge": "Défi d'étude",
+        "start_challenge": "Démarrer le défi 🚀",
+        "welcome_title": "Bienvenue sur StudentPro!",
+        "welcome_desc": "Votre compagnon d'étude ultime est prêt. Configurons votre premier semestre pour commencer à suivre vos progrès.",
+        "welcome_btn": "Commençons! 🚀"
     }
 };

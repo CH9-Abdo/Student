@@ -9,8 +9,7 @@ class Database {
 
     log(msg) {
         console.log(`[DB] ${msg}`);
-        const debug = document.getElementById('debug-log');
-        if (debug) debug.innerHTML += `<div>${msg}</div>`;
+        // UI debug log disabled
     }
 
     load() {
@@ -154,7 +153,21 @@ class Database {
             const idx = this.data.semesters.findIndex(s => s.id === tempId);
             this.data.semesters[idx].id = data[0].id;
             this.save();
+            return data[0].id; // Return the new ID
         }
+        return tempId;
+    }
+
+    async applyTemplate(template) {
+        this.log(`Applying template: ${template.name}`);
+        const semId = await this.addSemester(template.name);
+        for (let subTemplate of template.subjects) {
+            const subId = await this.addSubject(semId, subTemplate.name, null);
+            for (let chapName of subTemplate.chapters) {
+                await this.addChapter(subId, chapName);
+            }
+        }
+        this.log("Template applied successfully!");
         return true;
     }
 

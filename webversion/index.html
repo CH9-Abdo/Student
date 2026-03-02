@@ -103,6 +103,10 @@
                         <h2 id="streak-val">0 Days</h2>
                         <p class="mute sub">Current consistency</p>
                     </div>
+                    <div class="stat-card card challenge-card">
+                        <p class="mute" id="dash-challenge-label">🚀 Study Challenge</p>
+                        <button id="start-challenge-btn" class="primary-btn small-btn full-width" style="margin-top: 10px;">Start Focus</button>
+                    </div>
                 </div>
 
                 <div class="dashboard-bottom">
@@ -257,6 +261,21 @@
 
     <!-- Modals -->
     <div id="modal-container" class="hidden">
+        <div id="welcome-modal" class="modal card hidden" style="width: 500px;">
+            <span class="logo-icon" style="font-size: 50px;">🎓</span>
+            <h2 id="welcome-title">Welcome to StudentPro!</h2>
+            <p id="welcome-desc" class="mute">Your ultimate study companion is ready. Choose a template to start or create your own.</p>
+            
+            <div id="template-list" class="list-widget mini scroll-area" style="max-height: 200px; margin: 20px 0;">
+                <!-- Templates will be injected here -->
+            </div>
+
+            <div class="modal-actions" style="justify-content: center; margin-top: 20px; gap: 10px;">
+                <button class="secondary-btn" id="skip-onboarding-btn">Create Custom</button>
+                <button class="primary-btn" id="start-onboarding-btn" disabled>Apply Template 🚀</button>
+            </div>
+        </div>
+
         <div id="add-semester-modal" class="modal card hidden">
             <h3>New Semester</h3>
             <input type="text" id="semester-name-input" placeholder="Name">
@@ -281,11 +300,9 @@
         </div>
     </div>
 
-    <div id="debug-log" style="position:fixed; bottom:0; right:0; background:rgba(0,0,0,0.8); color:#0f0; font-size:10px; padding:5px; z-index:9999; max-height:100px; overflow:hidden; pointer-events:none; width:200px;">
-        Starting...
-    </div>
-
+    <!-- Debug log removed -->
     <script src="translations.js"></script>
+    <script src="templates.js"></script>
     <script src="auth.js"></script>
     <script src="db.js"></script>
     <script src="app.js"></script>

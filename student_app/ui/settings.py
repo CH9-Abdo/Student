@@ -206,6 +206,14 @@ class SettingsTab(QWidget):
         if ret == QMessageBox.Yes:
             reset_all_data()
             QMessageBox.information(self, self.texts["success"], self.texts["reset_success"])
+            
+            # Show onboarding again as if opening for the first time
+            from student_app.ui.onboarding import OnboardingDialog
+            diag = OnboardingDialog()
+            if diag.exec_():
+                # If template applied, refresh the parent windows if possible
+                # Simple way: Ask user to restart or try to trigger refresh signals
+                QMessageBox.information(self, self.texts["success"], "Template applied! Please restart the app to see all changes.")
 
     def change_db_location(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Select Database File", "", "SQLite Database (*.db);;All Files (*)")

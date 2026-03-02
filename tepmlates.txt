@@ -1,0 +1,33 @@
+#semster 1 (informatique)
+##analyse1
+ -logique
+ -les nombre reel 
+ -les suites reel
+##algebre1
+    -logique
+#semester 2 (informatique)
+##analyse2
+    -les fonctions
+##algebre2
+#semster3 
+##algorithme
+    -complexite
+    -recursivite
+    -les list
+    -les files
+    -les piles
+    -les arbres
+##logique mathematique
+##theory de graphes
+
+'# means semster '
+'## means subject'
+'- means chapters'
+
+#bac (شعبة علوم تجريبية)
+##الرياضيات
+الدوال الاسية
+الدوال اللوغارتمية 
+المتتاليات
+الاحمالات
+etc complete yourself all the subjects of the this with the program of bac algeria 

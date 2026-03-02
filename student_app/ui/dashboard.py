@@ -1,9 +1,9 @@
 
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, 
-    QScrollArea, QGridLayout, QProgressBar
+    QScrollArea, QGridLayout, QProgressBar, QPushButton
 )
-from PyQt5.QtCore import Qt, QDate
+from PyQt5.QtCore import Qt, QDate, pyqtSignal
 from student_app.database import get_todo_chapters, get_progress_stats, get_all_subjects, get_next_exam_info, get_study_streak
 from student_app.settings import get_language
 from student_app.ui.translations import TRANSLATIONS
@@ -35,6 +35,8 @@ class StatCard(QFrame):
         self.v_label.setText(str(value))
 
 class Dashboard(QWidget):
+    start_challenge_requested = pyqtSignal()
+
     def __init__(self):
         super().__init__()
         self.lang = get_language()
@@ -64,9 +66,20 @@ class Dashboard(QWidget):
         self.exam_card = StatCard("Next Exam", "None", "Countdown", "📅")
         self.streak_card = StatCard("Study Streak", "0 Days", "Current consistency", "🔥")
         
+        # Challenge Card
+        self.challenge_card = QFrame()
+        self.challenge_card.setObjectName("card")
+        challenge_vbox = QVBoxLayout(self.challenge_card)
+        challenge_vbox.addWidget(QLabel(f"🚀 {self.texts.get('challenge', 'Challenge')}", objectName="mute"))
+        self.start_btn = QPushButton(self.texts.get("start_challenge", "Start Challenge"))
+        self.start_btn.setObjectName("primaryButton")
+        self.start_btn.clicked.connect(self.start_challenge_requested.emit)
+        challenge_vbox.addWidget(self.start_btn)
+        
         stats_layout.addWidget(self.progress_card)
         stats_layout.addWidget(self.exam_card)
         stats_layout.addWidget(self.streak_card)
+        stats_layout.addWidget(self.challenge_card)
         main_layout.addLayout(stats_layout)
         
         # Bottom Section (Split)

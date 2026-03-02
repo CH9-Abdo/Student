@@ -59,6 +59,11 @@ TRANSLATIONS = {
         "download": "Download from Cloud",
         "sync_success": "Synchronization successful!",
         "sync_failed": "Synchronization failed.",
+        "challenge": "Study Challenge",
+        "start_challenge": "Start Focus 🚀",
+        "welcome_title": "Welcome to StudentPro!",
+        "welcome_desc": "Your ultimate study companion is ready. Choose a template to start or create your own.",
+        "welcome_btn": "Apply Template 🚀"
     },
     "Arabic": {
         "dashboard": "لوحة القيادة",
@@ -118,9 +123,14 @@ TRANSLATIONS = {
         "manual": "يدوي",
         "upload": "رفع إلى السحابة",
         "download": "تحميل من السحابة",
-        "sync_success": "تمت المزامنة بنجاح!",
-        "sync_failed": "فشلت المزامنة.",
-    },
+        "sync_success": "تمت المزامنة!",
+        "sync_failed": "فشلت المزامنة!",
+        "challenge": "تحدي الدراسة",
+        "start_challenge": "ابدأ التحدي 🚀",
+        "welcome_title": "مرحباً بك في StudentPro!",
+        "welcome_desc": "رفيقك الدراسي المثالي جاهز. اختر قالباً للبدء أو أنشئ قالبك الخاص.",
+        "welcome_btn": "تطبيق القالب 🚀"
+        },
     "French": {
         "dashboard": "Tableau de bord",
         "planner": "Planificateur d'études",
@@ -181,5 +191,10 @@ TRANSLATIONS = {
         "download": "Télécharger du cloud",
         "sync_success": "Synchronisation réussie !",
         "sync_failed": "Échec de la synchronisation.",
+        "challenge": "Défi d'étude",
+        "start_challenge": "Démarrer le défi 🚀",
+        "welcome_title": "Bienvenue sur StudentPro!",
+        "welcome_desc": "Votre compagnon d'étude ultime est prêt. Choisissez un modèle pour commencer ou créez le vôtre.",
+        "welcome_btn": "Appliquer le modèle 🚀"
     }
 }

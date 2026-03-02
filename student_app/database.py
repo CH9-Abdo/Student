@@ -402,6 +402,18 @@ def reset_all_data():
             get_supabase().table("user_profile").update({"xp": 0, "level": 1, "total_sessions": 0}).eq("user_id", uid).execute()
         except: pass
 
+def apply_template(template_data):
+    """
+    template_data: list of dicts { 'name': 'Semester Name', 'subjects': [ { 'name': 'Sub', 'chapters': ['C1', 'C2'] } ] }
+    """
+    for sem in template_data:
+        sem_id = add_semester(sem['name'])
+        for sub in sem['subjects']:
+            sub_id = add_subject(sub['name'], sem_id)
+            for chap in sub['chapters']:
+                add_chapter(sub_id, chap)
+    return True
+
 def get_semester_comparison_stats(): return []
 def get_daily_stats(): return []
 def get_weekly_stats(): return []

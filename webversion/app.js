@@ -40,6 +40,13 @@ class StudentProApp {
 
         this.loadSettings();
         this.refreshAll();
+
+        // Onboarding Check: If no semesters exist, show welcome modal
+        setTimeout(() => {
+            if (db.data.semesters.length === 0) {
+                this.showModal('welcome-modal');
+            }
+        }, 1000); // Give UI time to breathe
     }
 
     loadSettings() {
@@ -81,6 +88,9 @@ class StudentProApp {
         if (statCards[0]) statCards[0].textContent = "📈 " + texts.overall_progress;
         if (statCards[1]) statCards[1].textContent = "📅 " + texts.next_exam;
         if (statCards[2]) statCards[2].textContent = "🔥 " + texts.streak;
+        
+        document.getElementById('dash-challenge-label').textContent = "🚀 " + texts.challenge;
+        document.getElementById('start-challenge-btn').textContent = texts.start_challenge;
 
         document.querySelector('.todo-column .h2').textContent = texts.up_next;
         
@@ -91,6 +101,11 @@ class StudentProApp {
             document.getElementById('web-upload-btn').textContent = texts.upload;
             document.getElementById('web-download-btn').textContent = texts.download;
         }
+
+        // Onboarding
+        document.getElementById('welcome-title').textContent = texts.welcome_title;
+        document.getElementById('welcome-desc').textContent = texts.welcome_desc;
+        document.getElementById('start-onboarding-btn').textContent = texts.welcome_btn;
 
         // RTL Support
         if (lang === 'Arabic') {
@@ -119,6 +134,29 @@ class StudentProApp {
             try { await auth.signIn(email, password); } 
             catch (e) { err.textContent = e.message; err.classList.remove('hidden'); }
             finally { btn.textContent = "Login"; btn.disabled = false; }
+        });
+
+        document.getElementById('do-signup-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('do-signup-btn');
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const err = document.getElementById('login-error');
+            if (!email || !password) {
+                err.textContent = "Please enter email and password";
+                err.classList.remove('hidden');
+                return;
+            }
+            btn.textContent = "Creating Account..."; btn.disabled = true;
+            try { 
+                await auth.signUp(email, password);
+                alert("Account created successfully! Please check your email to confirm your account before logging in.");
+                btn.textContent = "Create New Account";
+            } catch (e) { 
+                err.textContent = e.message; 
+                err.classList.remove('hidden'); 
+            } finally { 
+                btn.disabled = false; 
+            }
         });
 
         document.getElementById('toggle-password').addEventListener('click', () => {
@@ -209,6 +247,29 @@ class StudentProApp {
         document.getElementById('timer-start').addEventListener('click', () => this.toggleTimer());
         document.getElementById('timer-reset').addEventListener('click', () => this.resetTimer());
         document.getElementById('manual-sync-btn').addEventListener('click', () => this.onLogin(auth.user));
+        
+        document.getElementById('start-challenge-btn').addEventListener('click', () => {
+            this.switchTab('pomodoro');
+        });
+
+        // --- Onboarding ---
+        this.selectedTemplate = null;
+        document.getElementById('start-onboarding-btn').addEventListener('click', async () => {
+            if (this.selectedTemplate) {
+                const btn = document.getElementById('start-onboarding-btn');
+                btn.textContent = "Applying..."; btn.disabled = true;
+                await db.applyTemplate(this.selectedTemplate);
+                this.closeModal('welcome-modal');
+                this.refreshAll();
+            }
+        });
+
+        document.getElementById('skip-onboarding-btn').addEventListener('click', () => {
+            this.closeModal('welcome-modal');
+            this.showModal('add-semester-modal');
+        });
+
+        this.renderTemplates();
 
         // --- Sync Mode & Buttons ---
         const syncSelect = document.getElementById('sync-mode-select');
@@ -240,6 +301,42 @@ class StudentProApp {
                 downBtn.textContent = "Download";
             });
         }
+
+        const resetBtn = document.getElementById('reset-data-btn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', async () => {
+                if (confirm("Are you sure? This will delete all your study data locally and from the cloud!")) {
+                    resetBtn.textContent = "Resetting...";
+                    resetBtn.disabled = true;
+                    // Wipe cloud
+                    const uid = auth.user.id;
+                    await auth.client.from("study_sessions").delete().eq("user_id", uid);
+                    await auth.client.from("chapters").delete().eq("user_id", uid);
+                    await auth.client.from("subjects").delete().eq("user_id", uid);
+                    await auth.client.from("semesters").delete().eq("user_id", uid);
+                    // Clear local and reload
+                    db.reset();
+                }
+            });
+        }
+    }
+
+    renderTemplates() {
+        const container = document.getElementById('template-list');
+        if (!container) return;
+        container.innerHTML = '';
+        TEMPLATES.forEach((t, i) => {
+            const div = document.createElement('div');
+            div.className = 'list-item';
+            div.innerHTML = `<div><strong>${t.name}</strong><br><small class="mute">${t.subjects.length} Subjects</small></div>`;
+            div.onclick = () => {
+                document.querySelectorAll('#template-list .list-item').forEach(el => el.classList.remove('selected'));
+                div.classList.add('selected');
+                this.selectedTemplate = t;
+                document.getElementById('start-onboarding-btn').disabled = false;
+            };
+            container.appendChild(div);
+        });
     }
 
     switchTab(tabId) {

@@ -191,7 +191,7 @@ body {
 /* Dashboard Stats */
 .stats-row {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 20px;
     margin-bottom: 30px;
 }
@@ -479,11 +479,34 @@ input:focus, select:focus {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
     display: flex; justify-content: center; align-items: center;
     z-index: 1000;
 }
 
+.modal {
+    width: 400px;
+    max-width: 90%;
+    text-align: center;
+    animation: modalIn 0.3s ease-out;
+}
+
+@keyframes modalIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
 .large-modal { width: 500px; }
+
+.modal h2 { margin: 15px 0 10px 0; }
+.modal p { margin-bottom: 20px; line-height: 1.5; }
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
 
 /* RTL Support */
 [dir="rtl"] {
