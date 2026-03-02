@@ -21,6 +21,19 @@ class AuthManager {
             if (session) {
                 this.log(`Logged in: ${session.user.email}`);
                 this.user = session.user;
+
+                // Detect if coming from a password reset link
+                // Supabase adds #type=recovery or has a specific session flag
+                const hash = window.location.hash;
+                if (hash && hash.includes("type=recovery")) {
+                    this.log("Password recovery detected.");
+                    setTimeout(() => {
+                        if (window.app && window.app.showModal) {
+                            window.app.showModal('update-password-modal');
+                        }
+                    }, 1000);
+                }
+
                 this.onAuthSuccess(this.user);
             } else {
                 this.log("No session. Showing login.");
@@ -51,8 +64,25 @@ class AuthManager {
 
     async resetPassword(email) {
         this.log("Requesting password reset...");
+        // Use window.location.href to ensure full URL is captured for redirect
+        let redirectUrl = window.location.origin + window.location.pathname;
+        if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+            this.log("On localhost, using local redirect.");
+        } else {
+            redirectUrl = "https://ch9-abdo.github.io/Student/webversion/index.html";
+        }
+        
         const { data, error } = await this.client.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + window.location.pathname,
+            redirectTo: redirectUrl,
+        });
+        if (error) throw error;
+        return data;
+    }
+
+    async updatePassword(newPassword) {
+        this.log("Updating password...");
+        const { data, error } = await this.client.auth.updateUser({
+            password: newPassword
         });
         if (error) throw error;
         return data;
