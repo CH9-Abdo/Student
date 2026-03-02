@@ -604,13 +604,24 @@ class StudentProApp {
         const prof = db.data.user_profile;
         document.getElementById('user-level-label').textContent = `Level ${prof.level} Student`;
         document.getElementById('xp-progress-bar').style.width = `${(prof.xp % 500) / 5}%`;
+        
         const selector = document.getElementById('active-subject-selector');
+        const currentVal = selector.value;
         selector.innerHTML = '<option value="">Select Subject</option>';
         db.data.subjects.forEach(s => {
             const opt = document.createElement('option'); opt.value = s.id; opt.textContent = s.name;
             selector.appendChild(opt);
         });
+        selector.value = currentVal;
+
+        // Sessions Today Label Fix
+        const today = new Date().toISOString().split('T')[0];
+        const todaySessions = db.data.study_sessions.filter(s => s.timestamp && s.timestamp.startsWith(today)).length;
+        const sessionsLabel = document.getElementById('sessions-today-label');
+        if (sessionsLabel) sessionsLabel.textContent = `Sessions Today: ${todaySessions}`;
+        
         this.updateTimerDisplay();
+        if (currentVal) this.updateMiniChallenge(parseInt(currentVal));
     }
 
     toggleTimer() { if (this.timerRunning) this.pauseTimer(); else this.startTimer(); }
@@ -627,9 +638,42 @@ class StudentProApp {
     }
 
     async handleTimerComplete() {
-        this.pauseTimer(); alert("Session Complete!");
-        if (this.activeSubjectId) { await db.logSession(this.activeSubjectId, 25); }
-        this.resetTimer(); this.refreshAll();
+        this.pauseTimer(); 
+        alert("Session Complete! +50 XP");
+        
+        const sel = document.getElementById('active-subject-selector');
+        const subId = parseInt(sel.value);
+        
+        if (subId) { 
+            await db.logSession(subId, 25); 
+            // Update local profile for immediate feedback
+            db.data.user_profile.xp += 50;
+            db.save();
+        }
+        
+        this.resetTimer(); 
+        this.refreshAll();
+        if (subId) this.updateMiniChallenge(subId);
+    }
+
+    updateMiniChallenge(subId) {
+        const card = document.getElementById('mini-challenge-card');
+        const text = document.getElementById('mini-challenge-text');
+        
+        if (!subId) { card.classList.add('hidden'); return; }
+        
+        const sub = db.data.subjects.find(s => s.id === subId);
+        const today = new Date().toISOString().split('T')[0];
+        const subSessionsToday = db.data.study_sessions.filter(s => s.subject_id === subId && s.timestamp.startsWith(today)).length;
+        
+        const target = subSessionsToday < 2 ? 2 : (subSessionsToday + 1);
+        
+        card.classList.remove('hidden');
+        if (subSessionsToday >= target) {
+            text.innerHTML = `✅ Goal Reached! You completed <b>${subSessionsToday}</b> sessions of <b>${sub.name}</b> today.`;
+        } else {
+            text.innerHTML = `Complete <b>${target}</b> sessions of <b>${sub.name}</b> today. <br>Progress: <b>${subSessionsToday}/${target}</b>`;
+        }
     }
 
     initCharts() {
