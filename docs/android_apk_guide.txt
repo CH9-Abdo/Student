@@ -1,0 +1,57 @@
+==================================================
+   STUDENTPRO - ANDROID APK BUILD GUIDE (CAPACITOR)
+==================================================
+
+This guide explains how to generate the Android APK for your study manager.
+Because we configured Capacitor to use your Live URL, you only need to 
+build the APK ONCE. Any future changes you push to GitHub will appear 
+automatically in the app!
+
+1. PREREQUISITES (On your computer)
+-----------------------------------
+- Install Node.js: https://nodejs.org/
+- Install Android Studio: https://developer.android.com/studio
+- Set up Android SDK: Open Android Studio -> Settings -> Android SDK and 
+  ensure at least one SDK (e.g., Android 13 or 14) is installed.
+
+2. PREPARE THE PROJECT
+----------------------
+Open your terminal in the project folder and run:
+   
+   npm install
+   npx cap sync android
+
+3. BUILD THE APK (Step-by-Step)
+-------------------------------
+A. Open the Android project in Android Studio:
+   npx cap open android
+
+B. In Android Studio:
+   1. Wait for "Gradle Sync" to finish (check the progress bar at the bottom).
+   2. Go to the top menu: Build -> Build Bundle(s) / APK(s) -> Build APK(s).
+   3. Wait for the notification "APK(s) generated successfully".
+   4. Click on the "locate" link in the notification.
+
+C. Your APK file will be here:
+   android/app/build/outputs/apk/debug/app-debug.apk
+
+4. IMPORTANT CONFIGURATION
+--------------------------
+- Live Updates: We set "server.url" in 'capacitor.config.json' to:
+  https://ch9-abdo.github.io/Student/webversion/index.html
+  
+- Icons & Splash: You can change the icons in:
+  android/app/src/main/res/ (mipmap folders for icons, drawable for splash).
+
+- Security: The app uses 'cleartext: true' to allow connection to the 
+  live URL. This is already configured for you.
+
+5. TROUBLESHOOTING
+------------------
+- If Android Studio shows "Gradle error", try: 
+  File -> Invalidate Caches / Restart.
+- Ensure your internet is connected during the first build.
+
+==================================================
+Created by your AI Assistant - 2026
+==================================================
