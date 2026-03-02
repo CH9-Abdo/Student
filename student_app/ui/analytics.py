@@ -191,6 +191,30 @@ class Analytics(QWidget):
         # Update text if language changed
         self.lang = get_language()
         self.texts = TRANSLATIONS.get(self.lang, TRANSLATIONS["English"])
+        
+        # Check if we have any sessions at all
+        from student_app.database import get_db_connection
+        conn = get_db_connection()
+        total_sessions = conn.execute('SELECT COUNT(*) FROM study_sessions').fetchone()[0]
+        conn.close()
+
+        if total_sessions == 0:
+            # Hide charts and show empty state
+            self.title_label.setText(self.texts.get("analytics_explorer", "Analytics Explorer"))
+            # Clear previous time list
+            for i in reversed(range(self.time_list.count())): 
+                if self.time_list.itemAt(i).widget(): self.time_list.itemAt(i).widget().setParent(None)
+            
+            self.pie_chart.set_data([])
+            self.compare_chart.set_data([])
+            self.daily_chart.set_data([])
+            self.weekly_chart.set_data([])
+            
+            # Update titles to indicate no data
+            msg = "No sessions recorded yet. Start a study session to see analytics!"
+            self.pie_card.set_title(msg)
+            return
+
         self.title_label.setText(self.texts.get("analytics_explorer", "Analytics Explorer"))
         self.pie_card.set_title(self.texts.get("session_distribution", "Session Distribution"))
         self.time_card.set_title(self.texts.get("time_per_subject", "Time Spent per Subject"))

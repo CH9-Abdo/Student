@@ -599,17 +599,35 @@ class StudentProApp {
     }
 
     refreshAnalytics() {
-        const dist = {};
+        const analyticsContent = document.querySelector('#analytics .analytics-grid');
+        const existingEmpty = document.getElementById('analytics-empty-state');
+        
         if (!db.data.study_sessions || db.data.study_sessions.length === 0) {
-            const canvas = document.getElementById('time-dist-chart');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.font = "14px Segoe UI";
-            ctx.fillStyle = "#94a3b8";
-            ctx.textAlign = "center";
-            ctx.fillText("No sessions yet! Complete your first challenge.", canvas.width/2, canvas.height/2);
+            if (analyticsContent) analyticsContent.classList.add('hidden');
+            if (!existingEmpty) {
+                const empty = document.createElement('div');
+                empty.id = 'analytics-empty-state';
+                empty.className = 'card';
+                empty.style.textAlign = 'center';
+                empty.style.padding = '50px';
+                empty.innerHTML = `
+                    <div style="font-size: 50px; margin-bottom: 20px;">📊</div>
+                    <h2>No Analytics Data Yet</h2>
+                    <p class="mute">Complete your first study challenge to see your progress charts here.</p>
+                    <button class="primary-btn" style="margin-top: 20px;" onclick="app.switchTab('pomodoro')">Start Your First Challenge 🚀</button>
+                `;
+                document.getElementById('analytics').appendChild(empty);
+            } else {
+                existingEmpty.classList.remove('hidden');
+            }
             return;
         }
+
+        // Data exists, hide empty state and show grid
+        if (analyticsContent) analyticsContent.classList.remove('hidden');
+        if (existingEmpty) existingEmpty.classList.add('hidden');
+
+        const dist = {};
         db.data.study_sessions.forEach(s => {
             const sub = db.data.subjects.find(sub => sub.id === s.subject_id);
             const name = sub ? sub.name : "Other";
