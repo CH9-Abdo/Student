@@ -280,6 +280,18 @@ class StudentProApp {
             });
         }
 
+        document.getElementById('lang-select').addEventListener('change', (e) => {
+            db.data.settings.lang = e.target.value;
+            db.save();
+            this.applyLanguage(e.target.value);
+        });
+
+        document.getElementById('theme-select').addEventListener('change', (e) => {
+            db.data.settings.theme = e.target.value;
+            db.save();
+            this.loadSettings();
+        });
+
         const upBtn = document.getElementById('web-upload-btn');
         if (upBtn) {
             upBtn.addEventListener('click', async () => {
@@ -523,6 +535,16 @@ class StudentProApp {
 
     refreshAnalytics() {
         const dist = {};
+        if (!db.data.study_sessions || db.data.study_sessions.length === 0) {
+            const canvas = document.getElementById('time-dist-chart');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.font = "14px Segoe UI";
+            ctx.fillStyle = "#94a3b8";
+            ctx.textAlign = "center";
+            ctx.fillText("No sessions yet! Complete your first challenge.", canvas.width/2, canvas.height/2);
+            return;
+        }
         db.data.study_sessions.forEach(s => {
             const sub = db.data.subjects.find(sub => sub.id === s.subject_id);
             const name = sub ? sub.name : "Other";
