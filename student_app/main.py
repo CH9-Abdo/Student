@@ -13,6 +13,7 @@ from student_app.ui.dashboard import Dashboard
 from student_app.ui.planner import StudyPlanner
 from student_app.ui.pomodoro import PomodoroTimer
 from student_app.ui.analytics import Analytics
+from student_app.ui.leaderboard import LeaderboardTab
 from student_app.ui.settings import SettingsTab
 from student_app.ui.onboarding import OnboardingDialog
 from student_app.ui.login import LoginWindow
@@ -111,6 +112,7 @@ class MainWindow(QMainWindow):
             (self.texts["planner"], "planner"),
             (self.texts["pomodoro"], "pomodoro"),
             (self.texts["analytics"], "analytics"),
+            (self.texts.get("leaderboard", "Leaderboard"), "leaderboard"),
             (self.texts["settings"], "settings")
         ]
         
@@ -146,12 +148,14 @@ class MainWindow(QMainWindow):
         self.planner_tab = StudyPlanner()
         self.pomodoro_tab = PomodoroTimer(notify_callback=self.notify)
         self.analytics_tab = Analytics()
+        self.leaderboard_tab = LeaderboardTab()
         self.settings_tab = SettingsTab()
         
         self.content_stack.addWidget(self.dashboard_tab)
         self.content_stack.addWidget(self.planner_tab)
         self.content_stack.addWidget(self.pomodoro_tab)
         self.content_stack.addWidget(self.analytics_tab)
+        self.content_stack.addWidget(self.leaderboard_tab)
         self.content_stack.addWidget(self.settings_tab)
         
         self.main_layout.addWidget(self.content_stack)
