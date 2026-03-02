@@ -386,6 +386,12 @@ class StudentProApp {
         document.getElementById(tabId).classList.add('active');
         document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
         this.currentTab = tabId;
+        
+        // Scroll to top on switch
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const content = document.getElementById('content');
+        if (content) content.scrollTop = 0;
+
         this.refreshTab(tabId);
     }
 
