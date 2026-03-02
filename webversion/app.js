@@ -110,6 +110,7 @@ class StudentProApp {
         
         document.getElementById('dash-challenge-label').textContent = "🚀 " + texts.challenge;
         document.getElementById('start-challenge-btn').textContent = texts.start_challenge;
+        document.getElementById('forgot-password-btn').textContent = texts.forgot_password;
 
         document.querySelector('.todo-column .h2').textContent = texts.up_next;
         
@@ -176,6 +177,23 @@ class StudentProApp {
                 err.classList.remove('hidden'); 
             } finally { 
                 btn.disabled = false; 
+            }
+        });
+
+        document.getElementById('forgot-password-btn').addEventListener('click', async () => {
+            const email = document.getElementById('login-email').value;
+            const err = document.getElementById('login-error');
+            if (!email) {
+                err.textContent = "Please enter your email first";
+                err.classList.remove('hidden');
+                return;
+            }
+            try {
+                await auth.resetPassword(email);
+                alert(TRANSLATIONS[db.data.settings.lang]?.reset_link_sent || "Password reset link sent to your email!");
+            } catch (e) {
+                err.textContent = e.message;
+                err.classList.remove('hidden');
             }
         });
 
@@ -301,19 +319,27 @@ class StudentProApp {
         this.selectedTemplate = null;
         document.getElementById('start-onboarding-btn').addEventListener('click', async () => {
             const displayName = document.getElementById('user-display-name').value.trim();
+            const btn = document.getElementById('start-onboarding-btn');
+            
             if (displayName) {
                 db.data.user_profile.display_name = displayName;
                 db.save();
-                await db.pushToCloud("user_profile", db.data.user_profile);
+                // Push name in background, don't await to avoid UI block on DB error
+                db.pushToCloud("user_profile", db.data.user_profile);
             }
 
             if (this.selectedTemplate) {
-                const btn = document.getElementById('start-onboarding-btn');
                 btn.textContent = "Applying..."; btn.disabled = true;
                 await db.applyTemplate(this.selectedTemplate);
-                this.closeModal('welcome-modal');
-                this.onLogin(auth.user); // Refresh name in sidebar
-                this.refreshAll();
+            }
+
+            // Always proceed
+            this.closeModal('welcome-modal');
+            this.onLogin(auth.user); 
+            this.refreshAll();
+            
+            if (!this.selectedTemplate) {
+                this.showModal('add-semester-modal');
             }
         });
 
@@ -322,10 +348,10 @@ class StudentProApp {
             if (displayName) {
                 db.data.user_profile.display_name = displayName;
                 db.save();
-                await db.pushToCloud("user_profile", db.data.user_profile);
+                db.pushToCloud("user_profile", db.data.user_profile);
             }
             this.closeModal('welcome-modal');
-            this.onLogin(auth.user); // Refresh name in sidebar
+            this.onLogin(auth.user); 
             this.showModal('add-semester-modal');
         });
 

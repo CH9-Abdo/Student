@@ -24,6 +24,34 @@ class Database {
         localStorage.setItem(DB_KEY, JSON.stringify(this.data));
     }
 
+    async pushToCloud(table, data) {
+        if (!auth || !auth.user) return false;
+        try {
+            const payload = { ...data, user_id: auth.user.id };
+            let options = {};
+            if (table === 'user_profile') options.onConflict = 'user_id';
+            
+            let result = await auth.client.from(table).upsert(payload, options);
+            
+            // If the upsert fails (e.g. column display_name doesn't exist yet)
+            if (result.error) {
+                console.warn(`Initial push failed for ${table}:`, result.error.message);
+                
+                // Fallback for user_profile: Try without display_name if it failed
+                if (table === 'user_profile' && data.display_name) {
+                    const fallback = { ...data, user_id: auth.user.id };
+                    delete fallback.display_name;
+                    result = await auth.client.from(table).upsert(fallback, options);
+                }
+            }
+
+            return !result.error;
+        } catch (e) { 
+            console.error(`Critical Push Error (${table}):`, e); 
+            return false; 
+        }
+    }
+
     // --- SIMPLE SYNC ---
     async syncFromCloud() {
         if (!auth || !auth.user) return false;
@@ -55,10 +83,12 @@ class Database {
         const uid = auth.user.id;
         try {
             // 1. Wipe current cloud data for this user
-            await auth.client.from("study_sessions").delete().eq("user_id", uid);
-            await auth.client.from("chapters").delete().eq("user_id", uid);
-            await auth.client.from("subjects").delete().eq("user_id", uid);
-            await auth.client.from("semesters").delete().eq("user_id", uid);
+            await Promise.all([
+                auth.client.from("study_sessions").delete().eq("user_id", uid),
+                auth.client.from("chapters").delete().eq("user_id", uid),
+                auth.client.from("subjects").delete().eq("user_id", uid),
+                auth.client.from("semesters").delete().eq("user_id", uid)
+            ]);
 
             // 2. Upload Profile
             await auth.client.from("user_profile").upsert({ ...this.data.user_profile, user_id: uid }, { onConflict: 'user_id' });
@@ -92,20 +122,51 @@ class Database {
 
     // --- ACTIONS ---
     async addSemester(name) {
-        const { data, error } = await auth.client.from("semesters").insert({ name, user_id: auth.user.id }).select();
-        if (data) { this.data.semesters.push(data[0]); this.save(); return data[0].id; }
-        return null;
+        try {
+            const { data, error } = await auth.client.from("semesters").insert({ name, user_id: auth.user.id }).select();
+            if (data && data.length > 0) { 
+                this.data.semesters.push(data[0]); 
+                this.save(); 
+                return data[0].id; 
+            }
+            // Fallback for offline or error
+            const localId = Date.now();
+            const newSem = { id: localId, name, user_id: auth.user.id };
+            this.data.semesters.push(newSem);
+            this.save();
+            return localId;
+        } catch (e) { return null; }
     }
 
     async addSubject(semesterId, name, examDate) {
-        const { data } = await auth.client.from("subjects").insert({ name, semester_id: semesterId, exam_date: examDate, user_id: auth.user.id }).select();
-        if (data) { this.data.subjects.push(data[0]); this.save(); return data[0].id; }
-        return null;
+        try {
+            const { data } = await auth.client.from("subjects").insert({ name, semester_id: semesterId, exam_date: examDate, user_id: auth.user.id }).select();
+            if (data && data.length > 0) { 
+                this.data.subjects.push(data[0]); 
+                this.save(); 
+                return data[0].id; 
+            }
+            const localId = Date.now() + 1;
+            const newSub = { id: localId, name, semester_id: semesterId, exam_date: examDate, user_id: auth.user.id };
+            this.data.subjects.push(newSub);
+            this.save();
+            return localId;
+        } catch (e) { return null; }
     }
 
     async addChapter(subjectId, name) {
-        const { data } = await auth.client.from("chapters").insert({ name, subject_id: subjectId, user_id: auth.user.id }).select();
-        if (data) { this.data.chapters.push(data[0]); this.save(); return true; }
+        try {
+            const { data } = await auth.client.from("chapters").insert({ name, subject_id: subjectId, user_id: auth.user.id }).select();
+            if (data && data.length > 0) { 
+                this.data.chapters.push(data[0]); 
+                this.save(); 
+                return true; 
+            }
+            const newChap = { id: Date.now() + 2, name, subject_id: subjectId, user_id: auth.user.id, video_completed: false, exercises_completed: false, is_completed: false };
+            this.data.chapters.push(newChap);
+            this.save();
+            return true;
+        } catch (e) { return false; }
     }
 
     async toggleChapterStatus(chapterId, type, status) {
@@ -114,22 +175,35 @@ class Database {
         const c = this.data.chapters[idx];
         if (type === 'video') c.video_completed = status;
         else c.exercises_completed = status;
-        c.is_completed = c.video_completed && c.exercises_completed;
+        c.is_completed = !!(c.video_completed && c.exercises_completed);
         this.save();
-        await auth.client.from("chapters").update({ video_completed: c.video_completed, exercises_completed: c.exercises_completed, is_completed: c.is_completed }).eq("id", c.id);
+        try {
+            await auth.client.from("chapters").update({ 
+                video_completed: c.video_completed, 
+                exercises_completed: c.exercises_completed, 
+                is_completed: c.is_completed 
+            }).eq("id", c.id);
+        } catch (e) {}
     }
 
     async logSession(subjectId, duration) {
-        const { data } = await auth.client.from("study_sessions").insert({ subject_id: subjectId, duration_minutes: duration, user_id: auth.user.id }).select();
-        if (data) { this.data.study_sessions.push(data[0]); this.save(); }
+        try {
+            const { data } = await auth.client.from("study_sessions").insert({ subject_id: subjectId, duration_minutes: duration, user_id: auth.user.id }).select();
+            if (data) { this.data.study_sessions.push(data[0]); }
+            else { this.data.study_sessions.push({ subject_id: subjectId, duration_minutes: duration, user_id: auth.user.id, timestamp: new Date().toISOString() }); }
+            this.save();
+        } catch (e) {}
     }
 
     async applyTemplate(template) {
         const semId = await this.addSemester(template.name);
+        if (!semId) return false;
         for (let sub of template.subjects) {
             const subId = await this.addSubject(semId, sub.name, null);
+            if (!subId) continue;
             for (let chap of sub.chapters) await this.addChapter(subId, chap);
         }
+        return true;
     }
 
     // --- GETTERS ---

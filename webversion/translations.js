@@ -41,7 +41,9 @@ const TRANSLATIONS = {
         "start_challenge": "Start Focus 🚀",
         "welcome_title": "Welcome to StudentPro!",
         "welcome_desc": "Your ultimate study companion is ready. Let's set up your first semester to begin tracking your progress.",
-        "welcome_btn": "Let's Get Started! 🚀"
+        "welcome_btn": "Let's Get Started! 🚀",
+        "forgot_password": "Forgot Password?",
+        "reset_link_sent": "Password reset link sent to your email!"
     },
     "Arabic": {
         "dashboard": "لوحة القيادة",
@@ -85,7 +87,9 @@ const TRANSLATIONS = {
         "start_challenge": "ابدأ التحدي 🚀",
         "welcome_title": "مرحباً بك في StudentPro!",
         "welcome_desc": "رفيقك الدراسي المثالي جاهز. لنقم بإعداد أول فصل دراسي لك للبدء في تتبع تقدمك.",
-        "welcome_btn": "لنبدأ الآن! 🚀"
+        "welcome_btn": "لنبدأ الآن! 🚀",
+        "forgot_password": "نسيت كلمة المرور؟",
+        "reset_link_sent": "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني!"
     },
     "French": {
         "dashboard": "Tableau de bord",
@@ -129,6 +133,8 @@ const TRANSLATIONS = {
         "start_challenge": "Démarrer le défi 🚀",
         "welcome_title": "Bienvenue sur StudentPro!",
         "welcome_desc": "Votre compagnon d'étude ultime est prêt. Configurons votre premier semestre pour commencer à suivre vos progrès.",
-        "welcome_btn": "Commençons! 🚀"
+        "welcome_btn": "Commençons! 🚀",
+        "forgot_password": "Mot de passe oublié ?",
+        "reset_link_sent": "Lien de réinitialisation envoyé à votre adresse e-mail !"
     }
 };

@@ -49,6 +49,15 @@ class AuthManager {
         return data;
     }
 
+    async resetPassword(email) {
+        this.log("Requesting password reset...");
+        const { data, error } = await this.client.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + window.location.pathname,
+        });
+        if (error) throw error;
+        return data;
+    }
+
     async signOut() {
         this.log("Signing out...");
         await this.client.auth.signOut();
