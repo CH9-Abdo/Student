@@ -48,6 +48,7 @@ def push_to_cloud():
         # 3. PUSH SEMESTERS & CAPTURE NEW IDS
         sems = conn.execute('SELECT * FROM semesters').fetchall()
         for s in sems:
+            print(f"[Push] Uploading semester: {s['name']}")
             res = sb.table("semesters").insert({"name": s['name'], "user_id": uid}).execute()
             if res.data:
                 new_cloud_id = res.data[0]['id']
@@ -56,6 +57,7 @@ def push_to_cloud():
                 # 4. PUSH SUBJECTS FOR THIS SEMESTER
                 subs = conn.execute('SELECT * FROM subjects WHERE semester_id = ?', (s['id'],)).fetchall()
                 for sub in subs:
+                    print(f"  [Push] Uploading subject: {sub['name']}")
                     sub_res = sb.table("subjects").insert({
                         "semester_id": new_cloud_id, "name": sub['name'], 
                         "exam_date": sub['exam_date'], "test_date": sub['test_date'], 
@@ -83,6 +85,9 @@ def push_to_cloud():
                                 "subject_id": new_sub_cloud_id, "duration_minutes": sn['duration_minutes'], 
                                 "timestamp": sn['timestamp'], "user_id": uid
                             }).execute()
+            else:
+                print(f"  [Push] Error: Could not get cloud_id for semester {s['name']}")
+                raise Exception("Cloud ID retrieval failed")
 
         conn.commit()
         conn.close()
