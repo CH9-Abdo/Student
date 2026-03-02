@@ -551,12 +551,14 @@ input:focus, select:focus {
         bottom: 0;
         left: 0;
         width: 100%;
-        height: 65px;
+        height: 70px;
         flex-direction: row;
         border-right: none;
         border-top: 1px solid var(--border);
         padding: 0;
         z-index: 1000;
+        background: var(--card);
+        backdrop-filter: blur(10px);
     }
 
     .logo-container, #user-info-sidebar, .sidebar-footer {
@@ -574,15 +576,21 @@ input:focus, select:focus {
     .nav-btn {
         flex-direction: column;
         gap: 4px;
-        padding: 8px 0;
+        padding: 10px 0;
         font-size: 10px;
         flex: 1;
         text-align: center;
         margin: 0;
+        background: transparent !important;
+        border: none !important;
+    }
+
+    .nav-btn.active {
+        color: var(--primary);
     }
 
     .nav-btn i {
-        font-size: 18px;
+        font-size: 20px;
     }
 
     .nav-text {
@@ -591,8 +599,8 @@ input:focus, select:focus {
 
     #content {
         padding: 15px;
-        padding-top: 70px; /* Space for mobile header */
-        padding-bottom: 80px; /* Space for bottom nav */
+        padding-top: 75px; 
+        padding-bottom: 90px;
     }
 
     #mobile-header {
@@ -601,7 +609,7 @@ input:focus, select:focus {
         left: 0;
         width: 100%;
         height: 60px;
-        background-color: var(--sidebar);
+        background-color: var(--card);
         border-bottom: 1px solid var(--border);
         display: flex;
         align-items: center;
@@ -611,34 +619,42 @@ input:focus, select:focus {
     }
 
     .stats-row {
-        grid-template-columns: 1fr;
-        gap: 15px;
+        grid-template-columns: 1fr 1fr; /* 2 columns on mobile for stats */
+        gap: 12px;
     }
 
-    .dashboard-bottom {
-        grid-template-columns: 1fr;
-    }
+    .stat-card { padding: 12px; }
+    .stat-card h2 { font-size: 1.1rem; }
 
-    .planner-split {
+    .dashboard-bottom, .planner-split, .analytics-grid {
         grid-template-columns: 1fr;
     }
 
     .timer-container {
-        width: 260px;
-        height: 260px;
+        width: 240px;
+        height: 240px;
     }
 
-    .timer-text {
-        font-size: 42px;
-    }
+    .timer-text { font-size: 38px; }
 
     .modal, .large-modal {
-        width: 95%;
-        max-height: 90vh;
+        width: 92%;
+        max-height: 85vh;
+        margin: auto;
     }
 
-    .h1 { font-size: 22px; }
-    .h2 { font-size: 18px; }
+    .h1 { font-size: 20px; }
+    .h2 { font-size: 16px; }
+
+    /* Touch targets */
+    input, select, .primary-btn, .secondary-btn {
+        min-height: 48px;
+    }
+}
+
+/* RTL Mobile Support */
+[dir="rtl"] #navigation {
+    flex-direction: row-reverse;
 }
 
 @media (min-width: 769px) {
