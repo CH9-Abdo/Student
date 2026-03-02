@@ -2,5 +2,8 @@
     "db_path": "student_data.db",
     "sync_mode": "Manual",
     "theme": "Light",
-    "language": "English"
+    "language": "English",
+    "pomodoro_work": 1,
+    "pomodoro_short": 5,
+    "pomodoro_long": 15
 }
