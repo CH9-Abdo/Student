@@ -263,6 +263,15 @@ class StudentProApp {
             }
         });
 
+        const pomodoroSubSelector = document.getElementById('active-subject-selector');
+        if (pomodoroSubSelector) {
+            pomodoroSubSelector.addEventListener('change', (e) => {
+                const subId = parseInt(e.target.value);
+                const suggestion = db.getSmartSuggestion(subId);
+                document.getElementById('smart-suggestion').innerHTML = `💡 Suggestion: ${suggestion}`;
+            });
+        }
+
         // --- Timer ---
         document.getElementById('timer-start').addEventListener('click', () => this.toggleTimer());
         document.getElementById('timer-reset').addEventListener('click', () => this.resetTimer());

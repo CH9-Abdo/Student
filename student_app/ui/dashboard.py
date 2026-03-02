@@ -178,7 +178,7 @@ class Dashboard(QWidget):
                 flayout = QHBoxLayout(frame)
                 
                 info = QVBoxLayout()
-                info.addWidget(QLabel(item['chapter_name'], styleSheet="font-weight: bold;"))
+                info.addWidget(QLabel(item['name'], styleSheet="font-weight: bold;"))
                 info.addWidget(QLabel(item['subject_name'], objectName="mute"))
                 flayout.addLayout(info)
                 flayout.addStretch()

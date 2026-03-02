@@ -226,9 +226,12 @@ class SettingsTab(QWidget):
         short = self.short_spin.value()
         long = self.long_spin.value()
         set_pomodoro_settings(work, short, long)
-        self.sender().setText(self.texts["success"])
-        from PyQt5.QtCore import QTimer
-        QTimer.singleShot(2000, lambda: self.sender().setText(self.texts["save"]))
+        
+        btn = self.sender()
+        if btn and hasattr(btn, 'setText'):
+            btn.setText(self.texts["success"])
+            from PyQt5.QtCore import QTimer
+            QTimer.singleShot(2000, lambda: btn.setText(self.texts["save"]))
 
     def handle_reset_data(self):
         ret = QMessageBox.question(self, self.texts["danger_zone"], self.texts["reset_confirm"],

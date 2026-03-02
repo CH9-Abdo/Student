@@ -138,6 +138,17 @@ class Database {
     getNextExamInfo() { const today = new Date(); const futureExams = this.data.subjects.filter(s => s.exam_date).map(s => { const d = new Date(s.exam_date); return { name: s.name, days: Math.ceil((d - today) / (1000 * 60 * 60 * 24)) }; }).filter(s => s.days >= 0).sort((a, b) => a.days - b.days); return futureExams[0] || null; }
     getStudyStreak() { if (this.data.study_sessions.length === 0) return 0; return 1; /* Simple placeholder streak */ }
     getSubjectProgress(subId) { const chaps = this.data.chapters.filter(c => c.subject_id === subId); const total = chaps.length * 2; const done = chaps.reduce((acc, c) => acc + (c.video_completed ? 1 : 0) + (c.exercises_completed ? 1 : 0), 0); return { total, done }; }
+    
+    getSmartSuggestion(subId) {
+        if (!subId) return "Select a subject to get a suggestion";
+        const chaps = this.data.chapters.filter(c => c.subject_id === subId);
+        for (let c of chaps) {
+            if (!c.video_completed) return `🎥 Watch video for: <b>${c.name}</b>`;
+            if (!c.exercises_completed) return `✍️ Do exercises for: <b>${c.name}</b>`;
+        }
+        return "🎉 All chapters completed for this subject!";
+    }
+
     async getLeaderboard() { const { data } = await auth.client.from("weekly_leaderboard").select("*"); return data || []; }
     reset() { localStorage.clear(); window.location.reload(); }
 }
