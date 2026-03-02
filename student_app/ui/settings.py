@@ -32,10 +32,19 @@ class SettingsTab(QWidget):
         user = auth.get_current_user()
         profile = get_user_profile()
         
-        name = profile.get('display_name') if profile else "Not Set"
+        # Accessing sqlite3.Row correctly
+        name = "Not Set"
+        level = 1
+        xp = 0
+        if profile:
+            try: name = profile['display_name'] or "Not Set"
+            except: pass
+            try: level = profile['level']
+            except: pass
+            try: xp = profile['xp']
+            except: pass
+            
         email = user.email if user else "Local Mode"
-        level = profile.get('level', 1) if profile else 1
-        xp = profile.get('xp', 0) if profile else 0
         
         acc_layout.addWidget(QLabel(f"<b>Name:</b> {name}"))
         acc_layout.addWidget(QLabel(f"<b>Email:</b> {email}"))

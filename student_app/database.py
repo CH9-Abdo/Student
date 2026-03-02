@@ -114,16 +114,24 @@ def init_db():
         )
     ''')
     cursor.execute('CREATE TABLE IF NOT EXISTS chapters (id INTEGER PRIMARY KEY AUTOINCREMENT, subject_id INTEGER NOT NULL, name TEXT NOT NULL, video_completed BOOLEAN DEFAULT 0, exercises_completed BOOLEAN DEFAULT 0, is_completed BOOLEAN DEFAULT 0, due_date DATE, cloud_id BIGINT, FOREIGN KEY (subject_id) REFERENCES subjects (id) ON DELETE CASCADE)')
-    cursor.execute('CREATE TABLE IF NOT EXISTS user_profile (id INTEGER PRIMARY KEY AUTOINCREMENT, xp INTEGER DEFAULT 0, level INTEGER DEFAULT 1, total_sessions INTEGER DEFAULT 0)')
+    cursor.execute('CREATE TABLE IF NOT EXISTS user_profile (id INTEGER PRIMARY KEY AUTOINCREMENT, xp INTEGER DEFAULT 0, level INTEGER DEFAULT 1, total_sessions INTEGER DEFAULT 0, display_name TEXT)')
     cursor.execute('CREATE TABLE IF NOT EXISTS study_sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, subject_id INTEGER, duration_minutes INTEGER, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, cloud_id BIGINT, FOREIGN KEY (subject_id) REFERENCES subjects (id) ON DELETE CASCADE)')
     
-    # Migration: Add cloud_id column if missing
-    tables_to_fix = ['semesters', 'subjects', 'chapters', 'study_sessions']
-    for table in tables_to_fix:
+    # Migration: Add columns if missing
+    migration_configs = {
+        'semesters': [('cloud_id', 'BIGINT')],
+        'subjects': [('cloud_id', 'BIGINT')],
+        'chapters': [('cloud_id', 'BIGINT')],
+        'study_sessions': [('cloud_id', 'BIGINT')],
+        'user_profile': [('display_name', 'TEXT')]
+    }
+    
+    for table, cols in migration_configs.items():
         cursor.execute(f"PRAGMA table_info({table})")
-        columns = [column[1] for column in cursor.fetchall()]
-        if 'cloud_id' not in columns:
-            cursor.execute(f"ALTER TABLE {table} ADD COLUMN cloud_id BIGINT")
+        existing_cols = [column[1] for column in cursor.fetchall()]
+        for col_name, col_type in cols:
+            if col_name not in existing_cols:
+                cursor.execute(f"ALTER TABLE {table} ADD COLUMN {col_name} {col_type}")
     
     cursor.execute('SELECT count(*) FROM user_profile')
     if cursor.fetchone()[0] == 0:
