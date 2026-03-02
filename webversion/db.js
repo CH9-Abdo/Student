@@ -227,6 +227,17 @@ load() {
         this.save();
     }
 
+    async getLeaderboard() {
+        try {
+            const { data, error } = await auth.client.from("weekly_leaderboard").select("*");
+            if (error) throw error;
+            return data;
+        } catch (err) {
+            this.log(`Leaderboard Error: ${err.message}`);
+            return [];
+        }
+    }
+
     // Getters
     getTodoChapters() { return this.data.chapters.filter(c => !c.is_completed).map(c => { const sub = this.data.subjects.find(s => s.id === c.subject_id); return { ...c, subject_name: sub ? sub.name : "Subject" }; }); }
     getProgressStats() { const total = this.data.chapters.length * 2; const done = this.data.chapters.reduce((acc, c) => acc + (c.video_completed ? 1 : 0) + (c.exercises_completed ? 1 : 0), 0); return { total, done }; }

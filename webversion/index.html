@@ -65,6 +65,9 @@
                 <button class="nav-btn" data-tab="analytics">
                     <i class="fas fa-chart-pie"></i> <span class="nav-text">Analytics</span>
                 </button>
+                <button class="nav-btn" data-tab="leaderboard">
+                    <i class="fas fa-trophy"></i> <span class="nav-text">Leaderboard</span>
+                </button>
                 <button class="nav-btn" data-tab="settings">
                     <i class="fas fa-cog"></i> <span class="nav-text">Settings</span>
                 </button>
@@ -220,6 +223,27 @@
             </section>
 
             <!-- Analytics & Settings -->
+            <section id="leaderboard" class="tab-content">
+                <div class="header">
+                    <h2 class="h1" id="leaderboard-title">Weekly Leaderboard 🏆</h2>
+                </div>
+                <div class="card" style="padding: 0; overflow: hidden;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: center;">
+                        <thead style="background: var(--progress-bg);">
+                            <tr>
+                                <th style="padding: 15px;">Rank</th>
+                                <th style="text-align: left;">Student</th>
+                                <th>Level</th>
+                                <th>Sessions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-body">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
             <section id="analytics" class="tab-content">
                 <div class="header"><h2 class="h1">Analytics</h2></div>
                 <div class="analytics-grid">

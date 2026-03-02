@@ -388,7 +388,37 @@ class StudentProApp {
         if (tabId === 'dashboard') this.refreshDashboard();
         if (tabId === 'planner') this.refreshPlanner();
         if (tabId === 'pomodoro') this.refreshPomodoro();
+        if (tabId === 'leaderboard') this.refreshLeaderboard();
         if (tabId === 'analytics') this.refreshAnalytics();
+    }
+
+    async refreshLeaderboard() {
+        const body = document.getElementById('leaderboard-body');
+        body.innerHTML = '<tr><td colspan="4" style="padding: 20px;">Loading champions...</td></tr>';
+        
+        const data = await db.getLeaderboard();
+        body.innerHTML = '';
+        
+        if (!data || data.length === 0) {
+            body.innerHTML = '<tr><td colspan="4" style="padding: 20px;">No sessions this week yet. Be the first!</td></tr>';
+            return;
+        }
+
+        data.forEach((row, i) => {
+            const tr = document.createElement('tr');
+            tr.style.borderBottom = "1px solid var(--border)";
+            const isMe = row.user_id === auth.user.id;
+            if (isMe) tr.style.background = "rgba(99,102,241,0.05)";
+
+            const medal = i === 0 ? "🥇" : (i === 1 ? "🥈" : (i === 2 ? "🥉" : i + 1));
+            tr.innerHTML = `
+                <td style="padding: 15px;">${medal}</td>
+                <td style="text-align: left; font-weight: bold;">${row.display_name || 'Anonymous'} ${isMe ? '(You)' : ''}</td>
+                <td><span class="banner" style="padding: 2px 8px; border-radius: 4px; font-size: 12px; background: rgba(99,102,241,0.1); color: var(--primary);">Level ${row.level}</span></td>
+                <td><strong>${row.sessions_count}</strong></td>
+            `;
+            body.appendChild(tr);
+        });
     }
 
     // --- Dashboard ---
