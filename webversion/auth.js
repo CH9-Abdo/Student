@@ -88,6 +88,19 @@ class AuthManager {
         return data;
     }
 
+    async verifyOtpForRecovery(email, token, newPassword) {
+        this.log("Verifying recovery OTP...");
+        const { data, error } = await this.client.auth.verifyOtp({
+            email,
+            token,
+            type: 'recovery'
+        });
+        if (error) throw error;
+        
+        // After successful OTP verification, update the password
+        return await this.updatePassword(newPassword);
+    }
+
     async signOut() {
         this.log("Signing out...");
         await this.client.auth.signOut();

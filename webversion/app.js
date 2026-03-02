@@ -183,17 +183,71 @@ class StudentProApp {
         document.getElementById('forgot-password-btn').addEventListener('click', async () => {
             const email = document.getElementById('login-email').value;
             const err = document.getElementById('login-error');
+            const btn = document.getElementById('forgot-password-btn');
+            
             if (!email) {
                 err.textContent = "Please enter your email first";
                 err.classList.remove('hidden');
                 return;
             }
+            
             try {
-                await auth.resetPassword(email);
-                alert(TRANSLATIONS[db.data.settings.lang]?.reset_link_sent || "Password reset link sent to your email!");
+                btn.textContent = "Sending Code..."; btn.disabled = true;
+                await auth.resetPassword(email); // This sends the code/link
+                
+                // Switch UI to Reset Mode
+                document.getElementById('login-title').textContent = "Reset Password";
+                document.getElementById('login-desc').textContent = "Enter the 6-digit code sent to your email and your new password.";
+                document.getElementById('password-area').classList.add('hidden');
+                document.getElementById('reset-area').classList.remove('hidden');
+                document.getElementById('do-login-btn').classList.add('hidden');
+                document.getElementById('do-reset-btn').classList.remove('hidden');
+                document.getElementById('do-signup-btn').classList.add('hidden');
+                document.getElementById('back-to-login-btn').classList.remove('hidden');
+                err.classList.add('hidden');
             } catch (e) {
                 err.textContent = e.message;
                 err.classList.remove('hidden');
+            } finally {
+                btn.textContent = "Forgot Password?"; btn.disabled = false;
+            }
+        });
+
+        document.getElementById('back-to-login-btn').addEventListener('click', () => {
+            document.getElementById('login-title').textContent = "StudentPro Sync";
+            document.getElementById('login-desc').textContent = "Connect to your cloud database";
+            document.getElementById('password-area').classList.remove('hidden');
+            document.getElementById('reset-area').classList.add('hidden');
+            document.getElementById('do-login-btn').classList.remove('hidden');
+            document.getElementById('do-reset-btn').classList.add('hidden');
+            document.getElementById('do-signup-btn').classList.remove('hidden');
+            document.getElementById('back-to-login-btn').classList.add('hidden');
+        });
+
+        document.getElementById('do-reset-btn').addEventListener('click', async () => {
+            const email = document.getElementById('login-email').value;
+            const token = document.getElementById('reset-code').value;
+            const newPass = document.getElementById('reset-new-password').value;
+            const btn = document.getElementById('do-reset-btn');
+            const err = document.getElementById('login-error');
+            
+            if (!token || !newPass) {
+                err.textContent = "Please enter both code and new password";
+                err.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                btn.textContent = "Updating..."; btn.disabled = true;
+                await auth.verifyOtpForRecovery(email, token, newPass);
+                alert("Password Updated Successfully! Logging you in...");
+                window.location.reload();
+            } catch (e) {
+                err.textContent = e.message;
+                err.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Update Password & Login";
             }
         });
 
