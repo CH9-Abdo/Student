@@ -148,8 +148,41 @@ class StudentProApp {
         const existingError = document.getElementById('connection-error');
         if (existingError) existingError.remove();
         
-        // Reinitialize the app
-        this.init();
+        console.log('Connection restored! Refreshing...');
+        
+        // Show app again
+        const loginScreen = document.getElementById('login-screen');
+        const appContainer = document.getElementById('app');
+        
+        // Check if user was logged in
+        if (auth && auth.user) {
+            // User was logged in - sync and refresh
+            console.log('User was logged in, syncing...');
+            if (appContainer) appContainer.classList.remove('hidden');
+            
+            // Sync from cloud and refresh
+            db.syncFromCloud().then(() => {
+                this.refreshAll();
+                this.loadSettings();
+                
+                // Refresh planner
+                if (this.activeSemesterId) {
+                    this.refreshSubjects();
+                }
+                
+                console.log('App refreshed after connection restored!');
+            }).catch(err => {
+                console.error('Sync failed after reconnect:', err);
+                // Still show the app with local data
+                if (appContainer) appContainer.classList.remove('hidden');
+                this.refreshAll();
+            });
+        } else {
+            // No user was logged in - show login screen
+            console.log('No user logged in, showing login');
+            if (loginScreen) loginScreen.classList.remove('hidden');
+            if (appContainer) appContainer.classList.add('hidden');
+        }
     }
 
     async onLogin(user) {
