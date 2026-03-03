@@ -382,13 +382,24 @@
                 <input type="text" id="user-display-name" placeholder="What should we call you?" style="width: 100%; text-align: center; font-size: 16px; font-weight: bold;">
             </div>
 
+            <div style="margin: 20px 0;">
+                <label class="mute" style="display: block; margin-bottom: 8px;">Select Your Year:</label>
+                <select id="year-selector" style="width: 100%; padding: 10px; font-size: 14px;">
+                    <option value="">-- Select Year --</option>
+                    <option value="bac">BAC (Final Year)</option>
+                    <option value="2as">2AS (2nd Year Secondary)</option>
+                    <option value="l1">L1 Informatique</option>
+                    <option value="l2">L2 Informatique</option>
+                </select>
+            </div>
+
             <div id="template-list" class="list-widget mini scroll-area" style="max-height: 200px; margin: 20px 0;">
                 <!-- Templates will be injected here -->
             </div>
 
             <div class="modal-actions" style="justify-content: center; margin-top: 20px; gap: 10px;">
                 <button class="secondary-btn" id="skip-onboarding-btn">Create Custom</button>
-                <button class="primary-btn" id="start-onboarding-btn">Let's get started 🚀</button>
+                <button class="primary-btn" id="start-onboarding-btn" disabled>Let's get started 🚀</button>
             </div>
         </div>
 

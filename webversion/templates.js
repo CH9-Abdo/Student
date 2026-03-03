@@ -1,5 +1,6 @@
 const TEMPLATES = [
     {
+        year: "bac",
         name: "BAC (Sciences Expérimentales)",
         subjects: [
             { name: "الرياضيات", chapters: ["الدوال العددية", "الدوال الأسية واللوغاريتمية", "المتتاليات العددية", "الهندسة في الفضاء", "الأعداد المركبة", "الحساب التكاملي", "الاحتمالات"] },
@@ -11,6 +12,7 @@ const TEMPLATES = [
         ]
     },
     {
+        year: "bac",
         name: "BAC (Math / Technique Math)",
         subjects: [
             { name: "الرياضيات (متقدم)", chapters: ["الأعداد والحساب", "الدوال والاشتقاقية", "المتتاليات", "الأعداد المركبة", "الحساب التكاملي", "الاحتمالات", "القواسم والمضاعفات"] },
@@ -20,6 +22,7 @@ const TEMPLATES = [
         ]
     },
     {
+        year: "bac",
         name: "BAC (Gestion et Economie)",
         subjects: [
             { name: "التسيير المحاسبي والمالي", chapters: ["الاهتلاكات والمخزونات", "إعداد الميزانية والنتائج", "محاسبة التكاليف الكلية", "محاسبة التكاليف المتغيرة", "تحليل الميزانية"] },
@@ -29,6 +32,7 @@ const TEMPLATES = [
         ]
     },
     {
+        year: "bac",
         name: "BAC (Lettres et Philosophie)",
         subjects: [
             { name: "الفلسفة", chapters: ["الإدراك والإحساس", "الذاكرة والخيال", "اللغة والفكر", "الشعور واللاشعور", "الأسرة والمجتمع", "الحقيقة والعدالة", "الأخلاق البيولوجية"] },
@@ -37,6 +41,7 @@ const TEMPLATES = [
         ]
     },
     {
+        year: "2as",
         name: "2AS (Sciences Expérimentales)",
         subjects: [
             { name: "الرياضيات (2 ثانوي)", chapters: ["الدوال والاشتقاقية", "كثيرات الحدود", "المرجح", "الزوايا الموجهة", "المتتاليات", "الاحتمالات"] },
@@ -45,6 +50,7 @@ const TEMPLATES = [
         ]
     },
     {
+        year: "2as",
         name: "2AS (Lettres et Philosophie)",
         subjects: [
             { name: "اللغة العربية", chapters: ["العصر العباسي الثاني", "النقد الأدبي القديم", "الأدب الأندلسي", "الموشحات", "الشعر في العصر الحديث"] },
@@ -54,12 +60,24 @@ const TEMPLATES = [
         ]
     },
     {
-        name: "Semester 1 (Informatique)",
+        year: "l1",
+        name: "Semester 1 (Informatique - L1)",
         subjects: [
             { name: "Analyse 1", chapters: ["Logique mathématique", "Les ensembles", "Les nombres réels", "Les suites réelles", "Fonctions réelles"] },
             { name: "Algèbre 1", chapters: ["Logique et Raisonnements", "Espaces vectoriels", "Applications linéaires", "Matrices"] },
             { name: "Algorithmique 1", chapters: ["Introduction", "Les types", "Structures de contrôle", "Tableaux"] },
             { name: "Structure Machine 1", chapters: ["Numération", "Algèbre de Boole", "Circuits combinatoires"] }
+        ]
+    },
+    {
+        year: "l2",
+        name: "Semester 1 (Informatique - L2)",
+        subjects: [
+            { name: "Analyse 2", chapters: ["Limites et continuité", "Dérivabilité", "Intégration", "Équations différentielles"] },
+            { name: "Algèbre 2", chapters: ["Réduction des endomorphismes", "Produits scalaires", "Formes quadratiques"] },
+            { name: "Algorithmique 2", chapters: ["Récursivité", "Listes chaînées", "Arbres", "Complexité"] },
+            { name: "Base de Données 1", chapters: ["Modèle relationnel", "SQL", "Normalisation", "Algèbre relationnelle"] },
+            { name: "Systèmes d'Exploitation", chapters: ["Processus", "Mémoire", "Fichiers", "Scheduling"] }
         ]
     }
 ];

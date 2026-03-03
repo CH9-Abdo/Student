@@ -607,6 +607,18 @@ class StudentProApp {
         });
 
         this.renderTemplates();
+        
+        // Year selector - filter templates when year is selected
+        const yearSelector = document.getElementById('year-selector');
+        if (yearSelector) {
+            yearSelector.addEventListener('change', (e) => {
+                const selectedYear = e.target.value;
+                this.renderTemplates(selectedYear);
+                // Reset template selection
+                this.selectedTemplate = null;
+                document.getElementById('start-onboarding-btn').disabled = true;
+            });
+        }
 
         // --- Sync Mode & Buttons ---
         const syncSelect = document.getElementById('sync-mode-select');
@@ -670,11 +682,21 @@ class StudentProApp {
         }
     }
 
-    renderTemplates() {
+    renderTemplates(yearFilter) {
         const container = document.getElementById('template-list');
         if (!container) return;
         container.innerHTML = '';
-        TEMPLATES.forEach((t, i) => {
+        
+        const filteredTemplates = yearFilter 
+            ? TEMPLATES.filter(t => t.year === yearFilter)
+            : TEMPLATES;
+        
+        if (filteredTemplates.length === 0) {
+            container.innerHTML = '<div class="mute" style="padding: 20px; text-align: center;">Please select a year first</div>';
+            return;
+        }
+        
+        filteredTemplates.forEach((t, i) => {
             const div = document.createElement('div');
             div.className = 'list-item';
             div.innerHTML = `<div><strong>${t.name}</strong><br><small class="mute">${t.subjects.length} Subjects</small></div>`;
