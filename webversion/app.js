@@ -19,9 +19,78 @@ class StudentProApp {
     }
 
     init() {
+        // Check internet connection before initializing
+        if (!navigator.onLine) {
+            this.showConnectionError();
+            return;
+        }
+        
+        // Listen for online/offline events
+        window.addEventListener('online', () => this.onConnectionRestored());
+        window.addEventListener('offline', () => this.showConnectionError());
+        
         this.setupEventListeners();
         this.refreshDate();
         this.initCharts();
+    }
+    
+    showConnectionError() {
+        // Hide the app and show connection error
+        const loginScreen = document.getElementById('login-screen');
+        const appContainer = document.getElementById('app');
+        
+        if (loginScreen) loginScreen.classList.add('hidden');
+        if (appContainer) appContainer.classList.add('hidden');
+        
+        // Remove existing error message if any
+        const existingError = document.getElementById('connection-error');
+        if (existingError) existingError.remove();
+        
+        // Create error overlay
+        const errorDiv = document.createElement('div');
+        errorDiv.id = 'connection-error';
+        errorDiv.innerHTML = `
+            <div style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.9);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+                color: white;
+                font-family: sans-serif;
+                text-align: center;
+                padding: 20px;
+            ">
+                <i class="fas fa-wifi" style="font-size: 60px; margin-bottom: 20px; color: #ff6b6b;"></i>
+                <h2 style="margin-bottom: 15px;">No Internet Connection</h2>
+                <p style="color: #aaa; margin-bottom: 25px;">An internet connection is required to use StudentPro.</p>
+                <button onclick="location.reload()" style="
+                    padding: 12px 30px;
+                    font-size: 16px;
+                    background: #4a90d9;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                ">Try Again</button>
+            </div>
+        `;
+        document.body.appendChild(errorDiv);
+    }
+    
+    onConnectionRestored() {
+        // Remove error overlay
+        const existingError = document.getElementById('connection-error');
+        if (existingError) existingError.remove();
+        
+        // Reinitialize the app
+        this.init();
     }
 
     async onLogin(user) {
@@ -89,7 +158,7 @@ class StudentProApp {
         
         // Update navigation
         const navBtns = document.querySelectorAll('.nav-btn');
-        const navItems = ['dashboard', 'planner', 'pomodoro', 'analytics', 'settings'];
+        const navItems = ['dashboard', 'planner', 'pomodoro', 'analytics', 'leaderboard', 'settings'];
         navBtns.forEach((btn, i) => {
             if (navItems[i]) {
                 const textSpan = btn.querySelector('.nav-text');
