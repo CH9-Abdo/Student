@@ -558,6 +558,15 @@ class StudentProApp {
                 this.updateSubjectDetailsUI();
             }
         });
+        
+        // Exam date input in subject window
+        document.getElementById('sw-exam-date-input').addEventListener('change', async (e) => {
+            const newDate = e.target.value;
+            if (this.activeSubjectId) {
+                await db.updateSubjectExamDate(this.activeSubjectId, newDate || null);
+                this.refreshSubjects(); // Update the planner view
+            }
+        });
 
         const pomodoroSubSelector = document.getElementById('active-subject-selector');
         if (pomodoroSubSelector) {
@@ -922,9 +931,6 @@ class StudentProApp {
             dateInput = document.createElement('input');
             dateInput.type = 'date';
             dateInput.id = 'inline-date-picker';
-            dateInput.style.position = 'absolute';
-            dateInput.style.opacity = '0';
-            dateInput.style.pointerEvents = 'none';
             document.body.appendChild(dateInput);
         }
         
@@ -939,16 +945,24 @@ class StudentProApp {
             dateInput.value = '';
         }
         
-        // Trigger click to open date picker
+        // Show the input, trigger click, then hide
+        dateInput.style.display = 'inline-block';
+        dateInput.showPicker && dateInput.showPicker(); // For modern browsers
         dateInput.click();
         
         // Handle change
         dateInput.onchange = () => {
             const newDate = dateInput.value;
+            dateInput.style.display = 'none';
             if (newDate) {
                 db.updateSubjectExamDate(subjectId, newDate);
                 this.refreshSubjects();
             }
+        };
+        
+        // Also hide on blur
+        dateInput.onblur = () => {
+            dateInput.style.display = 'none';
         };
     }
 
@@ -1000,6 +1014,7 @@ class StudentProApp {
     openSubjectWindow(subId) {
         const sub = db.data.subjects.find(s => s.id === subId);
         document.getElementById('sw-title').textContent = sub.name;
+        document.getElementById('sw-exam-date-input').value = sub.exam_date || '';
         this.refreshChaptersInModal();
         this.showModal('subject-window-modal');
     }
