@@ -14,7 +14,16 @@ DEFAULT_DB_NAME = "student_data.db"
 def load_settings():
     config_path = os.path.join(os.getcwd(), CONFIG_FILE)
     if os.path.exists(config_path):
-...
+        try:
+            with open(CONFIG_FILE, 'r') as f:
+                settings = json.load(f)
+                # If path doesn't exist or is invalid, reset to default
+                db_p = settings.get("db_path", DEFAULT_DB_NAME)
+                if not os.path.isabs(db_p):
+                    db_p = os.path.abspath(db_p)
+                return settings
+        except json.JSONDecodeError:
+            pass
             with open(CONFIG_FILE, 'r') as f:
                 settings = json.load(f)
                 # If path doesn't exist or is invalid, reset to default

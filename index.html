@@ -1,10 +1,205 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta http-equiv="refresh" content="0; url=webversion/index.html" />
-    <title>StudentPro Redirect</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudentPro - Choose Your Version</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        h1 {
+            color: #1a1a2e;
+            margin-bottom: 10px;
+            font-size: 2.8em;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 35px;
+            font-size: 1.15em;
+        }
+        
+        .preview-section {
+            margin-bottom: 35px;
+        }
+        
+        .preview-image {
+            width: 100%;
+            max-height: 250px;
+            object-fit: cover;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        
+        .option-card {
+            border-radius: 18px;
+            padding: 28px 30px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            text-align: left;
+        }
+        
+        .option-card:hover {
+            transform: translateX(10px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .option-card.exe {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        
+        .option-card.apk {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        }
+        
+        .option-card.web {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .option-icon {
+            font-size: 2.8em;
+            min-width: 60px;
+            text-align: center;
+        }
+        
+        .option-content {
+            flex: 1;
+        }
+        
+        .option-title {
+            color: white;
+            font-size: 1.4em;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .option-desc {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95em;
+        }
+        
+        .arrow {
+            color: white;
+            font-size: 1.5em;
+            opacity: 0.7;
+        }
+        
+        .footer {
+            margin-top: 35px;
+            color: #888;
+            font-size: 0.9em;
+        }
+        
+        .features {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 15px;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
 </head>
 <body>
-    <p>Loading StudentPro... <a href="webversion/index.html">Click here if not redirected</a>.</p>
+    <div class="container">
+        <div class="logo">🎓</div>
+        <h1>StudentPro</h1>
+        <p class="subtitle">Your Personal Study Companion - Choose How You Want to Learn</p>
+        
+        <div class="preview-section">
+            <img src="dashboard.png" alt="StudentPro Dashboard" class="preview-image">
+        </div>
+        
+        <div class="options">
+            <a href="https://www.mediafire.com/file/ozf4w0byuyftmsz/StudentPro.exe/file" target="_blank" class="option-card exe">
+                <div class="option-icon">💻</div>
+                <div class="option-content">
+                    <div class="option-title">Download EXE (Windows)</div>
+                    <div class="option-desc">Full desktop experience with all features</div>
+                </div>
+                <div class="arrow">→</div>
+            </a>
+            
+            <a href="https://www.mediafire.com/file/c28m05lj0eylw4i/app-debug.apk/file" target="_blank" class="option-card apk">
+                <div class="option-icon">📱</div>
+                <div class="option-content">
+                    <div class="option-title">Download APK (Android)</div>
+                    <div class="option-desc">Study on the go with your mobile device</div>
+                </div>
+                <div class="arrow">→</div>
+            </a>
+            
+            <a href="webversion/index.html" class="option-card web">
+                <div class="option-icon">🌐</div>
+                <div class="option-content">
+                    <div class="option-title">Web Version</div>
+                    <div class="option-desc">Access instantly from any browser</div>
+                </div>
+                <div class="arrow">→</div>
+            </a>
+        </div>
+        
+        <div class="features">
+            <div class="feature">📚 Study Planner</div>
+            <div class="feature">⏱️ Pomodoro Timer</div>
+            <div class="feature">🏆 Gamification</div>
+        </div>
+        
+        <p class="footer">Made with ❤️ for students worldwide</p>
+    </div>
 </body>
 </html>

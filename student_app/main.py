@@ -3,7 +3,7 @@ import os
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QStackedWidget, QPushButton, QLabel, QFrame, QSpacerItem, QSizePolicy,
-    QSystemTrayIcon
+    QSystemTrayIcon, QStyle
 )
 from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect
 from PyQt5.QtGui import QIcon
@@ -47,7 +47,7 @@ class MainWindow(QMainWindow):
             self.tray_icon.setIcon(QIcon(icon_path))
         else:
             # Fallback to some generic icon if not found
-            self.tray_icon.setIcon(self.style().standardIcon(QSizePolicy.Policy(0))) 
+            self.tray_icon.setIcon(self.style().standardIcon(QStyle.SP_ComputerIcon)) 
         
         self.tray_icon.show()
         
