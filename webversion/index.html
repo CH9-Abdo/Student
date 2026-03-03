@@ -169,40 +169,45 @@
                     <div class="h-right">
                         <select id="semester-selector"></select>
                         <button id="add-semester-btn" class="primary-btn small-btn">+</button>
-                        <button id="delete-semester-btn" class="danger-btn small-btn">-</button>
                     </div>
                 </div>
 
-                <div class="planner-split">
-                    <div class="planner-left">
-                        <div class="card add-subject-card">
-                            <input type="text" id="subject-name-input" placeholder="Subject Name">
-                            <div class="input-row">
-                                <label>Exam Date:</label>
-                                <input type="date" id="exam-date-input">
-                            </div>
-                            <button id="save-subject-btn" class="primary-btn">Add Subject</button>
-                        </div>
-                        <ul id="subject-list" class="list-widget"></ul>
-                        <button id="delete-subject-btn" class="danger-btn full-width hidden">Delete Selected Subject</button>
+                <!-- Add Subject Card -->
+                <div class="card add-subject-card" style="margin-bottom: 15px;">
+                    <input type="text" id="subject-name-input" placeholder="Subject Name">
+                    <div class="input-row" style="margin-top: 10px;">
+                        <label>Exam:</label>
+                        <input type="date" id="exam-date-input">
                     </div>
+                    <button id="save-subject-btn" class="primary-btn" style="margin-top: 10px; width: 100%;">Add Subject</button>
+                </div>
 
-                    <div id="subject-details-panel" class="planner-right disabled">
-                        <div class="card detail-header-card">
-                            <h2 id="selected-subject-title" class="h2">Subject Overview</h2>
-                            <div class="progress-bar-container">
-                                <div id="subject-progress-bar" class="progress-bar" style="width: 0%"></div>
-                            </div>
-                            <button id="open-subject-details-btn" class="primary-btn">Open Subject Study Window</button>
+                <!-- Subject List with Progress -->
+                <div id="subject-list-container">
+                    <ul id="subject-list" class="list-widget"></ul>
+                </div>
+
+                <button id="delete-subject-btn" class="danger-btn full-width hidden" style="margin-top: 10px;">Delete Selected Subject</button>
+
+                <!-- Subject Details (collapsible on mobile) -->
+                <div id="subject-details-panel" class="card disabled" style="margin-top: 15px; padding: 15px;">
+                    <div class="detail-header-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <h2 id="selected-subject-title" class="h2" style="margin: 0;">Subject Overview</h2>
+                            <button id="open-subject-details-btn" class="primary-btn small-btn">Study</button>
                         </div>
-                        
-                        <div class="details-scroll scroll-area">
-                            <h3 class="h2">Chapters</h3>
-                            <ul id="chapters-list-display" class="list-widget mini"></ul>
-                            <h3 class="h2">Notes</h3>
-                            <textarea id="subject-notes-display" placeholder="Notes..."></textarea>
-                            <button id="save-notes-btn-display" class="primary-btn">Save Notes</button>
+                        <div class="progress-bar-container" style="margin-top: 10px;">
+                            <div id="subject-progress-bar" class="progress-bar" style="width: 0%"></div>
                         </div>
+                        <span id="subject-progress-label" class="mute" style="font-size: 12px;">0% complete</span>
+                    </div>
+                    
+                    <div class="details-scroll scroll-area" style="margin-top: 15px;">
+                        <h3 class="h3">Chapters</h3>
+                        <ul id="chapters-list-display" class="list-widget mini"></ul>
+                        <h3 class="h3" style="margin-top: 15px;">Notes</h3>
+                        <textarea id="subject-notes-display" placeholder="Notes..." style="width: 100%; min-height: 80px;"></textarea>
+                        <button id="save-notes-btn-display" class="primary-btn" style="margin-top: 10px; width: 100%;">Save Notes</button>
                     </div>
                 </div>
             </section>

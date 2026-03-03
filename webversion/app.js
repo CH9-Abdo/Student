@@ -185,6 +185,11 @@ class StudentProApp {
         // Onboarding Check
         setTimeout(() => {
             if (!db.data.semesters || db.data.semesters.length === 0) {
+                // Pre-fill name if available
+                const nameInput = document.getElementById('user-display-name');
+                if (nameInput && db.data.user_profile.display_name) {
+                    nameInput.value = db.data.user_profile.display_name;
+                }
                 this.showModal('welcome-modal');
             }
         }, 500); 
@@ -687,12 +692,19 @@ class StudentProApp {
         if (!container) return;
         container.innerHTML = '';
         
-        const filteredTemplates = yearFilter 
-            ? TEMPLATES.filter(t => t.year === yearFilter)
-            : TEMPLATES;
+        // Don't show templates until a year is selected
+        if (!yearFilter) {
+            container.innerHTML = '<div class="mute" style="padding: 20px; text-align: center;">Please select a year first</div>';
+            return;
+        }
+        
+        const filteredTemplates = TEMPLATES.filter(t => t.year === yearFilter);
         
         if (filteredTemplates.length === 0) {
-            container.innerHTML = '<div class="mute" style="padding: 20px; text-align: center;">Please select a year first</div>';
+            const message = yearFilter 
+                ? 'No templates available for this year'
+                : 'Please select a year first';
+            container.innerHTML = `<div class="mute" style="padding: 20px; text-align: center;">${message}</div>`;
             return;
         }
         
@@ -832,14 +844,76 @@ class StudentProApp {
         list.innerHTML = '';
         const subjects = db.data.subjects.filter(s => s.semester_id === this.activeSemesterId);
         subjects.forEach(s => {
+            const progress = db.getSubjectProgress(s.id);
+            const perc = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
+            const chapters = db.data.chapters.filter(c => c.subject_id === s.id);
+            const videosDone = chapters.filter(c => c.video_completed).length;
+            const exercisesDone = chapters.filter(c => c.exercises_completed).length;
+            
             const li = document.createElement('li');
-            li.className = 'list-item' + (this.activeSubjectId === s.id ? ' selected' : '');
-            li.textContent = s.name;
+            li.className = 'subject-card' + (this.activeSubjectId === s.id ? ' selected' : '');
             li.onclick = () => this.selectSubject(s.id);
+            
+            // Format exam date
+            let examInfo = '';
+            if (s.exam_date) {
+                const examDate = new Date(s.exam_date);
+                const today = new Date();
+                const daysLeft = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
+                const daysText = daysLeft < 0 ? 'Past' : daysLeft === 0 ? 'Today' : `${daysLeft}d`;
+                const examColor = daysLeft <= 7 ? 'var(--danger)' : daysLeft <= 30 ? 'var(--warning)' : 'var(--success)';
+                examInfo = `<span class="exam-badge" style="background:${examColor};color:white;padding:2px 8px;border-radius:10px;font-size:11px;">📅 ${daysText}</span>`;
+            } else {
+                examInfo = `<button class="add-exam-btn" onclick="event.stopPropagation();app.showExamDateInput(${s.id})">+ Exam</button>`;
+            }
+            
+            li.innerHTML = `
+                <div class="subject-card-header">
+                    <span class="subject-name">${s.name}</span>
+                    ${examInfo}
+                </div>
+                <div class="subject-card-progress">
+                    <div class="mini-progress-bar">
+                        <div class="mini-progress-fill" style="width:${perc}%"></div>
+                    </div>
+                    <span class="progress-text">${perc}%</span>
+                </div>
+                <div class="subject-card-actions">
+                    <button class="chapter-btn ${chapters.some(c => c.video_completed) ? 'active' : ''}" onclick="event.stopPropagation();app.toggleSubjectProgress(${s.id}, 'video')" title="Toggle Video">
+                        ${videosDone}/${chapters.length} 🎥
+                    </button>
+                    <button class="chapter-btn ${chapters.some(c => c.exercises_completed) ? 'active' : ''}" onclick="event.stopPropagation();app.toggleSubjectProgress(${s.id}, 'exercises')" title="Toggle Exercises">
+                        ${exercisesDone}/${chapters.length} ✍️
+                    </button>
+                </div>
+            `;
             list.appendChild(li);
         });
         if (subjects.length > 0) document.getElementById('delete-subject-btn').classList.remove('hidden');
         else { this.activeSubjectId = null; this.updateSubjectDetailsUI(); }
+    }
+
+    showExamDateInput(subjectId) {
+        const newDate = prompt('Enter exam date (YYYY-MM-DD):');
+        if (newDate) {
+            db.updateSubjectExamDate(subjectId, newDate);
+            this.refreshSubjects();
+        }
+    }
+
+    async toggleSubjectProgress(subjectId, type) {
+        const chapters = db.data.chapters.filter(c => c.subject_id === subjectId);
+        if (chapters.length === 0) {
+            alert('Add chapters to this subject first!');
+            return;
+        }
+        // Toggle all chapters of this type
+        for (const c of chapters) {
+            const currentStatus = type === 'video' ? c.video_completed : c.exercises_completed;
+            await db.toggleChapterStatus(c.id, type, !currentStatus);
+        }
+        this.refreshSubjects();
+        this.updateSubjectDetailsUI();
     }
 
     selectSubject(id) { this.activeSubjectId = id; this.refreshSubjects(); this.updateSubjectDetailsUI(); }
@@ -854,6 +928,7 @@ class StudentProApp {
         const progress = db.getSubjectProgress(this.activeSubjectId);
         const perc = progress.total > 0 ? (progress.done / progress.total) * 100 : 0;
         document.getElementById('subject-progress-bar').style.width = `${perc}%`;
+        document.getElementById('subject-progress-label').textContent = `${progress.done}/${progress.total} completed`;
         const list = document.getElementById('chapters-list-display');
         list.innerHTML = '';
         db.data.chapters.filter(c => c.subject_id === this.activeSubjectId).forEach(c => {

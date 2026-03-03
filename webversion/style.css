@@ -254,6 +254,117 @@ body {
     gap: 20px;
 }
 
+/* Subject Card Styles */
+.subject-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.subject-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.subject-card.selected {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.subject-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.subject-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+}
+
+.exam-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.add-exam-btn {
+    background: none;
+    border: 1px dashed var(--border);
+    color: var(--mute);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.add-exam-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.subject-card-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.mini-progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--progress-bg);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.mini-progress-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 11px;
+    color: var(--mute);
+    min-width: 30px;
+    text-align: right;
+}
+
+.subject-card-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.chapter-btn {
+    flex: 1;
+    padding: 6px 8px;
+    font-size: 11px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--card);
+    color: var(--mute);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.chapter-btn:hover {
+    border-color: var(--primary);
+}
+
+.chapter-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
 .planner-left {
     display: flex;
     flex-direction: column;
@@ -628,6 +739,32 @@ input:focus, select:focus {
 
     .dashboard-bottom, .planner-split, .analytics-grid {
         grid-template-columns: 1fr;
+    }
+    
+    /* Planner mobile: stack vertically */
+    .planner-split {
+        grid-template-columns: 1fr;
+    }
+    
+    .subject-card {
+        padding: 10px;
+    }
+    
+    .subject-card-header {
+        flex-wrap: wrap;
+    }
+    
+    .subject-card-actions {
+        flex-wrap: wrap;
+    }
+    
+    .chapter-btn {
+        font-size: 10px;
+        padding: 5px 4px;
+    }
+    
+    .add-subject-card {
+        padding: 12px;
     }
 
     .timer-container {

@@ -27,7 +27,9 @@ class Database {
     async pushToCloud(table, data) {
         if (!auth || !auth.user) return false;
         try {
-            const payload = { ...data, user_id: auth.user.id };
+            // Create payload with user_id, excluding any 'id' field to avoid conflicts
+            const { id, ...dataWithoutId } = data;
+            const payload = { ...dataWithoutId, user_id: auth.user.id };
             let options = {};
             if (table === 'user_profile') options.onConflict = 'user_id';
             
@@ -36,13 +38,6 @@ class Database {
             // If the upsert fails (e.g. column display_name doesn't exist yet)
             if (result.error) {
                 console.warn(`Initial push failed for ${table}:`, result.error.message);
-                
-                // Fallback for user_profile: Try without display_name if it failed
-                if (table === 'user_profile' && data.display_name) {
-                    const fallback = { ...data, user_id: auth.user.id };
-                    delete fallback.display_name;
-                    result = await auth.client.from(table).upsert(fallback, options);
-                }
             }
 
             return !result.error;
@@ -90,8 +85,9 @@ class Database {
                 auth.client.from("semesters").delete().eq("user_id", uid)
             ]);
 
-            // 2. Upload Profile
-            await auth.client.from("user_profile").upsert({ ...this.data.user_profile, user_id: uid }, { onConflict: 'user_id' });
+            // 2. Upload Profile (exclude any 'id' field to avoid conflicts)
+            const { id, ...profileWithoutId } = this.data.user_profile;
+            await auth.client.from("user_profile").upsert({ ...profileWithoutId, user_id: uid }, { onConflict: 'user_id' });
 
             // 3. Sequential Upload to maintain FKs
             for (let s of this.data.semesters) {
@@ -152,6 +148,16 @@ class Database {
             this.save();
             return localId;
         } catch (e) { return null; }
+    }
+
+    async updateSubjectExamDate(subjectId, examDate) {
+        const idx = this.data.subjects.findIndex(s => s.id === subjectId);
+        if (idx === -1) return;
+        this.data.subjects[idx].exam_date = examDate;
+        this.save();
+        try {
+            await auth.client.from("subjects").update({ exam_date: examDate }).eq("id", subjectId);
+        } catch (e) {}
     }
 
     async addChapter(subjectId, name) {
