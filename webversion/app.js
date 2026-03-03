@@ -14,6 +14,7 @@ class StudentProApp {
         this.timer = null;
         this.timeLeft = 25 * 60;
         this.timerRunning = false;
+        this.selectedLang = 'English';
         
         this.init();
     }
@@ -25,6 +26,23 @@ class StudentProApp {
             return;
         }
         
+        // Load saved language preference
+        this.loadLanguagePreference();
+        
+        // Apply language to login screen
+        this.applyLoginScreenLanguage();
+        
+        // Listen for login language selection changes
+        const loginLangSelect = document.getElementById('login-lang-select');
+        if (loginLangSelect) {
+            loginLangSelect.value = this.selectedLang;
+            loginLangSelect.addEventListener('change', (e) => {
+                this.selectedLang = e.target.value;
+                localStorage.setItem('studentpro_lang', this.selectedLang);
+                this.applyLoginScreenLanguage();
+            });
+        }
+        
         // Listen for online/offline events
         window.addEventListener('online', () => this.onConnectionRestored());
         window.addEventListener('offline', () => this.showConnectionError());
@@ -32,6 +50,47 @@ class StudentProApp {
         this.setupEventListeners();
         this.refreshDate();
         this.initCharts();
+    }
+    
+    loadLanguagePreference() {
+        const savedLang = localStorage.getItem('studentpro_lang');
+        if (savedLang && TRANSLATIONS[savedLang]) {
+            this.selectedLang = savedLang;
+        }
+    }
+    
+    applyLoginScreenLanguage() {
+        const texts = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
+        
+        // Login screen translations
+        const loginTitle = document.getElementById('login-title');
+        const loginDesc = document.getElementById('login-desc');
+        const loginEmail = document.getElementById('login-email');
+        const loginPassword = document.getElementById('login-password');
+        const loginBtn = document.getElementById('do-login-btn');
+        const signupBtn = document.getElementById('do-signup-btn');
+        const forgotBtn = document.getElementById('forgot-password-btn');
+        const resetBtn = document.getElementById('do-reset-btn');
+        const backBtn = document.getElementById('back-to-login-btn');
+        
+        if (loginTitle) loginTitle.textContent = texts.login_title || "StudentPro Sync";
+        if (loginDesc) loginDesc.textContent = texts.login_desc || "Connect to your cloud database";
+        if (loginEmail) loginEmail.placeholder = texts.login_email_placeholder || "Email Address";
+        if (loginPassword) loginPassword.placeholder = texts.login_password_placeholder || "Password";
+        if (loginBtn) loginBtn.textContent = texts.login_btn || "Login";
+        if (signupBtn) signupBtn.textContent = texts.signup_btn || "Create New Account";
+        if (forgotBtn) forgotBtn.textContent = texts.forgot_password || "Forgot Password?";
+        if (resetBtn) resetBtn.textContent = texts.update_password_btn || "Update Password & Login";
+        if (backBtn) backBtn.textContent = texts.back_to_login_btn || "Back to Login";
+        
+        // Apply RTL if Arabic
+        if (this.selectedLang === 'Arabic') {
+            document.documentElement.dir = "rtl";
+            document.body.classList.add('rtl');
+        } else {
+            document.documentElement.dir = "ltr";
+            document.body.classList.remove('rtl');
+        }
     }
     
     showConnectionError() {
@@ -138,6 +197,13 @@ class StudentProApp {
         document.getElementById('theme-select').value = s.theme;
         document.getElementById('lang-select').value = s.lang;
         
+        // Sync login language selector with settings
+        const loginLangSelect = document.getElementById('login-lang-select');
+        if (loginLangSelect) {
+            loginLangSelect.value = s.lang;
+        }
+        this.selectedLang = s.lang;
+        
         // Update Account Details
         document.getElementById('acc-display-name').textContent = p.display_name || "Not Set";
         document.getElementById('acc-email').textContent = auth.user ? auth.user.email : "Not Logged In";
@@ -170,6 +236,8 @@ class StudentProApp {
         document.querySelector('#dashboard .h1').textContent = texts.dashboard;
         document.querySelector('#planner .h1').textContent = texts.planner;
         document.querySelector('#settings .h1').textContent = texts.settings;
+        document.querySelector('#analytics .h1').textContent = texts.analytics_explorer || texts.analytics;
+        document.querySelector('#leaderboard .h1').textContent = texts.weekly_leaderboard;
 
         // Dashboard Labels
         const statCards = document.querySelectorAll('.stat-card .mute:first-child');
@@ -179,13 +247,51 @@ class StudentProApp {
         
         document.getElementById('dash-challenge-label').textContent = "🚀 " + texts.challenge;
         document.getElementById('start-challenge-btn').textContent = texts.start_challenge;
-        document.getElementById('forgot-password-btn').textContent = texts.forgot_password;
 
         document.querySelector('.todo-column .h2').textContent = texts.up_next;
+        document.querySelector('.progress-column .h2').textContent = texts.overall_progress;
+        
+        // Planner translations
+        document.getElementById('add-semester-btn').textContent = texts.add;
+        document.getElementById('delete-semester-btn').textContent = texts.delete;
+        document.getElementById('save-subject-btn').textContent = texts.add_subject;
+        document.getElementById('delete-subject-btn').textContent = texts.delete_subject;
+        document.getElementById('open-subject-details-btn').textContent = texts.open_subject;
+        document.getElementById('save-notes-btn-display').textContent = texts.save_notes;
+        
+        // Pomodoro translations
+        document.getElementById('timer-start').textContent = texts.start_focus;
+        document.getElementById('timer-reset').textContent = texts.reset;
+        document.getElementById('sessions-today-label').textContent = texts.sessions_label + ": ";
+        document.getElementById('smart-suggestion').textContent = texts.smart_suggestion;
+        document.getElementById('mini-challenge-text').textContent = texts.select_subject_challenge;
+        
+        // Analytics translations
+        const analyticsStatCards = document.querySelectorAll('#analytics .stat-card .mute');
+        if (analyticsStatCards[0]) analyticsStatCards[0].textContent = "⏱️ " + texts.total_study_time;
+        if (analyticsStatCards[1]) analyticsStatCards[1].textContent = "📚 " + texts.top_subject;
+        if (analyticsStatCards[2]) analyticsStatCards[2].textContent = "🔥 " + texts.focus_level;
+        
+        // Settings translations
+        const settingsCards = document.querySelectorAll('#settings .card h3');
+        if (settingsCards[0]) settingsCards[0].textContent = texts.account_profile;
+        if (settingsCards[1]) settingsCards[1].textContent = texts.general;
+        if (settingsCards[2]) settingsCards[2].textContent = texts.cloud_sync;
+        if (settingsCards[3]) settingsCards[3].textContent = texts.danger_zone;
+        
+        const settingLabels = document.querySelectorAll('#settings .setting-item label');
+        if (settingLabels[0]) settingLabels[0].textContent = texts.name + ":";
+        if (settingLabels[1]) settingLabels[1].textContent = texts.email + ":";
+        if (settingLabels[2]) settingLabels[2].textContent = texts.progress + ":";
+        if (settingLabels[3]) settingLabels[3].textContent = texts.language + ":";
+        if (settingLabels[4]) settingLabels[4].textContent = texts.theme + ":";
+        if (settingLabels[5]) settingLabels[5].textContent = texts.sync_mode + ":";
+        
+        document.getElementById('reset-data-btn').textContent = texts.reset_all_data;
         
         // Settings Sync
         if (document.getElementById('cloud-sync-title')) {
-            document.getElementById('cloud-sync-title').textContent = texts.database_sync || "Cloud Sync";
+            document.getElementById('cloud-sync-title').textContent = texts.cloud_sync || "Cloud Sync";
             document.getElementById('sync-mode-label').textContent = texts.sync_mode + ":";
             document.getElementById('web-upload-btn').textContent = texts.upload;
             document.getElementById('web-download-btn').textContent = texts.download;
@@ -195,7 +301,20 @@ class StudentProApp {
         document.getElementById('welcome-title').textContent = texts.welcome_title;
         document.getElementById('welcome-desc').textContent = texts.welcome_desc;
         document.getElementById('start-onboarding-btn').textContent = texts.welcome_btn;
-
+        if (document.getElementById('skip-onboarding-btn')) {
+            document.getElementById('skip-onboarding-btn').textContent = texts.skip_onboarding;
+        }
+        
+        // Sidebar
+        document.getElementById('logout-btn').innerHTML = '<i class="fas fa-sign-out-alt"></i> ' + texts.logout;
+        
+        // Last sync label
+        const lastSyncLabel = document.getElementById('last-sync-label');
+        if (lastSyncLabel && lastSyncLabel.textContent.includes('Last sync')) {
+            const syncTime = lastSyncLabel.textContent.split(': ')[1] || texts.never;
+            lastSyncLabel.textContent = '🔄 ' + texts.last_sync + ': ' + syncTime;
+        }
+        
         // RTL Support
         if (lang === 'Arabic') {
             document.documentElement.dir = "rtl";
@@ -204,6 +323,10 @@ class StudentProApp {
             document.documentElement.dir = "ltr";
             document.body.classList.remove('rtl');
         }
+        
+        // Store the current language
+        this.selectedLang = lang;
+        localStorage.setItem('studentpro_lang', lang);
     }
 
     refreshDate() {
