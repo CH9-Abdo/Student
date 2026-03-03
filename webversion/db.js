@@ -49,8 +49,12 @@ class Database {
 
     // --- SIMPLE SYNC ---
     async syncFromCloud() {
-        if (!auth || !auth.user) return false;
+        if (!auth || !auth.user) {
+            console.warn('syncFromCloud: No auth user');
+            return false;
+        }
         const uid = auth.user.id;
+        console.log('Syncing from cloud for user:', uid);
         try {
             const [rSem, rSub, rChap, rProf, rSess] = await Promise.all([
                 auth.client.from("semesters").select("*").eq("user_id", uid),
@@ -59,6 +63,14 @@ class Database {
                 auth.client.from("user_profile").select("*").eq("user_id", uid).maybeSingle(),
                 auth.client.from("study_sessions").select("*").eq("user_id", uid)
             ]);
+
+            console.log('Sync results:', { 
+                semesters: rSem.data?.length || 0, 
+                subjects: rSub.data?.length || 0, 
+                chapters: rChap.data?.length || 0,
+                profile: rProf.data ? 'found' : 'not found',
+                sessions: rSess.data?.length || 0
+            });
 
             this.data.semesters = rSem.data || [];
             this.data.subjects = rSub.data || [];
@@ -69,8 +81,12 @@ class Database {
             this.lastSync = new Date().toLocaleTimeString();
             localStorage.setItem('last_sync_v7', this.lastSync);
             this.save();
+            console.log('Sync complete!');
             return true;
-        } catch (e) { console.error("Sync Down Error:", e); return false; }
+        } catch (e) { 
+            console.error("Sync Down Error:", e); 
+            return false; 
+        }
     }
 
     async pushAllToCloud() {
@@ -131,23 +147,101 @@ class Database {
             this.data.semesters.push(newSem);
             this.save();
             return localId;
-        } catch (e) { return null; }
+        } catch (e) { 
+            console.error('addSemester error:', e);
+            return null;
+        }
+    }
+
+    async deleteSemester(semesterId) {
+        const idx = this.data.semesters.findIndex(s => s.id === semesterId);
+        if (idx === -1) return;
+        
+        // Delete local - first get related subjects to delete chapters
+        const subjectIds = this.data.subjects.filter(s => s.semester_id === semesterId).map(s => s.id);
+        
+        this.data.semesters.splice(idx, 1);
+        this.data.subjects = this.data.subjects.filter(s => s.semester_id !== semesterId);
+        this.data.chapters = this.data.chapters.filter(c => !subjectIds.includes(c.subject_id));
+        this.save();
+        
+        // Delete from cloud
+        try {
+            await auth.client.from("semesters").delete().eq("id", semesterId);
+            await auth.client.from("subjects").delete().eq("semester_id", semesterId);
+            // Delete chapters for those subjects
+            for (const subId of subjectIds) {
+                await auth.client.from("chapters").delete().eq("subject_id", subId);
+            }
+        } catch (e) {}
     }
 
     async addSubject(semesterId, name, examDate) {
         try {
-            const { data } = await auth.client.from("subjects").insert({ name, semester_id: semesterId, exam_date: examDate, user_id: auth.user.id }).select();
-            if (data && data.length > 0) { 
+            // Fix: send null instead of empty string for exam date
+            const examDateValue = examDate && examDate.trim() ? examDate : null;
+            
+            // Try cloud first
+            const { data, error } = await auth.client.from("subjects").insert({ 
+                name, 
+                semester_id: semesterId, 
+                exam_date: examDateValue, 
+                user_id: auth.user.id 
+            }).select();
+            
+            if (!error && data && data.length > 0) { 
                 this.data.subjects.push(data[0]); 
                 this.save(); 
                 return data[0].id; 
             }
-            const localId = Date.now() + 1;
-            const newSub = { id: localId, name, semester_id: semesterId, exam_date: examDate, user_id: auth.user.id };
+            
+            // Fallback: local only
+            console.warn('Cloud insert failed, using local:', error);
+            const localId = Date.now() + Math.random();
+            const newSub = { 
+                id: localId, 
+                name, 
+                semester_id: semesterId, 
+                exam_date: examDateValue, 
+                user_id: auth.user.id,
+                notes: ''
+            };
             this.data.subjects.push(newSub);
             this.save();
             return localId;
-        } catch (e) { return null; }
+        } catch (e) { 
+            console.error('addSubject error:', e);
+            // Last resort: local only
+            const localId = Date.now() + Math.random();
+            const newSub = { 
+                id: localId, 
+                name, 
+                semester_id: semesterId, 
+                exam_date: null, 
+                user_id: auth.user.id,
+                notes: ''
+            };
+            this.data.subjects.push(newSub);
+            this.save();
+            return localId;
+        }
+    }
+
+    async deleteSubject(subjectId) {
+        const idx = this.data.subjects.findIndex(s => s.id === subjectId);
+        if (idx === -1) return;
+        
+        // Delete local
+        this.data.subjects.splice(idx, 1);
+        // Also delete related chapters
+        this.data.chapters = this.data.chapters.filter(c => c.subject_id !== subjectId);
+        this.save();
+        
+        // Delete from cloud
+        try {
+            await auth.client.from("subjects").delete().eq("id", subjectId);
+            await auth.client.from("chapters").delete().eq("subject_id", subjectId);
+        } catch (e) {}
     }
 
     async updateSubjectExamDate(subjectId, examDate) {
@@ -157,6 +251,16 @@ class Database {
         this.save();
         try {
             await auth.client.from("subjects").update({ exam_date: examDate }).eq("id", subjectId);
+        } catch (e) {}
+    }
+
+    async updateSubjectName(subjectId, newName) {
+        const idx = this.data.subjects.findIndex(s => s.id === subjectId);
+        if (idx === -1) return;
+        this.data.subjects[idx].name = newName;
+        this.save();
+        try {
+            await auth.client.from("subjects").update({ name: newName }).eq("id", subjectId);
         } catch (e) {}
     }
 

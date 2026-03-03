@@ -499,13 +499,29 @@ class StudentProApp {
         });
 
         document.getElementById('save-subject-btn').addEventListener('click', async () => {
-            const name = document.getElementById('subject-name-input').value;
+            const name = document.getElementById('subject-name-input').value.trim();
             const date = document.getElementById('exam-date-input').value;
-            if (name && this.activeSemesterId) {
-                if (await db.addSubject(this.activeSemesterId, name, date)) {
-                    document.getElementById('subject-name-input').value = '';
-                    this.refreshSubjects();
-                }
+            
+            if (!name) {
+                alert('Please enter a subject name');
+                return;
+            }
+            if (!this.activeSemesterId) {
+                alert('Please select a semester first');
+                return;
+            }
+            
+            console.log('Adding subject:', name, 'Date:', date, 'Semester:', this.activeSemesterId);
+            
+            const result = await db.addSubject(this.activeSemesterId, name, date);
+            console.log('Add subject result:', result);
+            
+            if (result) {
+                document.getElementById('subject-name-input').value = '';
+                document.getElementById('exam-date-input').value = '';
+                this.refreshSubjects();
+            } else {
+                alert('Failed to add subject. Check console for error.');
             }
         });
 
@@ -519,8 +535,14 @@ class StudentProApp {
             if (sub) {
                 sub.notes = notes;
                 db.save();
-                await db.pushToCloud("subjects", { id: sub.id, notes: sub.notes });
-                alert("Notes saved to cloud!");
+                // Direct update to cloud
+                try {
+                    await auth.client.from("subjects").update({ notes: notes }).eq("id", sub.id);
+                    alert("Notes saved!");
+                } catch (e) {
+                    console.error('Save notes error:', e);
+                    alert("Notes saved locally (cloud sync failed)");
+                }
             }
         });
 
@@ -862,14 +884,14 @@ class StudentProApp {
                 const daysLeft = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
                 const daysText = daysLeft < 0 ? 'Past' : daysLeft === 0 ? 'Today' : `${daysLeft}d`;
                 const examColor = daysLeft <= 7 ? 'var(--danger)' : daysLeft <= 30 ? 'var(--warning)' : 'var(--success)';
-                examInfo = `<span class="exam-badge" style="background:${examColor};color:white;padding:2px 8px;border-radius:10px;font-size:11px;">📅 ${daysText}</span>`;
+                examInfo = `<span class="exam-badge" style="background:${examColor};color:white;padding:2px 8px;border-radius:10px;font-size:11px;cursor:pointer;" onclick="event.stopPropagation();app.showExamDateInput(${s.id})" title="Click to change">📅 ${daysText}</span>`;
             } else {
                 examInfo = `<button class="add-exam-btn" onclick="event.stopPropagation();app.showExamDateInput(${s.id})">+ Exam</button>`;
             }
             
             li.innerHTML = `
                 <div class="subject-card-header">
-                    <span class="subject-name">${s.name}</span>
+                    <span class="subject-name" onclick="event.stopPropagation();app.editSubjectName(${s.id}, '${s.name.replace(/'/g, "\\'")}')" title="Click to edit name">${s.name}</span>
                     ${examInfo}
                 </div>
                 <div class="subject-card-progress">
@@ -894,9 +916,19 @@ class StudentProApp {
     }
 
     showExamDateInput(subjectId) {
-        const newDate = prompt('Enter exam date (YYYY-MM-DD):');
+        const currentSub = db.data.subjects.find(s => s.id === subjectId);
+        const currentDate = currentSub ? currentSub.exam_date : '';
+        const newDate = prompt('Enter exam date (YYYY-MM-DD):', currentDate || '');
         if (newDate) {
             db.updateSubjectExamDate(subjectId, newDate);
+            this.refreshSubjects();
+        }
+    }
+
+    editSubjectName(subjectId, currentName) {
+        const newName = prompt('Enter new subject name:', currentName);
+        if (newName && newName.trim() !== currentName) {
+            db.updateSubjectName(subjectId, newName.trim());
             this.refreshSubjects();
         }
     }

@@ -286,6 +286,11 @@ body {
     font-weight: 600;
     font-size: 14px;
     color: var(--text);
+    cursor: pointer;
+}
+
+.subject-name:hover {
+    color: var(--primary);
 }
 
 .exam-badge {
