@@ -300,18 +300,18 @@ body {
 }
 
 .add-exam-btn {
-    background: none;
-    border: 1px dashed var(--border);
-    color: var(--mute);
+    background: var(--primary);
+    border: none;
+    color: white;
     font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 10px;
+    padding: 4px 10px;
+    border-radius: 12px;
     cursor: pointer;
+    font-weight: 500;
 }
 
 .add-exam-btn:hover {
-    border-color: var(--primary);
-    color: var(--primary);
+    background: var(--primary-dark);
 }
 
 .subject-card-progress {

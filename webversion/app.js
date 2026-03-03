@@ -916,13 +916,40 @@ class StudentProApp {
     }
 
     showExamDateInput(subjectId) {
-        const currentSub = db.data.subjects.find(s => s.id === subjectId);
-        const currentDate = currentSub ? currentSub.exam_date : '';
-        const newDate = prompt('Enter exam date (YYYY-MM-DD):', currentDate || '');
-        if (newDate) {
-            db.updateSubjectExamDate(subjectId, newDate);
-            this.refreshSubjects();
+        // Create a hidden file input for date picker
+        let dateInput = document.getElementById('inline-date-picker');
+        if (!dateInput) {
+            dateInput = document.createElement('input');
+            dateInput.type = 'date';
+            dateInput.id = 'inline-date-picker';
+            dateInput.style.position = 'absolute';
+            dateInput.style.opacity = '0';
+            dateInput.style.pointerEvents = 'none';
+            document.body.appendChild(dateInput);
         }
+        
+        // Store the subject ID to update after selection
+        dateInput.dataset.subjectId = subjectId;
+        
+        // Set current date if exists
+        const currentSub = db.data.subjects.find(s => s.id === subjectId);
+        if (currentSub && currentSub.exam_date) {
+            dateInput.value = currentSub.exam_date;
+        } else {
+            dateInput.value = '';
+        }
+        
+        // Trigger click to open date picker
+        dateInput.click();
+        
+        // Handle change
+        dateInput.onchange = () => {
+            const newDate = dateInput.value;
+            if (newDate) {
+                db.updateSubjectExamDate(subjectId, newDate);
+                this.refreshSubjects();
+            }
+        };
     }
 
     editSubjectName(subjectId, currentName) {
