@@ -1,10 +1,12 @@
 // StudentPro - Minimal Cloud Sync Engine (V7 Simple)
 const DB_KEY = 'student_pro_v7_storage';
+const OFFLINE_QUEUE_KEY = 'student_pro_offline_queue';
 
 class Database {
     constructor() {
         this.data = this.load();
         this.lastSync = localStorage.getItem('last_sync_v7') || "Never";
+        this.offlineQueue = this.loadOfflineQueue();
     }
 
     load() {
@@ -24,8 +26,87 @@ class Database {
         localStorage.setItem(DB_KEY, JSON.stringify(this.data));
     }
 
+    // --- OFFLINE QUEUE SYSTEM ---
+    loadOfflineQueue() {
+        const saved = localStorage.getItem(OFFLINE_QUEUE_KEY);
+        return saved ? JSON.parse(saved) : [];
+    }
+
+    saveOfflineQueue() {
+        localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(this.offlineQueue));
+    }
+
+    queueForSync(table, data, action = 'upsert') {
+        // Check if we're online
+        if (!navigator.onLine) {
+            // Add to offline queue
+            this.offlineQueue.push({
+                table,
+                data,
+                action,
+                timestamp: Date.now()
+            });
+            this.saveOfflineQueue();
+            console.log(`[Offline] Queued ${action} for ${table}:`, data);
+            return false; // Not pushed to cloud
+        }
+        return null; // Will be pushed to cloud normally
+    }
+
+    async syncPendingChanges() {
+        if (!auth || !auth.user) return false;
+        if (!navigator.onLine) {
+            console.log('[Offline] Cannot sync, no internet connection');
+            return false;
+        }
+        
+        const queue = this.loadOfflineQueue();
+        if (queue.length === 0) {
+            console.log('[Sync] No pending changes to upload');
+            return true;
+        }
+
+        console.log(`[Sync] Uploading ${queue.length} pending changes...`);
+        let successCount = 0;
+        let failedItems = [];
+
+        for (const item of queue) {
+            try {
+                const result = await this.pushToCloud(item.table, item.data);
+                if (result) {
+                    successCount++;
+                } else {
+                    failedItems.push(item);
+                }
+            } catch (e) {
+                console.error(`[Sync] Failed to push ${item.table}:`, e);
+                failedItems.push(item);
+            }
+        }
+
+        // Keep only failed items in queue
+        this.offlineQueue = failedItems;
+        this.saveOfflineQueue();
+
+        if (successCount > 0) {
+            console.log(`[Sync] Successfully uploaded ${successCount} changes`);
+        }
+        
+        if (failedItems.length > 0) {
+            console.warn(`[Sync] ${failedItems.length} changes failed to upload`);
+        }
+
+        return failedItems.length === 0;
+    }
+
     async pushToCloud(table, data) {
         if (!auth || !auth.user) return false;
+        
+        // Check if online, if not queue for later
+        if (!navigator.onLine) {
+            return this.queueForSync(table, data);
+        }
+        
         try {
             // Create payload with user_id, excluding any 'id' field to avoid conflicts
             const { id, ...dataWithoutId } = data;

@@ -15,16 +15,14 @@ class StudentProApp {
         this.timeLeft = 25 * 60;
         this.timerRunning = false;
         this.selectedLang = 'English';
+        this.isOnline = navigator.onLine; // Track online status
         
         this.init();
     }
 
     init() {
-        // Check internet connection before initializing
-        if (!navigator.onLine) {
-            this.showConnectionError();
-            return;
-        }
+        // Check internet connection and initialize accordingly
+        this.isOnline = navigator.onLine;
         
         // Load saved language preference
         this.loadLanguagePreference();
@@ -45,7 +43,7 @@ class StudentProApp {
         
         // Listen for online/offline events
         window.addEventListener('online', () => this.onConnectionRestored());
-        window.addEventListener('offline', () => this.showConnectionError());
+        window.addEventListener('offline', () => this.showOfflineIndicator());
         
         this.setupEventListeners();
         this.refreshDate();
@@ -91,62 +89,67 @@ class StudentProApp {
         }
     }
     
-    showConnectionError() {
-        // Hide the app and show connection error
-        const loginScreen = document.getElementById('login-screen');
-        const appContainer = document.getElementById('app');
+    showOfflineIndicator() {
+        this.isOnline = false;
         
-        if (loginScreen) loginScreen.classList.add('hidden');
-        if (appContainer) appContainer.classList.add('hidden');
+        // Remove existing indicators
+        const existingBanner = document.getElementById('offline-banner');
+        if (existingBanner) return; // Already showing
         
-        // Remove existing error message if any
-        const existingError = document.getElementById('connection-error');
-        if (existingError) existingError.remove();
-        
-        // Create error overlay
-        const errorDiv = document.createElement('div');
-        errorDiv.id = 'connection-error';
-        errorDiv.innerHTML = `
+        // Create subtle offline banner
+        const banner = document.createElement('div');
+        banner.id = 'offline-banner';
+        banner.innerHTML = `
             <div style="
                 position: fixed;
                 top: 0;
                 left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.9);
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                z-index: 9999;
+                right: 0;
+                background: linear-gradient(135deg, #ff9800, #f57c00);
                 color: white;
-                font-family: sans-serif;
+                padding: 8px 16px;
                 text-align: center;
-                padding: 20px;
+                font-family: sans-serif;
+                font-size: 13px;
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             ">
-                <i class="fas fa-wifi" style="font-size: 60px; margin-bottom: 20px; color: #ff6b6b;"></i>
-                <h2 style="margin-bottom: 15px;">No Internet Connection</h2>
-                <p style="color: #aaa; margin-bottom: 25px;">An internet connection is required to use StudentPro.</p>
-                <button onclick="location.reload()" style="
-                    padding: 12px 30px;
-                    font-size: 16px;
-                    background: #4a90d9;
-                    color: white;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                ">Try Again</button>
+                <i class="fas fa-wifi" style="transform: rotate(45deg);"></i>
+                <span>You're offline. Changes will sync when connected.</span>
             </div>
         `;
-        document.body.appendChild(errorDiv);
+        document.body.appendChild(banner);
+        
+        // Adjust app content for offline banner
+        document.body.style.marginTop = '46px';
+        
+        console.log('[Offline] Working with local data');
+    }
+    
+    showConnectionError() {
+        // Legacy method - now just shows offline indicator
+        this.showOfflineIndicator();
     }
     
     onConnectionRestored() {
-        // Remove error overlay
+        this.isOnline = true;
+        
+        // Remove offline banner
+        const existingBanner = document.getElementById('offline-banner');
+        if (existingBanner) {
+            existingBanner.remove();
+            document.body.style.marginTop = '';
+        }
+        
+        // Remove error overlay if any
         const existingError = document.getElementById('connection-error');
         if (existingError) existingError.remove();
         
-        console.log('Connection restored! Refreshing...');
+        console.log('[Online] Connection restored! Syncing pending changes...');
         
         // Show app again
         const loginScreen = document.getElementById('login-screen');
@@ -158,10 +161,17 @@ class StudentProApp {
             console.log('User was logged in, syncing...');
             if (appContainer) appContainer.classList.remove('hidden');
             
-            // Sync from cloud and refresh
+            // First sync from cloud
             db.syncFromCloud().then(() => {
                 this.refreshAll();
                 this.loadSettings();
+                
+                // Then push any pending offline changes
+                db.syncPendingChanges().then(() => {
+                    console.log('[Sync] Pending changes uploaded to cloud');
+                }).catch(err => {
+                    console.error('[Sync] Failed to upload pending changes:', err);
+                });
                 
                 // Refresh planner
                 if (this.activeSemesterId) {
@@ -192,6 +202,17 @@ class StudentProApp {
         document.getElementById('sidebar-user-email').textContent = `👤 ${user.email}`;
         document.getElementById('user-info-sidebar').classList.remove('hidden');
 
+        // Check if online
+        if (!navigator.onLine) {
+            console.log("[App] Offline mode - using local data only");
+            syncLabel.textContent = "📴 Offline mode - local data";
+            
+            // Load settings and show UI with local data
+            this.loadSettings();
+            this.refreshAll();
+            return;
+        }
+        
         try {
             const success = await db.syncFromCloud();
             if (success) {
