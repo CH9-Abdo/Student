@@ -202,10 +202,22 @@ class Database {
         }
         
         try {
-            // Create payload with user_id, excluding any 'id' field to avoid conflicts
-            const { id, ...dataWithoutId } = data;
-            const payload = { ...dataWithoutId, user_id: auth.user.id };
-            let options = {};
+            // For local records (newly created offline), we should insert them
+            // For cloud-synced records, we should upsert
+            // Check if the ID looks like a local timestamp ID
+            const isLocalId = data.id > 1700000000000 || !data.id;
+            
+            let payload, options = {};
+            
+            if (isLocalId) {
+                // Local record: remove ID so cloud generates proper one
+                const { id, ...dataWithoutId } = data;
+                payload = { ...dataWithoutId, user_id: auth.user.id };
+            } else {
+                // Cloud-synced record: keep ID for upsert
+                payload = { ...data, user_id: auth.user.id };
+            }
+            
             if (table === 'user_profile') options.onConflict = 'user_id';
             
             let result = await auth.client.from(table).upsert(payload, options);
