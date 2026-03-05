@@ -1074,6 +1074,9 @@ class StudentProApp {
         if (confirm("Delete chapter?")) {
             db.data.chapters = db.data.chapters.filter(c => c.id !== id);
             db.save();
+            // Track deletion for offline sync
+            db.trackDeletion('chapters', id);
+            // Delete from cloud
             await auth.client.from("chapters").delete().eq("id", id);
             this.refreshChaptersInModal(); this.updateSubjectDetailsUI();
         }

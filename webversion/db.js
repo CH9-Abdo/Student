@@ -30,6 +30,36 @@ class Database {
             localStorage.setItem('studentpro_pending_sync', 'true');
         }
     }
+    
+    // Track deletions while offline
+    trackDeletion(table, id) {
+        if (!navigator.onLine && auth && auth.user) {
+            let deletions = JSON.parse(localStorage.getItem('studentpro_pending_deletions') || '[]');
+            deletions.push({ table, id, timestamp: Date.now() });
+            localStorage.setItem('studentpro_pending_deletions', JSON.stringify(deletions));
+            console.log(`[Offline] Tracked deletion: ${table} id=${id}`);
+        }
+    }
+    
+    async applyPendingDeletions() {
+        if (!auth || !auth.user || !navigator.onLine) return;
+        
+        const deletions = JSON.parse(localStorage.getItem('studentpro_pending_deletions') || '[]');
+        if (deletions.length === 0) return;
+        
+        console.log(`[Sync] Applying ${deletions.length} pending deletions...`);
+        
+        for (const del of deletions) {
+            try {
+                await this.client.from(del.table).delete().eq('id', del.id);
+                console.log(`[Sync] Deleted ${del.table} id=${del.id}`);
+            } catch (e) {
+                console.error(`[Sync] Failed to delete ${del.table} id=${del.id}:`, e);
+            }
+        }
+        
+        localStorage.removeItem('studentpro_pending_deletions');
+    }
 
     // --- OFFLINE QUEUE SYSTEM ---
     loadOfflineQueue() {
@@ -64,6 +94,9 @@ class Database {
             console.log('[Offline] Cannot sync, no internet connection');
             return false;
         }
+        
+        // First: Apply any pending deletions
+        await this.applyPendingDeletions();
         
         // Check if we have pending changes flagged
         const hasPendingSync = localStorage.getItem('studentpro_pending_sync') === 'true';
@@ -279,11 +312,17 @@ class Database {
         
         // Delete local - first get related subjects to delete chapters
         const subjectIds = this.data.subjects.filter(s => s.semester_id === semesterId).map(s => s.id);
+        const chapterIds = this.data.chapters.filter(c => subjectIds.includes(c.subject_id)).map(c => c.id);
         
         this.data.semesters.splice(idx, 1);
         this.data.subjects = this.data.subjects.filter(s => s.semester_id !== semesterId);
         this.data.chapters = this.data.chapters.filter(c => !subjectIds.includes(c.subject_id));
         this.save();
+        
+        // Track deletions for offline sync
+        this.trackDeletion('semesters', semesterId);
+        subjectIds.forEach(id => this.trackDeletion('subjects', id));
+        chapterIds.forEach(id => this.trackDeletion('chapters', id));
         
         // Delete from cloud
         try {
@@ -351,11 +390,18 @@ class Database {
         const idx = this.data.subjects.findIndex(s => s.id === subjectId);
         if (idx === -1) return;
         
+        // Get chapters to delete
+        const chapterIds = this.data.chapters.filter(c => c.subject_id === subjectId).map(c => c.id);
+        
         // Delete local
         this.data.subjects.splice(idx, 1);
         // Also delete related chapters
         this.data.chapters = this.data.chapters.filter(c => c.subject_id !== subjectId);
         this.save();
+        
+        // Track deletions for offline sync
+        this.trackDeletion('subjects', subjectId);
+        chapterIds.forEach(id => this.trackDeletion('chapters', id));
         
         // Delete from cloud
         try {
