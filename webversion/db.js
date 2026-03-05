@@ -24,6 +24,11 @@ class Database {
 
     save() {
         localStorage.setItem(DB_KEY, JSON.stringify(this.data));
+        
+        // If offline, mark data as dirty for later sync
+        if (!navigator.onLine && auth && auth.user) {
+            localStorage.setItem('studentpro_pending_sync', 'true');
+        }
     }
 
     // --- OFFLINE QUEUE SYSTEM ---
@@ -60,7 +65,41 @@ class Database {
             return false;
         }
         
+        // Check if we have pending changes flagged
+        const hasPendingSync = localStorage.getItem('studentpro_pending_sync') === 'true';
         const queue = this.loadOfflineQueue();
+        
+        // If we have the flag, upload all current data (full sync)
+        if (hasPendingSync) {
+            console.log('[Sync] Full sync: Uploading all local data...');
+            localStorage.removeItem('studentpro_pending_sync');
+            
+            try {
+                // Upload all data
+                if (this.data.user_profile) {
+                    await this.pushToCloud('user_profile', this.data.user_profile);
+                }
+                for (const s of this.data.semesters) {
+                    await this.pushToCloud('semesters', s);
+                }
+                for (const s of this.data.subjects) {
+                    await this.pushToCloud('subjects', s);
+                }
+                for (const c of this.data.chapters) {
+                    await this.pushToCloud('chapters', c);
+                }
+                for (const s of this.data.study_sessions) {
+                    await this.pushToCloud('study_sessions', s);
+                }
+                console.log('[Sync] Full upload complete!');
+                return true;
+            } catch (e) {
+                console.error('[Sync] Full upload failed:', e);
+                return false;
+            }
+        }
+        
+        // Otherwise, use queue-based sync
         if (queue.length === 0) {
             console.log('[Sync] No pending changes to upload');
             return true;

@@ -149,7 +149,7 @@ class StudentProApp {
         const existingError = document.getElementById('connection-error');
         if (existingError) existingError.remove();
         
-        console.log('[Online] Connection restored! Syncing pending changes...');
+        console.log('[Online] Connection restored! Syncing...');
         
         // Show app again
         const loginScreen = document.getElementById('login-screen');
@@ -161,29 +161,37 @@ class StudentProApp {
             console.log('User was logged in, syncing...');
             if (appContainer) appContainer.classList.remove('hidden');
             
-            // First sync from cloud
-            db.syncFromCloud().then(() => {
-                this.refreshAll();
-                this.loadSettings();
+            // First: Upload pending offline changes BEFORE downloading
+            db.syncPendingChanges().then(() => {
+                console.log('[Sync] Pending changes uploaded to cloud');
                 
-                // Then push any pending offline changes
-                db.syncPendingChanges().then(() => {
-                    console.log('[Sync] Pending changes uploaded to cloud');
+                // Then: Download from cloud (after upload to preserve local changes)
+                db.syncFromCloud().then(() => {
+                    this.refreshAll();
+                    this.loadSettings();
+                    
+                    // Refresh planner
+                    if (this.activeSemesterId) {
+                        this.refreshSubjects();
+                    }
+                    
+                    console.log('App refreshed after connection restored!');
                 }).catch(err => {
-                    console.error('[Sync] Failed to upload pending changes:', err);
+                    console.error('Sync failed after reconnect:', err);
+                    // Still show the app with local data
+                    if (appContainer) appContainer.classList.remove('hidden');
+                    this.refreshAll();
                 });
-                
-                // Refresh planner
-                if (this.activeSemesterId) {
-                    this.refreshSubjects();
-                }
-                
-                console.log('App refreshed after connection restored!');
             }).catch(err => {
-                console.error('Sync failed after reconnect:', err);
-                // Still show the app with local data
-                if (appContainer) appContainer.classList.remove('hidden');
-                this.refreshAll();
+                console.error('[Sync] Failed to upload pending changes:', err);
+                // Try to download anyway
+                db.syncFromCloud().then(() => {
+                    this.refreshAll();
+                    this.loadSettings();
+                    if (this.activeSemesterId) {
+                        this.refreshSubjects();
+                    }
+                });
             });
         } else {
             // No user was logged in - show login screen
@@ -214,6 +222,10 @@ class StudentProApp {
         }
         
         try {
+            // First: Upload any pending offline changes
+            await db.syncPendingChanges();
+            
+            // Then: Download from cloud
             const success = await db.syncFromCloud();
             if (success) {
                 console.log("[App] Sync success. Refreshing UI...");
