@@ -634,6 +634,21 @@ input:focus, select:focus {
 }
 [dir="rtl"] .nav-btn { text-align: right; flex-direction: row-reverse; }
 
+/* RTL Auth Tabs - Keep in row for tabs */
+[dir="rtl"] .auth-tabs {
+    flex-direction: row;
+}
+[dir="rtl"] .auth-tab {
+    text-align: center;
+}
+[dir="rtl"] .password-group {
+    flex-direction: row;
+}
+[dir="rtl"] .password-group .btn-icon {
+    right: auto;
+    left: 10px;
+}
+
 /* Login */
 #login-screen {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -644,10 +659,13 @@ input:focus, select:focus {
 
 .login-card {
     width: 380px;
+    min-width: 320px;
+    max-width: 90%;
     text-align: center;
     display: flex;
     flex-direction: column;
     gap: 15px;
+    padding: 20px;
 }
 
 .password-group { position: relative; }
@@ -659,24 +677,29 @@ input:focus, select:focus {
 /* --- AUTH TABS --- */
 .auth-tabs {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 15px;
     border-bottom: 2px solid var(--border);
     padding-bottom: 0;
+    width: 100%;
 }
 
 .auth-tab {
     flex: 1;
-    padding: 12px;
+    padding: 12px 8px;
     background: none;
     border: none;
     color: var(--text-mute);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     border-bottom: 3px solid transparent;
     margin-bottom: -2px;
     transition: all 0.3s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
 
 .auth-tab:hover {
@@ -686,6 +709,33 @@ input:focus, select:focus {
 .auth-tab.active {
     color: var(--primary);
     border-bottom-color: var(--primary);
+}
+
+/* RTL Auth Tabs - Keep in row for tabs */
+[dir="rtl"] .auth-tabs {
+    flex-direction: row;
+}
+[dir="rtl"] .auth-tab {
+    text-align: center;
+    font-size: 12px;
+}
+[dir="rtl"] .password-group {
+    flex-direction: row;
+}
+[dir="rtl"] .password-group .btn-icon {
+    right: auto;
+    left: 10px;
+}
+[dir="rtl"] .login-card input {
+    text-align: right;
+    direction: rtl;
+}
+[dir="rtl"] .login-card {
+    text-align: right;
+}
+[dir="rtl"] #login-title,
+[dir="rtl"] #login-desc {
+    text-align: center;
 }
 
 /* --- MOBILE RESPONSIVE STYLES --- */

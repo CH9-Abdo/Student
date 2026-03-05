@@ -300,6 +300,7 @@ class StudentProApp {
         document.getElementById('timer-reset').textContent = texts.reset;
         document.getElementById('sessions-today-label').textContent = texts.sessions_label + ": ";
         document.getElementById('smart-suggestion').textContent = texts.smart_suggestion;
+        document.getElementById('mini-challenge-label').textContent = texts.mini_challenge;
         document.getElementById('mini-challenge-text').textContent = texts.select_subject_challenge;
         
         // Analytics translations
@@ -381,22 +382,24 @@ class StudentProApp {
         
         // Function to switch to Login tab
         const switchToLoginTab = () => {
+            const texts = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
             tabLogin.classList.add('active');
             tabSignup.classList.remove('active');
             loginBtn.classList.remove('hidden');
             signupBtn.classList.add('hidden');
-            loginTitle.textContent = "StudentPro Sync";
-            loginDesc.textContent = "Connect to your cloud database";
+            loginTitle.textContent = texts.login_title || "StudentPro Sync";
+            loginDesc.textContent = texts.login_desc || "Connect to your cloud database";
         };
         
         // Function to switch to Create Account tab
         const switchToSignupTab = () => {
+            const texts = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
             tabSignup.classList.add('active');
             tabLogin.classList.remove('active');
             signupBtn.classList.remove('hidden');
             loginBtn.classList.add('hidden');
-            loginTitle.textContent = "Create Account";
-            loginDesc.textContent = "Sign up to start tracking your studies";
+            loginTitle.textContent = texts.signup_title || "Create Account";
+            loginDesc.textContent = texts.signup_desc || "Sign up to start tracking your studies";
         };
         
         // Tab click handlers
@@ -1103,9 +1106,10 @@ class StudentProApp {
     updateMiniChallenge() {
         const card = document.getElementById('mini-challenge-card');
         const text = document.getElementById('mini-challenge-text');
+        const texts = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
         
         if (db.data.subjects.length === 0) {
-            text.innerHTML = "Add some subjects in the Planner to start your first challenge! 📚";
+            text.innerHTML = texts.mini_challenge_no_subjects || "Add some subjects in the Planner to start your first challenge! 📚";
             return;
         }
 
@@ -1129,7 +1133,8 @@ class StudentProApp {
 
         const weakestSub = db.data.subjects.find(s => s.id === minId);
         if (weakestSub) {
-            text.innerHTML = `⚖️ <b>Balance Challenge:</b> Study <b>${weakestSub.name}</b> next! You only have ${minTime}m recorded. <br>Goal: Complete 1 session to balance your schedule.`;
+            const challengeDesc = (texts.balance_challenge_desc || "Study {subject} next! You only have {minutes}m recorded.").replace("{subject}", weakestSub.name).replace("{minutes}", minTime);
+            text.innerHTML = `⚖️ <b>${texts.balance_challenge || "Balance Challenge"}:</b> ${challengeDesc} <br>${texts.balance_challenge_goal || "Goal: Complete 1 session to balance your schedule."}`;
         }
     }
 
