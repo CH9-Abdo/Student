@@ -43,22 +43,36 @@ class Database {
     
     async applyPendingDeletions() {
         if (!auth || !auth.user || !navigator.onLine) return;
+        if (!auth.client) {
+            console.log('[Sync] Supabase client not ready yet, skipping deletions');
+            return;
+        }
         
         const deletions = JSON.parse(localStorage.getItem('studentpro_pending_deletions') || '[]');
         if (deletions.length === 0) return;
         
         console.log(`[Sync] Applying ${deletions.length} pending deletions...`);
         
+        const failedDeletions = [];
+        
         for (const del of deletions) {
             try {
-                await this.client.from(del.table).delete().eq('id', del.id);
+                await auth.client.from(del.table).delete().eq('id', del.id);
                 console.log(`[Sync] Deleted ${del.table} id=${del.id}`);
             } catch (e) {
                 console.error(`[Sync] Failed to delete ${del.table} id=${del.id}:`, e);
+                failedDeletions.push(del);
             }
         }
         
-        localStorage.removeItem('studentpro_pending_deletions');
+        // Only keep failed deletions for retry, remove successful ones
+        if (failedDeletions.length > 0) {
+            localStorage.setItem('studentpro_pending_deletions', JSON.stringify(failedDeletions));
+            console.log(`[Sync] Kept ${failedDeletions.length} failed deletions for retry`);
+        } else {
+            localStorage.removeItem('studentpro_pending_deletions');
+            console.log('[Sync] All pending deletions applied successfully');
+        }
     }
 
     // --- OFFLINE QUEUE SYSTEM ---
@@ -90,6 +104,10 @@ class Database {
 
     async syncPendingChanges() {
         if (!auth || !auth.user) return false;
+        if (!auth.client) {
+            console.log('[Sync] Supabase client not ready yet');
+            return false;
+        }
         if (!navigator.onLine) {
             console.log('[Offline] Cannot sync, no internet connection');
             return false;
@@ -173,6 +191,10 @@ class Database {
 
     async pushToCloud(table, data) {
         if (!auth || !auth.user) return false;
+        if (!auth.client) {
+            console.log('[Sync] Supabase client not ready, queueing for later');
+            return this.queueForSync(table, data);
+        }
         
         // Check if online, if not queue for later
         if (!navigator.onLine) {
@@ -204,6 +226,10 @@ class Database {
     async syncFromCloud() {
         if (!auth || !auth.user) {
             console.warn('syncFromCloud: No auth user');
+            return false;
+        }
+        if (!auth.client) {
+            console.warn('syncFromCloud: Supabase client not ready');
             return false;
         }
         const uid = auth.user.id;
