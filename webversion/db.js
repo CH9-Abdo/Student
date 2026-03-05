@@ -382,7 +382,7 @@ class Database {
             
             // Fallback: local only
             console.warn('Cloud insert failed, using local:', error);
-            const localId = Date.now() + Math.random();
+            const localId = Date.now();
             const newSub = { 
                 id: localId, 
                 name, 
@@ -397,7 +397,7 @@ class Database {
         } catch (e) { 
             console.error('addSubject error:', e);
             // Last resort: local only
-            const localId = Date.now() + Math.random();
+            const localId = Date.now();
             const newSub = { 
                 id: localId, 
                 name, 
