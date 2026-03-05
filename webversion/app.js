@@ -69,19 +69,17 @@ class StudentProApp {
         const loginPassword = document.getElementById('login-password');
         const loginBtn = document.getElementById('do-login-btn');
         const signupBtn = document.getElementById('do-signup-btn');
-        const forgotBtn = document.getElementById('forgot-password-btn');
-        const resetBtn = document.getElementById('do-reset-btn');
-        const backBtn = document.getElementById('back-to-login-btn');
+        const tabLogin = document.getElementById('tab-login');
+        const tabSignup = document.getElementById('tab-signup');
         
+        if (tabLogin) tabLogin.textContent = texts.tab_login || "Login";
+        if (tabSignup) tabSignup.textContent = texts.tab_signup || "Create Account";
         if (loginTitle) loginTitle.textContent = texts.login_title || "StudentPro Sync";
         if (loginDesc) loginDesc.textContent = texts.login_desc || "Connect to your cloud database";
         if (loginEmail) loginEmail.placeholder = texts.login_email_placeholder || "Email Address";
         if (loginPassword) loginPassword.placeholder = texts.login_password_placeholder || "Password";
         if (loginBtn) loginBtn.textContent = texts.login_btn || "Login";
         if (signupBtn) signupBtn.textContent = texts.signup_btn || "Create New Account";
-        if (forgotBtn) forgotBtn.textContent = texts.forgot_password || "Forgot Password?";
-        if (resetBtn) resetBtn.textContent = texts.update_password_btn || "Update Password & Login";
-        if (backBtn) backBtn.textContent = texts.back_to_login_btn || "Back to Login";
         
         // Apply RTL if Arabic
         if (this.selectedLang === 'Arabic') {
@@ -373,7 +371,46 @@ class StudentProApp {
     }
 
     setupEventListeners() {
-        // --- Auth ---
+        // --- Auth Tabs ---
+        const tabLogin = document.getElementById('tab-login');
+        const tabSignup = document.getElementById('tab-signup');
+        const loginBtn = document.getElementById('do-login-btn');
+        const signupBtn = document.getElementById('do-signup-btn');
+        const loginTitle = document.getElementById('login-title');
+        const loginDesc = document.getElementById('login-desc');
+        
+        // Function to switch to Login tab
+        const switchToLoginTab = () => {
+            tabLogin.classList.add('active');
+            tabSignup.classList.remove('active');
+            loginBtn.classList.remove('hidden');
+            signupBtn.classList.add('hidden');
+            loginTitle.textContent = "StudentPro Sync";
+            loginDesc.textContent = "Connect to your cloud database";
+        };
+        
+        // Function to switch to Create Account tab
+        const switchToSignupTab = () => {
+            tabSignup.classList.add('active');
+            tabLogin.classList.remove('active');
+            signupBtn.classList.remove('hidden');
+            loginBtn.classList.add('hidden');
+            loginTitle.textContent = "Create Account";
+            loginDesc.textContent = "Sign up to start tracking your studies";
+        };
+        
+        // Tab click handlers
+        if (tabLogin) {
+            tabLogin.addEventListener('click', switchToLoginTab);
+        }
+        if (tabSignup) {
+            tabSignup.addEventListener('click', switchToSignupTab);
+        }
+        
+        // Initialize: show login tab by default
+        switchToLoginTab();
+        
+        // --- Login Form ---
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('do-login-btn');
@@ -401,88 +438,14 @@ class StudentProApp {
             try { 
                 await auth.signUp(email, password);
                 alert("Account created successfully! Please check your email to confirm your account before logging in.");
+                // Switch back to login tab after successful signup
+                switchToLoginTab();
                 btn.textContent = "Create New Account";
             } catch (e) { 
                 err.textContent = e.message; 
                 err.classList.remove('hidden'); 
             } finally { 
                 btn.disabled = false; 
-            }
-        });
-
-        document.getElementById('forgot-password-btn').addEventListener('click', async () => {
-            const email = document.getElementById('login-email').value;
-            const err = document.getElementById('login-error');
-            const btn = document.getElementById('forgot-password-btn');
-            
-            if (!email) {
-                err.textContent = "Please enter your email first";
-                err.classList.remove('hidden');
-                return;
-            }
-            
-            try {
-                btn.textContent = "Sending Code..."; btn.disabled = true;
-                await auth.resetPassword(email); // This sends the code/link
-                
-                // Switch UI to Reset Mode
-                document.getElementById('login-title').textContent = "Reset Password";
-                document.getElementById('login-desc').textContent = "Enter the 6-digit code sent to your email and your new password.";
-                document.getElementById('password-area').classList.add('hidden');
-                document.getElementById('reset-area').classList.remove('hidden');
-                document.getElementById('do-login-btn').classList.add('hidden');
-                document.getElementById('do-reset-btn').classList.remove('hidden');
-                document.getElementById('do-signup-btn').classList.add('hidden');
-                document.getElementById('back-to-login-btn').classList.remove('hidden');
-                err.classList.add('hidden');
-            } catch (e) {
-                err.textContent = e.message;
-                err.classList.remove('hidden');
-            } finally {
-                btn.textContent = "Forgot Password?"; btn.disabled = false;
-            }
-        });
-
-        document.getElementById('back-to-login-btn').addEventListener('click', () => {
-            document.getElementById('login-title').textContent = "StudentPro Sync";
-            document.getElementById('login-desc').textContent = "Connect to your cloud database";
-            document.getElementById('password-area').classList.remove('hidden');
-            document.getElementById('reset-area').classList.add('hidden');
-            document.getElementById('do-login-btn').classList.remove('hidden');
-            document.getElementById('do-reset-btn').classList.add('hidden');
-            document.getElementById('do-signup-btn').classList.remove('hidden');
-            document.getElementById('back-to-login-btn').classList.add('hidden');
-        });
-
-        document.getElementById('do-reset-btn').addEventListener('click', async () => {
-            const email = document.getElementById('login-email').value;
-            const newPass = document.getElementById('reset-new-password').value;
-            const btn = document.getElementById('do-reset-btn');
-            const err = document.getElementById('login-error');
-            
-            if (!email || !newPass || newPass.length < 6) {
-                err.textContent = "Please enter email and a valid new password (min 6 chars)";
-                err.classList.remove('hidden');
-                return;
-            }
-
-            try {
-                btn.textContent = "Processing..."; btn.disabled = true;
-                // Store password locally to update after user clicks email link
-                localStorage.setItem('pending_new_password', newPass);
-                
-                await auth.resetPassword(email);
-                alert("A reset link has been sent to your email! Click it to finish updating your password.");
-                
-                // Reset UI
-                document.getElementById('back-to-login-btn').click();
-            } catch (e) {
-                err.textContent = e.message;
-                err.classList.remove('hidden');
-                localStorage.removeItem('pending_new_password');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = "Send Reset Link 📧";
             }
         });
 

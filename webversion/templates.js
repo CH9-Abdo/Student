@@ -207,50 +207,6 @@ const TEMPLATES = [
             }
         ]
     },
-    {
-        year: "bac",
-        name: "BAC Sciences Islamiques (شعبة العلوم الإسلامية)",
-        subjects: [
-            { 
-                name: "العلوم الإسلامية", 
-                chapters: [
-                    "العقيدة الإسلامية", "أصول الفقه", 
-                    "الفقه المقارن", "التفسير",
-                    "الحديث", "الصرف",
-                    "النحو", "البلاغة"
-                ] 
-            },
-            { 
-                name: "الفلسفة", 
-                chapters: [
-                    "مدخل إلى الفلسفة", "المشكلة والإشكالية", 
-                    "الحقيقة", "الأخلاق",
-                    "الوجود", "النفس"
-                ] 
-            },
-            { 
-                name: "اللغة العربية", 
-                chapters: [
-                    "النصوص الأدبية", "النقد الأدبي", 
-                    "القواعد النحوية", "الإملاء",
-                    "الإنشاء", "التعبير"
-                ] 
-            },
-            { 
-                name: "التاريخ", 
-                chapters: [
-                    "التاريخ الإسلامي", "حضارات العالم", 
-                    "الجزائر عبر التاريخ", "العصر الوسيط"
-                ] 
-            },
-            { 
-                name: "اللغة الإنجليزية", 
-                chapters: [
-                    "English Basics", "Reading", "Writing"
-                ] 
-            }
-        ]
-    },
 
     // ==================== 2AS - Year 2 ====================
     {
@@ -390,55 +346,17 @@ const TEMPLATES = [
             }
         ]
     },
-    {
-        year: "2as",
-        name: "2AS Sciences Islamiques (سنة ثانية علوم إسلامية)",
-        subjects: [
-            { 
-                name: "العلوم الإسلامية", 
-                chapters: [
-                    "القرآن الكريم", "الحديث النبوي", 
-                    "الفقه", "أصول الفقه",
-                    "العقيدة", "الاخلاق",
-                    "التاريخ الإسلامي"
-                ] 
-            },
-            { 
-                name: "اللغة العربية", 
-                chapters: [
-                    "النصوص القرآنية", "النصوص الحديثية", 
-                    "النحو", "الصرف",
-                    "البلاغة", "الإملاء"
-                ] 
-            },
-            { 
-                name: "التاريخ", 
-                chapters: [
-                    "التاريخ الإسلامي", "حضارات العالم",
-                    "الجزائر"
-                ] 
-            },
-            { 
-                name: "الفلسفة", 
-                chapters: [
-                    "مقدمة في الفلسفة", "المنطق"
-                ] 
-            }
-        ]
-    },
 
     // ==================== L1 - University Year 1 ====================
     {
         year: "l1",
-        name: "L1 Informatique (سنة أولى إعلام آلي)",
+        name: "L1 Informatique S1(سنة أولى إعلام آلي)",
         subjects: [
             { 
                 name: "Analyse 1", 
                 chapters: [
                     "Logique mathématique", "Les ensembles", 
-                    "Les nombres réels", "Les suites réelles", 
-                    "Fonctions réelles", "Limites et continuité",
-                    "Dérivabilité", "Théorème des valeurs intermédiaires"
+                    "Les nombres réels", "Les suites réelles"
                 ] 
             },
             { 
@@ -467,21 +385,6 @@ const TEMPLATES = [
                     "Mémoires", "Architecture de base"
                 ] 
             },
-            { 
-                name: "Introduction à l'Informatique", 
-                chapters: [
-                    "Histoire de l'informatique", "Matériel et logiciel",
-                    "Systèmes d'exploitation", "Réseaux",
-                    "Bases de données", "Sécurité informatique"
-                ] 
-            },
-            { 
-                name: "Anglais Technique", 
-                chapters: [
-                    "Technical Vocabulary", "Reading Technical Texts",
-                    "Writing Technical Reports", "Oral Communication"
-                ] 
-            }
         ]
     },
     {
@@ -527,10 +430,10 @@ const TEMPLATES = [
         ]
     },
 
-    // ==================== L2 - University Year 2 ====================
+    // ==================== Second Semester of l1 informatique ====================
     {
-        year: "l2",
-        name: "L2 Informatique (سنة ثانية إعلام آلي)",
+        year: "l1",
+        name: "L1 Informatique S2(سنة ثانية إعلام آلي)",
         subjects: [
             { 
                 name: "Analyse 2", 
@@ -550,45 +453,50 @@ const TEMPLATES = [
             },
             { 
                 name: "Algorithmique 2", 
-                chapters: [
-                    "Récursivité", "Listes chaînées", 
-                    "Piles et files", "Arbres",
-                    "Graphes", "Complexité avancée",
-                    "Tri et recherche", "Algorithmique du texte"
+                chapters: [ "les structure","les fonction et procedure","les piles"
                 ] 
+            }
+        ]
+    },
+        // ==================== First semester of L2  ====================
+    {
+        year: "l2",
+        name: "L2 Informatique S3 (الفصل الاول من السنة الثانية)",
+        subjects: [
+            {
+                name: "Algorithme 3",
+                chapters: ["complexite d'une algorithme","Recrisivite","les listes","les piles","les files","les arbres"]
             },
-            { 
-                name: "Base de Données 1", 
-                chapters: [
-                    "Modèle relationnel", "Langage SQL",
-                    "Normalisation", "Algèbre relationnelle",
-                    "Conception de bases de données", "Transactions",
-                    "Sécurité des bases de données"
-                ] 
+            {
+                name: "Logique Mathematique",
+                chapters: [""]
             },
-            { 
-                name: "Systèmes d'Exploitation", 
-                chapters: [
-                    "Processus", "Ordonnancement", 
-                    "Mémoire", "Gestion de fichiers",
-                    "Entrées/Sorties", "Synchronisation",
-                    "Introduction à Linux"
-                ] 
+            {
+                name: "Theory des graphes",
+                chapters: [""]
+            }
+        ]
+    },
+        // ==================== second  semester of L2 informatique ====================
+    {
+        year: "l2",
+        name: "L2 Informatique S4 (الفصل الثاني من السنة الثانية)",
+        subjects: [
+            {
+                name: "Development Application web",
+                chapters: ["HTML","CSS","JavaScript","PHP"]
             },
-            { 
-                name: "Réseaux Informatiques", 
-                chapters: [
-                    "Modèles OSI et TCP/IP", "Adressage IP",
-                    "Routage", "Protocoles",
-                    "Réseaux locaux", "Sécurité réseau"
-                ] 
+            {
+                name: "Bases des donnee",
+                chapters: [""]
             },
-            { 
-                name: "Programmation Avancée", 
-                chapters: [
-                    "POO", "Design Patterns",
-                    "Gestion des exceptions", "Fichiers"
-                ] 
+            {
+                name: "Reseau",
+                chapters: [""]
+            },
+            {
+                name: "POO",
+                chapters: [""]
             }
         ]
     },
@@ -628,60 +536,6 @@ const TEMPLATES = [
     },
 
     // ==================== L3 - University Year 3 ====================
-    {
-        year: "l3",
-        name: "L3 Informatique (سنة ثالثة إعلام آلي)",
-        subjects: [
-            { 
-                name: "Programmation Web", 
-                chapters: [
-                    "HTML/CSS", "JavaScript",
-                    "PHP/MySQL", "Frameworks",
-                    "API REST", "Sécurité web"
-                ] 
-            },
-            { 
-                name: "Base de Données Avancées", 
-                chapters: [
-                    "SQL Avancé", "NoSQL",
-                    "Big Data", "Data Warehouse",
-                    "Data Mining", "Optimisation"
-                ] 
-            },
-            { 
-                name: "Intelligence Artificielle", 
-                chapters: [
-                    "Introduction à l'IA", "Apprentissage automatique",
-                    "Réseaux de neurones", "Traitement du langage naturel",
-                    "Vision par ordinateur", "Systèmes experts"
-                ] 
-            },
-            { 
-                name: " Génie Logiciel", 
-                chapters: [
-                    "Analyse et conception", "Modélisation",
-                    "Tests", "Gestion de projet",
-                    "UML", "Méthodologies Agiles"
-                ] 
-            },
-            { 
-                name: "Sécurité Informatique", 
-                chapters: [
-                    "Cryptographie", "Authentification",
-                    "Pare-feu", "Malwares",
-                    "Sécurité réseau", "Audit"
-                ] 
-            },
-            { 
-                name: "Systèmes Distribués", 
-                chapters: [
-                    "Architectures distribuées", "RPC",
-                    "Objets distribués", "Cloud Computing",
-                    "Microservices", "Containerisation"
-                ] 
-            }
-        ]
-    },
     {
         year: "l3",
         name: "L3 Mathématiques (سنة ثالثة رياضيات)",

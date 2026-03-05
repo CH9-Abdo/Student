@@ -1,0 +1,10 @@
+[]add link of a youtube video for chapters , the user can watch the video from the pomodoro without exiting the app
+[]some of subjects don't need exercises , so there two types of subjects "with exercises","without exercises"
+[]add the ability to add a drive to explore from the settings 
+[]add the ability to connect with google email button on the login screen 
+[]when the user add a new semester he can choose between an existing one or create his owen 
+[]fix RTL and make an arabic traslition for everything on the site 
+[]ask how can i make the app accicible offline so the user can save data localy and when he be online again he can start syncing by upload data
+[]ask how can i fix the reset password button on the supabase 
+[]i'll leave the python as it.
+[]delete the "andriod","build","node_modules" from github . on the next push i remove them from github.
