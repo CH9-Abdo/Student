@@ -584,8 +584,47 @@ class Database {
         if (!navigator.onLine || !auth.user || auth.user.id === 'offline-user') return [];
         try {
             const { data } = await auth.client.from("weekly_leaderboard").select("*"); 
-            return data || []; 
+            const rankings = data || [];
+            
+            // Inject my current local data into the rankings to show instant progress
+            const meIdx = rankings.findIndex(u => u.user_id === auth.user.id);
+            
+            // Calculate my sessions from the last 7 days locally
+            const now = new Date();
+            const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+            
+            const myWeeklySessions = this.data.study_sessions.filter(s => {
+                try {
+                    const sessionDate = new Date(s.timestamp);
+                    const isRecent = sessionDate > sevenDaysAgo;
+                    return isRecent;
+                } catch(e) {
+                    return false;
+                }
+            }).length;
+
+            console.log(`[DB] Leaderboard Local Calc: Found ${myWeeklySessions} sessions in last 7 days`);
+
+            if (meIdx !== -1) {
+                // Update my existing record in the list
+                rankings[meIdx].total_sessions = myWeeklySessions;
+                rankings[meIdx].xp = this.data.user_profile.xp;
+                rankings[meIdx].level = this.data.user_profile.level;
+                rankings[meIdx].display_name = this.data.user_profile.display_name;
+            } else {
+                // Add me if I'm not in the cloud leaderboard yet
+                rankings.push({
+                    user_id: auth.user.id,
+                    display_name: this.data.user_profile.display_name || "Me",
+                    xp: this.data.user_profile.xp,
+                    level: this.data.user_profile.level,
+                    total_sessions: myWeeklySessions
+                });
+            }
+
+            return rankings.sort((a, b) => (b.xp || 0) - (a.xp || 0));
         } catch (e) {
+            console.error("[DB] Leaderboard fetch error:", e);
             return [];
         }
     }
