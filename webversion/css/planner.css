@@ -1,175 +1,188 @@
 /* ============================================================
-   STUDY PLANNER
+   STUDY PLANNER — COMPLETE REDESIGN
    ============================================================ */
 
-/* Semester Selector Row */
-.h-right {
+/* Subject accent colors cycling */
+:root {
+    --sc0: #6366f1; --sc1: #0ea5a0; --sc2: #f59e0b; --sc3: #ef4444;
+    --sc4: #8b5cf6; --sc5: #10b981; --sc6: #f43f5e; --sc7: #3b82f6;
+}
+
+/* ── TOP BAR ── */
+.planner-topbar {
     display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.h-right select {
-    margin-bottom: 0;
-    padding: 9px 14px;
-    min-width: 180px;
-}
-
-/* Subjects Grid */
-#subjects-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-}
-
-/* Subject Card */
-.subject-card {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 18px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-}
-
-.subject-card:hover {
-    border-color: var(--primary);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-}
-
-.subject-card.active {
-    border-color: var(--primary);
-    background: var(--primary-light);
-}
-
-.subject-card h4 {
-    font-family: 'Sora', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    margin-bottom: 10px;
-    color: var(--text);
-}
-
-/* List Items (generic) */
-.list-item {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 13px 16px;
-    margin-bottom: 8px;
-    display: flex;
+    align-items: flex-start;
     justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    transition: all 0.2s;
-}
-
-.list-item:hover { border-color: var(--primary); }
-
-.list-item.active {
-    border-color: var(--primary);
-    background: var(--primary-light);
-}
-
-.list-item span { font-size: 14px; font-weight: 500; }
-
-/* Subject Card Actions */
-.subject-card-actions {
-    display: flex;
-    gap: 6px;
     flex-wrap: wrap;
-    margin-top: 12px;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+.planner-topbar-left { display: flex; flex-direction: column; gap: 10px; }
+
+.semester-selector-wrap {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: 12px; padding: 0 14px; transition: border-color 0.2s; max-width: 300px;
+}
+.semester-selector-wrap:focus-within { border-color: var(--primary); }
+.semester-icon { color: var(--primary); font-size: 14px; flex-shrink: 0; }
+.semester-select {
+    border: none !important; background: transparent !important;
+    padding: 10px 0 !important; margin: 0 !important;
+    font-weight: 600; font-size: 14px; color: var(--text) !important;
+    box-shadow: none !important; min-width: 180px;
+}
+.semester-select:focus { border: none !important; box-shadow: none !important; }
+
+.planner-add-sem-btn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 10px 18px; border-radius: 12px;
+    border: 1.5px dashed var(--border); background: transparent;
+    color: var(--text-mute); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; white-space: nowrap; align-self: flex-start; margin-top: 4px;
+}
+.planner-add-sem-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
+/* ── STATS STRIP ── */
+.planner-stats-strip { display: flex; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; }
+.pstat {
+    flex: 1; min-width: 110px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 4px;
+}
+.pstat-val { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 800; color: var(--text); }
+.pstat-lbl { font-size: 11px; color: var(--text-mute); font-weight: 500; }
+
+/* ── ADD SUBJECT BAR ── */
+.add-subject-bar { margin-bottom: 22px; }
+.add-subject-toggle {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--card); border: 1.5px dashed var(--border); border-radius: 14px;
+    padding: 13px 18px; width: 100%; cursor: pointer; color: var(--text-mute);
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+    transition: all 0.2s; text-align: left;
+}
+.add-subject-toggle:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+.add-subject-toggle-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--primary-light); color: var(--primary);
+    display: grid; place-items: center; font-size: 13px; transition: background 0.2s;
+}
+.add-subject-toggle:hover .add-subject-toggle-icon { background: var(--primary); color: white; }
+
+.add-subject-form {
+    background: var(--card); border: 1.5px solid var(--primary);
+    border-radius: 14px; padding: 18px; display: flex;
+    gap: 10px; flex-wrap: wrap; align-items: flex-end;
+    animation: expandDown 0.2s ease;
+}
+@keyframes expandDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.add-subject-form input, .add-subject-form select { flex: 1; min-width: 130px; margin-bottom: 0 !important; }
+.add-subject-form .primary-btn, .add-subject-form .secondary-btn { flex-shrink: 0; white-space: nowrap; }
+
+/* ── SUBJECT CARDS GRID ── */
+.subject-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+/* ── SUBJECT CARD ── */
+.subj-card {
+    background: var(--card); border: 1.5px solid var(--border); border-radius: 20px;
+    padding: 20px; cursor: pointer; position: relative; overflow: hidden;
+    display: flex; flex-direction: column; gap: 14px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.subj-card::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+    border-radius: 20px 0 0 20px; background: var(--accent-color, var(--primary)); transition: width 0.2s;
+}
+.subj-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.12); border-color: var(--accent-color, var(--primary)); }
+.subj-card:hover::before { width: 6px; }
+
+.subj-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-left: 8px; }
+.subj-card-info { flex: 1; min-width: 0; }
+.subj-card-name {
+    font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px;
+}
+.subj-exam-badge {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600;
+    padding: 3px 9px; border-radius: 99px; background: var(--progress-bg);
+    color: var(--text-mute); border: 1px solid var(--border);
+}
+.subj-exam-badge.urgent { background: rgba(239,68,68,0.1); color: var(--danger); border-color: rgba(239,68,68,0.25); }
+.subj-exam-badge.soon   { background: rgba(245,158,11,0.1); color: var(--accent);  border-color: rgba(245,158,11,0.25); }
+.subj-exam-badge.done   { background: rgba(16,185,129,0.1); color: #059669; border-color: rgba(16,185,129,0.3); }
+
+/* Progress Ring */
+.progress-ring-wrap { position: relative; width: 58px; height: 58px; flex-shrink: 0; }
+.progress-ring-svg  { width: 58px; height: 58px; transform: rotate(-90deg); }
+.progress-ring-bg   { fill: none; stroke: var(--progress-bg); stroke-width: 5; }
+.progress-ring-fill {
+    fill: none; stroke: var(--accent-color, var(--primary)); stroke-width: 5;
+    stroke-linecap: round; stroke-dasharray: 113; stroke-dashoffset: 113;
+    transition: stroke-dashoffset 0.6s cubic-bezier(.4,0,.2,1);
+}
+.progress-ring-pct {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 800; color: var(--text);
 }
 
-/* Chapter Buttons */
-.chapter-btn {
-    padding: 7px 11px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--progress-bg);
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-mute);
-    white-space: nowrap;
-    transition: all 0.2s;
+/* Stats chips */
+.subj-chapter-stats { display: flex; gap: 8px; padding-left: 8px; flex-wrap: wrap; }
+.subj-stat-chip {
+    display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500;
+    color: var(--text-mute); background: var(--progress-bg); border-radius: 8px; padding: 5px 10px;
 }
+.subj-stat-chip.done { background: rgba(16,185,129,0.1); color: #059669; }
 
-.chapter-btn:hover { border-color: var(--primary); color: var(--primary); }
-
-.chapter-btn.active {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
+/* Action buttons */
+.subj-card-actions { display: flex; gap: 8px; padding-left: 8px; align-items: center; flex-wrap: wrap; }
+.subj-action-btn {
+    flex: 1; min-width: 0; padding: 8px 10px; border-radius: 10px;
+    border: 1.5px solid var(--border); background: var(--progress-bg); color: var(--text-mute);
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.18s; text-align: center;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.subj-action-btn:hover { border-color: var(--accent-color, var(--primary)); color: var(--accent-color, var(--primary)); background: var(--card); }
+.subj-action-btn.all-done { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.4); color: #059669; }
 
-/* Mini Progress Bar */
-.mini-progress-container {
-    width: 100%;
-    height: 5px;
-    background: var(--progress-bg);
-    border-radius: 99px;
-    overflow: hidden;
-    margin-top: 8px;
+.subj-open-btn {
+    width: 36px; height: 36px; border-radius: 10px; border: 1.5px solid var(--border);
+    background: var(--progress-bg); color: var(--text-mute); cursor: pointer;
+    display: grid; place-items: center; font-size: 14px; transition: all 0.2s; flex-shrink: 0;
 }
+.subj-open-btn:hover { background: var(--accent-color, var(--primary)); border-color: var(--accent-color, var(--primary)); color: white; }
 
-.mini-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--primary), var(--secondary));
-    border-radius: 99px;
-    transition: width 0.4s cubic-bezier(.4,0,.2,1);
+.subj-delete-btn {
+    position: absolute; top: 12px; right: 12px; width: 28px; height: 28px;
+    border-radius: 8px; border: 1px solid transparent; background: transparent;
+    color: var(--text-mute); cursor: pointer; display: grid; place-items: center;
+    font-size: 12px; opacity: 0; transition: all 0.2s; z-index: 2;
 }
+.subj-card:hover .subj-delete-btn { opacity: 1; }
+.subj-delete-btn:hover { background: var(--danger-light); color: var(--danger); border-color: rgba(239,68,68,0.3); }
 
-/* Subject Details Panel */
-#subject-details-panel {
-    transition: opacity 0.2s;
+/* ── EMPTY STATE ── */
+.planner-empty { text-align: center; padding: 60px 20px; color: var(--text-mute); }
+.planner-empty-icon { font-size: 52px; margin-bottom: 14px; }
+.planner-empty p { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.planner-empty span { font-size: 14px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+    .planner-topbar { flex-direction: column; align-items: stretch; }
+    .planner-add-sem-btn { align-self: stretch; justify-content: center; }
+    .subject-cards-grid { grid-template-columns: 1fr; }
+    .planner-stats-strip { gap: 8px; }
+    .pstat { min-width: 80px; padding: 12px; }
+    .pstat-val { font-size: 18px; }
 }
-
-#subject-details-panel.disabled {
-    opacity: 0.4;
-    pointer-events: none;
-}
-
-/* Chapter list inside subject window */
-#sw-chapters-list .list-item {
-    font-size: 14px;
-}
-
-/* Add chapter area */
-.add-chapter-area {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.add-chapter-area input {
-    flex: 1;
-    margin-bottom: 0;
-}
-
-.add-chapter-area .primary-btn {
-    flex-shrink: 0;
-    padding: 11px 16px;
-}
-
-/* Subject progress display */
-#subject-progress-bar {
-    transition: width 0.5s cubic-bezier(.4,0,.2,1);
-}
-
-/* Planner Two-Column Layout */
-.planner-layout {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: 20px;
-    align-items: start;
-}
-
-@media (max-width: 900px) {
-    .planner-layout {
-        grid-template-columns: 1fr;
-    }
+@media (max-width: 480px) {
+    .planner-stats-strip { display: grid; grid-template-columns: 1fr 1fr; }
+    .add-subject-form { flex-direction: column; }
+    .add-subject-form input, .add-subject-form select { min-width: 0; }
 }

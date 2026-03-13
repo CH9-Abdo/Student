@@ -424,6 +424,10 @@ class StudentProApp {
             if (name) {
                 await db.addSubject(this.activeSemesterId, name, date, hasEx);
                 get('subject-name-input').value = '';
+                get('exam-date-input').value = '';
+                // collapse the form back
+                get('add-subject-form')?.classList.add('hidden');
+                get('add-subject-toggle-btn')?.classList.remove('hidden');
                 this.refreshSubjects();
                 showToast("Subject added!", 'success');
             }
@@ -431,7 +435,6 @@ class StudentProApp {
 
         get('delete-subject-btn')?.addEventListener('click', async () => {
             if (this.activeSubjectId && confirm("Delete this subject?")) {
-                console.log(`[App] Planner: Deleting subject ID ${this.activeSubjectId}`);
                 await db.deleteSubject(this.activeSubjectId);
                 this.activeSubjectId = null;
                 this.refreshSubjects();
@@ -439,8 +442,20 @@ class StudentProApp {
             }
         });
 
-        get('open-subject-details-btn')?.addEventListener('click', () => {
-            if (this.activeSubjectId) this.openSubjectWindow(this.activeSubjectId);
+        // Add-subject toggle (expand / collapse inline form)
+        get('add-subject-toggle-btn')?.addEventListener('click', () => {
+            const form   = get('add-subject-form');
+            const toggle = get('add-subject-toggle-btn');
+            if (!form) return;
+            const isHidden = form.classList.contains('hidden');
+            form.classList.toggle('hidden', !isHidden);
+            toggle.classList.toggle('hidden', isHidden);
+            if (isHidden) get('subject-name-input')?.focus();
+        });
+
+        get('cancel-add-subject-btn')?.addEventListener('click', () => {
+            get('add-subject-form')?.classList.add('hidden');
+            get('add-subject-toggle-btn')?.classList.remove('hidden');
         });
 
         // Subject Window Modal
@@ -808,54 +823,147 @@ class StudentProApp {
     }
 
     refreshSubjects() {
-        const list = get('subject-list');
-        if (!list) return;
-        list.innerHTML = '';
+        const grid    = get('subject-cards-grid');
+        const empty   = get('planner-empty');
+        const strip   = get('planner-stats-strip');
+        if (!grid) return;
+
+        grid.innerHTML = '';
+
         if (!this.activeSemesterId) {
-            list.innerHTML = '<p class="mute" style="padding:20px 0;">Select a semester above.</p>';
+            if (empty) empty.classList.remove('hidden');
+            if (strip) strip.innerHTML = '';
+            this.refreshPomodoroSubjects();
             return;
         }
 
+        const ACCENT_COLORS = ['#6366f1','#0ea5a0','#f59e0b','#ef4444','#8b5cf6','#10b981','#f43f5e','#3b82f6'];
         const subjects = db.data.subjects.filter(s => s.semester_id === this.activeSemesterId);
 
-        if (subjects.length === 0) {
-            list.innerHTML = '<p class="mute" style="padding:20px 0;">No subjects yet. Add one below.</p>';
+        // ── Stats strip ──────────────────────────────────────
+        if (strip) {
+            const totalChapters  = subjects.reduce((acc, s) => acc + db.data.chapters.filter(c => c.subject_id === s.id).length, 0);
+            const doneChapters   = subjects.reduce((acc, s) => acc + db.data.chapters.filter(c => c.subject_id === s.id && c.video_completed).length, 0);
+            const upcomingExams  = subjects.filter(s => s.exam_date && new Date(s.exam_date) > new Date()).length;
+            const overallPerc    = totalChapters > 0 ? Math.round((doneChapters / totalChapters) * 100) : 0;
+
+            strip.innerHTML = `
+                <div class="pstat"><div class="pstat-val">${subjects.length}</div><div class="pstat-lbl">Subjects</div></div>
+                <div class="pstat"><div class="pstat-val">${totalChapters}</div><div class="pstat-lbl">Chapters</div></div>
+                <div class="pstat"><div class="pstat-val">${overallPerc}%</div><div class="pstat-lbl">Progress</div></div>
+                <div class="pstat"><div class="pstat-val">${upcomingExams}</div><div class="pstat-lbl">Upcoming Exams</div></div>
+            `;
         }
 
-        subjects.forEach(s => {
-            const progress = db.getSubjectProgress(s.id);
-            // BUG FIX: safe division (was already safe but enforced)
-            const perc = (progress.total > 0) ? Math.round((progress.done / progress.total) * 100) : 0;
-            const hasEx = s.has_exercises !== false;
+        // ── Empty state ───────────────────────────────────────
+        if (subjects.length === 0) {
+            if (empty) empty.classList.remove('hidden');
+            this.refreshPomodoroSubjects();
+            return;
+        }
+        if (empty) empty.classList.add('hidden');
 
-            const chapters = db.data.chapters.filter(c => c.subject_id === s.id);
-            const videosDone = chapters.filter(c => c.video_completed).length;
-            const exercisesDone = chapters.filter(c => c.exercises_completed).length;
+        // ── Render cards ──────────────────────────────────────
+        subjects.forEach((s, idx) => {
+            const accentColor = ACCENT_COLORS[idx % ACCENT_COLORS.length];
+            const chapters    = db.data.chapters.filter(c => c.subject_id === s.id);
+            const videosDone  = chapters.filter(c => c.video_completed).length;
+            const exDone      = chapters.filter(c => c.exercises_completed).length;
+            const hasEx       = s.has_exercises !== false;
+            const total       = hasEx ? chapters.length * 2 : chapters.length;
+            const done        = hasEx ? videosDone + exDone : videosDone;
+            const perc        = total > 0 ? Math.round((done / total) * 100) : 0;
 
-            const li = document.createElement('li');
-            li.className = `list-item ${this.activeSubjectId === s.id ? 'active' : ''}`;
-            li.innerHTML = `
-                <span style="font-weight:600;">${s.name}</span>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <span class="badge">${perc}%</span>
-                    <div style="display:flex; gap:5px;">
-                        <button class="chapter-btn ${chapters.some(c => c.video_completed) ? 'active' : ''}"
-                            onclick="event.stopPropagation();app.toggleSubjectProgress(${s.id}, 'video')" title="Toggle Course">
-                            ${videosDone}/${chapters.length} 📖
-                        </button>
-                        ${hasEx ? `
-                        <button class="chapter-btn ${chapters.some(c => c.exercises_completed) ? 'active' : ''}"
-                            onclick="event.stopPropagation();app.toggleSubjectProgress(${s.id}, 'exercises')" title="Toggle Exercises">
-                            ${exercisesDone}/${chapters.length} ✍️
-                        </button>` : ''}
+            // SVG ring: circumference ≈ 2π×18 ≈ 113
+            const CIRC = 113;
+            const offset = CIRC - (perc / 100) * CIRC;
+
+            // Exam badge
+            let examBadge = '';
+            if (s.exam_date) {
+                const days = Math.ceil((new Date(s.exam_date) - new Date()) / 86400000);
+                const cls  = days < 0 ? 'done' : days <= 7 ? 'urgent' : days <= 21 ? 'soon' : '';
+                const lbl  = days < 0 ? 'Exam passed' : days === 0 ? 'Exam today!' : `${days}d to exam`;
+                examBadge  = `<span class="subj-exam-badge ${cls}">📅 ${lbl}</span>`;
+            }
+
+            // Video chip
+            const vAllDone = videosDone === chapters.length && chapters.length > 0;
+            const vChip    = `<span class="subj-stat-chip ${vAllDone ? 'done' : ''}">📖 ${videosDone}/${chapters.length}</span>`;
+
+            // Exercise chip (if applicable)
+            const exAllDone = exDone === chapters.length && chapters.length > 0;
+            const exChip    = hasEx
+                ? `<span class="subj-stat-chip ${exAllDone ? 'done' : ''}">✍️ ${exDone}/${chapters.length}</span>`
+                : '';
+
+            // Action buttons
+            const vBtnDone = chapters.length > 0 && chapters.every(c => c.video_completed);
+            const eBtnDone = hasEx && chapters.length > 0 && chapters.every(c => c.exercises_completed);
+
+            const card = document.createElement('div');
+            card.className = 'subj-card';
+            card.style.setProperty('--accent-color', accentColor);
+            card.dataset.subjectId = s.id;
+
+            card.innerHTML = `
+                <button class="subj-delete-btn" onclick="event.stopPropagation();app.deleteSubjectCard(${s.id})" title="Delete subject">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+
+                <div class="subj-card-top">
+                    <div class="subj-card-info">
+                        <div class="subj-card-name">${s.name}</div>
+                        ${examBadge}
+                    </div>
+                    <div class="progress-ring-wrap">
+                        <svg class="progress-ring-svg" viewBox="0 0 58 58">
+                            <circle class="progress-ring-bg" cx="29" cy="29" r="18"/>
+                            <circle class="progress-ring-fill" cx="29" cy="29" r="18"
+                                style="stroke-dashoffset:${offset}; stroke:${accentColor};"/>
+                        </svg>
+                        <div class="progress-ring-pct">${perc}%</div>
                     </div>
                 </div>
+
+                <div class="subj-chapter-stats">
+                    ${chapters.length === 0
+                        ? '<span class="subj-stat-chip">No chapters yet</span>'
+                        : vChip + exChip
+                    }
+                </div>
+
+                <div class="subj-card-actions">
+                    ${chapters.length > 0 ? `
+                    <button class="subj-action-btn ${vBtnDone ? 'all-done' : ''}"
+                        onclick="event.stopPropagation();app.toggleSubjectProgress(${s.id},'video')">
+                        ${vBtnDone ? '✓ Course Done' : '📖 Toggle Course'}
+                    </button>
+                    ${hasEx ? `
+                    <button class="subj-action-btn ${eBtnDone ? 'all-done' : ''}"
+                        onclick="event.stopPropagation();app.toggleSubjectProgress(${s.id},'exercises')">
+                        ${eBtnDone ? '✓ Exercises Done' : '✍️ Toggle Exercises'}
+                    </button>` : ''}
+                    ` : ''}
+                    <button class="subj-open-btn" onclick="event.stopPropagation();app.openSubjectWindow(${s.id})" title="Manage chapters">
+                        <i class="fas fa-list-ul"></i>
+                    </button>
+                </div>
             `;
-            li.onclick = () => this.openSubjectWindow(s.id);
-            list.appendChild(li);
+
+            grid.appendChild(card);
         });
 
         this.refreshPomodoroSubjects();
+    }
+
+    // Called from card delete button
+    async deleteSubjectCard(subId) {
+        if (!confirm("Delete this subject and all its chapters?")) return;
+        await db.deleteSubject(subId);
+        if (this.activeSubjectId === subId) this.activeSubjectId = null;
+        this.refreshSubjects();
+        showToast("Subject deleted.", 'info');
     }
 
     refreshPomodoroSubjects() {

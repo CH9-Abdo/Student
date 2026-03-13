@@ -207,54 +207,66 @@
                  PLANNER TAB
             ========================================== -->
             <section id="planner" class="tab-content">
-                <div class="header">
-                    <h2 class="h1">Study Planner</h2>
-                    <div class="h-right header-actions">
-                        <select id="semester-selector"></select>
-                        <button id="add-semester-btn" class="primary-btn small-btn">
-                            <i class="fas fa-plus"></i> Semester
-                        </button>
+
+                <!-- Top bar: semester + add -->
+                <div class="planner-topbar">
+                    <div class="planner-topbar-left">
+                        <h2 class="h1">Study Planner</h2>
+                        <div class="semester-selector-wrap">
+                            <i class="fas fa-layer-group semester-icon"></i>
+                            <select id="semester-selector" class="semester-select"></select>
+                        </div>
                     </div>
+                    <button id="add-semester-btn" class="planner-add-sem-btn">
+                        <i class="fas fa-plus"></i> New Semester
+                    </button>
                 </div>
 
-                <!-- Subject List -->
-                <div class="card">
-                    <h3 class="h2" style="margin-bottom:12px;">Subjects</h3>
-                    <!-- add-subject-row uses CSS class so it wraps on mobile -->
-                    <div class="add-subject-row" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px;">
-                        <input type="text" id="subject-name-input" placeholder="Subject name..." style="flex:2; min-width:140px; margin-bottom:0;">
-                        <input type="date" id="exam-date-input" style="flex:1; min-width:130px; margin-bottom:0;">
-                        <select id="subject-type-input" style="flex:1; min-width:120px; margin-bottom:0;">
+                <!-- Planner stats strip -->
+                <div id="planner-stats-strip" class="planner-stats-strip"></div>
+
+                <!-- Add Subject Inline Form (collapsed by default) -->
+                <div class="add-subject-bar">
+                    <button class="add-subject-toggle" id="add-subject-toggle-btn">
+                        <span class="add-subject-toggle-icon"><i class="fas fa-plus"></i></span>
+                        <span>Add Subject</span>
+                    </button>
+                    <div class="add-subject-form hidden" id="add-subject-form">
+                        <input type="text" id="subject-name-input" placeholder="Subject name…">
+                        <input type="date" id="exam-date-input" title="Exam date">
+                        <select id="subject-type-input">
                             <option value="true">Has Exercises</option>
                             <option value="false">Course Only</option>
                         </select>
-                        <button id="save-subject-btn" class="primary-btn small-btn" style="white-space:nowrap;">
-                            <i class="fas fa-plus"></i> Add
+                        <button id="save-subject-btn" class="primary-btn small-btn">
+                            <i class="fas fa-check"></i> Add
                         </button>
+                        <button class="secondary-btn small-btn" id="cancel-add-subject-btn">Cancel</button>
                     </div>
-                    <ul id="subject-list" class="scroll-area" style="list-style:none; max-height:360px;"></ul>
                 </div>
 
-                <!-- Subject Details Panel -->
-                <div id="subject-details-panel" class="card disabled">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
-                        <h3 id="selected-subject-title" class="h2">Select a subject</h3>
-                        <div style="display:flex; gap:8px;">
-                            <button id="open-subject-details-btn" class="secondary-btn small-btn">
-                                <i class="fas fa-list"></i> Chapters
-                            </button>
-                            <button id="delete-subject-btn" class="danger-btn small-btn">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div id="subject-progress-bar" class="progress-bar" style="width:0%"></div>
-                    </div>
-                    <p id="subject-progress-label" class="mute" style="font-size:12px; margin-top:6px;">0% complete</p>
-                    <ul id="chapters-list-display" style="list-style:none; margin-top:12px; display:flex; flex-direction:column; gap:6px;"></ul>
-                    <textarea id="subject-notes-display" placeholder="Notes..." rows="3" style="margin-top:14px; resize:vertical;"></textarea>
+                <!-- Subject Cards Grid -->
+                <div id="subject-cards-grid" class="subject-cards-grid"></div>
+
+                <!-- Empty state (shown via JS) -->
+                <div id="planner-empty" class="planner-empty hidden">
+                    <div class="planner-empty-icon">📚</div>
+                    <p>No subjects yet</p>
+                    <span>Click "Add Subject" above to get started</span>
                 </div>
+
+                <!-- Hidden legacy elements kept for JS compatibility -->
+                <ul id="subject-list" style="display:none;"></ul>
+                <div id="subject-details-panel" style="display:none;">
+                    <h3 id="selected-subject-title"></h3>
+                    <div id="subject-progress-bar"></div>
+                    <p id="subject-progress-label"></p>
+                    <ul id="chapters-list-display"></ul>
+                    <textarea id="subject-notes-display"></textarea>
+                    <button id="open-subject-details-btn" style="display:none;"></button>
+                    <button id="delete-subject-btn" style="display:none;"></button>
+                </div>
+
             </section>
 
             <!-- ==========================================
@@ -328,9 +340,9 @@
                                         <span class="slider"></span>
                                     </label>
                                     <select id="lofi-music-select" class="modern-select" style="flex:1; margin-bottom:0;">
-                                        <option value="fassounds-lofi-study-calm-peaceful-chill-hop-112191.mp3">Lo-Fi Beats</option>
-                                        <option value="lofi_rain.mp3">Rainy Lo-Fi</option>
-                                        <option value="nature.mp3">Nature Sounds</option>
+                                        <option value="lofi1.mp3">Lo-Fi Beats</option>
+                                        <option value="lofi2.mp3">Chill Vibes</option>
+                                        <option value="lofi3.mp3">Study Jazz</option>
                                     </select>
                                 </div>
                                 <audio id="bg-music-player" loop></audio>
