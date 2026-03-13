@@ -1,0 +1,261 @@
+/* ============================================================
+   POMODORO TIMER
+   ============================================================ */
+
+.pomodoro-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+/* Level / XP Header */
+.pomodoro-header-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, var(--primary-light), transparent);
+    border-color: rgba(91,95,199,0.2);
+}
+
+.level-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-family: 'Sora', sans-serif;
+}
+
+.level-badge {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 4px 14px;
+    border-radius: 99px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(91,95,199,0.3);
+}
+
+.xp-container {
+    width: 100%;
+    max-width: 380px;
+    height: 8px;
+    background: var(--progress-bg);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-radius: 99px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+}
+
+/* Focus Grid */
+.focus-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+/* Timer Card */
+.timer-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 24px;
+}
+
+/* SVG Circle Timer */
+.timer-display-wrapper {
+    position: relative;
+    width: 230px;
+    height: 230px;
+    margin-bottom: 24px;
+}
+
+.timer-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.timer-bg {
+    fill: none;
+    stroke: var(--progress-bg);
+    stroke-width: 8;
+}
+
+.timer-path {
+    fill: none;
+    stroke: url(#timerGradient);
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear;
+    filter: drop-shadow(0 0 8px rgba(91,95,199,0.4));
+}
+
+.timer-inner-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.timer-digits {
+    font-family: 'Sora', sans-serif;
+    font-size: 3.2rem;
+    font-weight: 800;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.timer-status {
+    font-size: 11px;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+/* Timer Controls */
+.timer-controls-row {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    max-width: 240px;
+}
+
+.play-btn { flex: 3; }
+.icon-only-btn { flex: 1; }
+
+/* Controls Column */
+.controls-column {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.control-card {
+    padding: 20px;
+    border-radius: var(--radius-md);
+}
+
+.control-card h4 {
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Subject Selector inside Pomodoro */
+.modern-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 14px;
+    padding-right: 38px !important;
+}
+
+/* Lo-Fi Music Controls */
+.lofi-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.lofi-controls label { font-size: 14px; font-weight: 500; }
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 26px;
+    flex-shrink: 0;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+    margin: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--border);
+    transition: 0.3s;
+    border-radius: 26px;
+}
+
+.slider::before {
+    content: "";
+    position: absolute;
+    height: 18px; width: 18px;
+    left: 4px; bottom: 4px;
+    background: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+input:checked + .slider { background: var(--primary); }
+input:checked + .slider::before { transform: translateX(20px); }
+
+/* Smart Suggestion Area */
+#smart-suggestion {
+    font-size: 13px;
+    color: var(--text-mute);
+    font-style: italic;
+    padding: 10px 0;
+}
+
+/* Session Stats */
+.session-stats {
+    display: flex;
+    justify-content: space-around;
+    gap: 12px;
+}
+
+.stat-pill {
+    text-align: center;
+    padding: 10px 16px;
+    background: var(--progress-bg);
+    border-radius: 12px;
+    flex: 1;
+}
+
+.stat-pill .val {
+    font-family: 'Sora', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.stat-pill .lbl {
+    font-size: 11px;
+    color: var(--text-mute);
+    margin-top: 2px;
+}

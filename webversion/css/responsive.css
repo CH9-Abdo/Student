@@ -1,0 +1,221 @@
+/* ============================================================
+   RESPONSIVE — MOBILE & TABLET
+   ============================================================ */
+
+/* Desktop-only hidden class */
+.hidden-desktop { display: none !important; }
+
+/* ---- TABLET (max 1024px) ---- */
+@media (max-width: 1024px) {
+    #content { padding: 28px 24px; }
+
+    .dashboard-bottom {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---- MOBILE (max 768px) ---- */
+@media (max-width: 768px) {
+    /* Show mobile header */
+    .hidden-desktop { display: flex !important; }
+
+    /* App becomes column layout */
+    #app { flex-direction: column; }
+
+    /* Sidebar becomes bottom tab bar */
+    #sidebar {
+        position: fixed;
+        bottom: 0; left: 0;
+        width: 100%;
+        height: auto;
+        min-width: 100%;
+        flex-direction: row;
+        border-right: none;
+        border-top: 1px solid var(--border);
+        padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
+        background: var(--sidebar) !important;
+        box-shadow: 0 -2px 16px rgba(0,0,0,0.08);
+        z-index: 900; /* below modal (1000) but above content */
+    }
+
+    /* Hide sidebar elements not needed in bottom bar */
+    .logo-container,
+    #user-info-sidebar,
+    .sidebar-footer,
+    .nav-text { display: none !important; }
+
+    /* Nav becomes horizontal */
+    #navigation {
+        flex-direction: row;
+        width: 100%;
+        justify-content: space-around;
+        padding: 0;
+        gap: 0;
+    }
+
+    .nav-btn {
+        flex-direction: column;
+        font-size: 10px;
+        gap: 4px;
+        padding: 8px 4px;
+        width: auto;
+        align-items: center;
+        background: transparent;
+        border-radius: 8px;
+        flex: 1;
+    }
+
+    .nav-btn i { font-size: 20px; width: auto; }
+
+    /* Active state for bottom bar */
+    .nav-btn.active::before { display: none; }
+    .nav-btn.active { color: var(--primary); background: transparent; }
+    .nav-btn.active i { transform: scale(1.1); }
+
+    /* FIX 1: Content padding corrected to match actual header height (60px + safe-area) */
+    #content {
+        padding-top: calc(68px + env(safe-area-inset-top));
+        padding-bottom: calc(75px + env(safe-area-inset-bottom));
+        padding-left: 14px;
+        padding-right: 14px;
+        height: 100vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
+    }
+
+    /* FIX 2: Mobile header z-index raised above bottom nav */
+    #mobile-header {
+        display: flex;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%;
+        height: calc(60px + env(safe-area-inset-top));
+        padding-top: env(safe-area-inset-top);
+        background: var(--sidebar) !important;
+        border-bottom: 1px solid var(--border);
+        align-items: center;
+        justify-content: space-between;
+        padding-left: 18px;
+        padding-right: 14px;
+        z-index: 950; /* above bottom nav (900), below modal (1000) */
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    /* Page header adjustments */
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+
+    .h-right { width: 100%; justify-content: space-between; }
+    .h-right select { flex: 1; min-width: 0; margin-bottom: 0; }
+    .header-actions { width: 100%; flex-wrap: wrap; }
+
+    /* Modal adjustments */
+    .modal {
+        width: 96%;
+        max-width: 96%;      /* override large-modal on mobile */
+        padding: 22px 16px;
+        border-radius: 20px;
+    }
+
+    /* large-modal override for mobile */
+    .large-modal { width: 96% !important; }
+
+    /* Focus grid stacks vertically */
+    .focus-grid { grid-template-columns: 1fr; }
+
+    /* Stats row — 2 columns on mobile */
+    .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* Login card */
+    .login-card {
+        padding: 28px 20px;
+        width: 96%;
+    }
+
+    #login-screen::before,
+    #login-screen::after { display: none; }
+
+    /* Dashboard bottom layout */
+    .dashboard-bottom { grid-template-columns: 1fr; }
+
+    /* Settings */
+    .settings-container { grid-template-columns: 1fr; }
+
+    /* Analytics */
+    .analytics-grid { grid-template-columns: 1fr; }
+
+    /* Timer smaller */
+    .timer-display-wrapper { width: 190px; height: 190px; }
+    .timer-digits { font-size: 2.5rem; }
+
+    /* FIX 3: Toast position above bottom nav bar */
+    #toast-container { bottom: calc(80px + env(safe-area-inset-bottom)); }
+
+    /* FIX 4: Planner add-subject row wraps on mobile */
+    .add-subject-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .add-subject-row input,
+    .add-subject-row select {
+        width: 100% !important;
+        margin-bottom: 0;
+    }
+
+    /* Setting items stack on narrow screens */
+    .setting-item {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .setting-item select {
+        min-width: 0;
+        flex: 1;
+        width: auto;
+    }
+
+    /* Offline banner above bottom nav */
+    #offline-banner {
+        bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+    }
+
+    /* Pomodoro session stats pills */
+    .session-stats { gap: 8px; }
+    .stat-pill { padding: 8px 10px; }
+    .stat-pill .val { font-size: 18px; }
+}
+
+/* ---- SMALL PHONES (max 480px) ---- */
+@media (max-width: 480px) {
+    .stats-row { grid-template-columns: 1fr; }
+
+    .list-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .list-item > div {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .h1 { font-size: 22px; }
+
+    #subjects-grid { grid-template-columns: 1fr; }
+
+    .sync-buttons { flex-direction: column; }
+}
+
+/* ---- DARK MODE scrollbar fix ---- */
+[data-theme="Dark"] #content {
+    scrollbar-color: #1e2a42 transparent;
+}

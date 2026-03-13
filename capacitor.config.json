@@ -1,0 +1,13 @@
+{
+  "appId": "com.ch9abdo.student",
+  "appName": "StudentPro",
+  "webDir": "webversion",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "StatusBar": {
+      "overlaysWebView": false,
+      "backgroundColor": "#6366f1",
+      "style": "DARK"
+    }
+  }
+}

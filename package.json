@@ -1,0 +1,25 @@
+{
+  "name": "student",
+  "version": "1.0.0",
+  "description": "StudentPro Study Manager",
+  "main": "index.html",
+  "type": "module",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.48.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Chenoufi Abderrahmane",
+  "license": "ISC",
+  "devDependencies": {
+    "@capacitor/android": "^7.6.0",
+    "@capacitor/cli": "^7.6.0",
+    "@capacitor/core": "^7.6.0",
+    "@capacitor/network": "^7.0.4",
+    "@capacitor/preferences": "^7.0.4",
+    "@capacitor/splash-screen": "^7.0.5",
+    "@capacitor/status-bar": "^7.0.5"
+  }
+}

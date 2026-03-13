@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudentPro — Your Study Companion</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:      #080b14;
+            --surface: #0f1521;
+            --border:  rgba(255,255,255,0.07);
+            --text:    #f0f4ff;
+            --mute:    #7a8aaa;
+            --amber:   #f5a623;
+            --teal:    #00d4aa;
+            --red:     #ff5f6d;
+            --blue:    #4facfe;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── CANVAS BG ── */
+        canvas#bg {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── NOISE GRAIN ── */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.4;
+        }
+
+        /* ── LAYOUT ── */
+        .wrap {
+            position: relative;
+            z-index: 2;
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 0 24px 80px;
+        }
+
+        /* ── TOP NAV ── */
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 28px 0 0;
+            opacity: 0;
+            animation: fadeUp 0.6s 0.1s ease forwards;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Bricolage Grotesque', sans-serif;
+            font-weight: 800;
+            font-size: 18px;
+            letter-spacing: -0.3px;
+        }
+
+        .nav-logo span {
+            display: grid;
+            place-items: center;
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--amber), #e8912a);
+            border-radius: 10px;
+            font-size: 18px;
+        }
+
+        .nav-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 99px;
+            border: 1px solid var(--border);
+            color: var(--mute);
+            letter-spacing: 0.5px;
+        }
+
+        /* ── HERO ── */
+        .hero {
+            padding: 72px 0 56px;
+            text-align: center;
+        }
+
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--amber);
+            border: 1px solid rgba(245,166,35,0.3);
+            background: rgba(245,166,35,0.06);
+            padding: 6px 14px;
+            border-radius: 99px;
+            margin-bottom: 28px;
+            opacity: 0;
+            animation: fadeUp 0.6s 0.2s ease forwards;
+        }
+
+        .hero-tag::before {
+            content: '';
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--amber);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.7); }
+        }
+
+        .hero h1 {
+            font-family: 'Bricolage Grotesque', sans-serif;
+            font-size: clamp(44px, 9vw, 72px);
+            font-weight: 800;
+            line-height: 1.0;
+            letter-spacing: -2px;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: fadeUp 0.7s 0.3s ease forwards;
+        }
+
+        .hero h1 em {
+            font-style: normal;
+            background: linear-gradient(90deg, var(--amber) 0%, #ffcc70 50%, var(--teal) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 17px;
+            color: var(--mute);
+            line-height: 1.65;
+            max-width: 440px;
+            margin: 0 auto 40px;
+            opacity: 0;
+            animation: fadeUp 0.7s 0.4s ease forwards;
+        }
+
+        /* ── STATS STRIP ── */
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            flex-wrap: wrap;
+            margin-bottom: 56px;
+            opacity: 0;
+            animation: fadeUp 0.7s 0.5s ease forwards;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-val {
+            font-family: 'Bricolage Grotesque', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .stat-lbl {
+            font-size: 12px;
+            color: var(--mute);
+            margin-top: 2px;
+        }
+
+        .stat-div {
+            width: 1px;
+            background: var(--border);
+            align-self: stretch;
+        }
+
+        /* ── DOWNLOAD CARDS ── */
+        .section-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--mute);
+            margin-bottom: 16px;
+            opacity: 0;
+            animation: fadeUp 0.6s 0.55s ease forwards;
+        }
+
+        .cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 48px;
+        }
+
+        .card {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 22px 24px;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            text-decoration: none;
+            overflow: hidden;
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+            opacity: 0;
+        }
+
+        .card:nth-child(1) { animation: fadeUp 0.6s 0.6s ease forwards; }
+        .card:nth-child(2) { animation: fadeUp 0.6s 0.68s ease forwards; }
+        .card:nth-child(3) { animation: fadeUp 0.6s 0.76s ease forwards; }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card.win::before  { background: radial-gradient(ellipse at 20% 50%, rgba(0,212,170,0.06), transparent 60%); }
+        .card.apk::before  { background: radial-gradient(ellipse at 20% 50%, rgba(255,95,109,0.06), transparent 60%); }
+        .card.web::before  { background: radial-gradient(ellipse at 20% 50%, rgba(79,172,254,0.06), transparent 60%); }
+
+        .card:hover { transform: translateY(-3px); }
+        .card:hover::before { opacity: 1; }
+        .card.win:hover  { border-color: rgba(0,212,170,0.3);  box-shadow: 0 8px 40px rgba(0,212,170,0.08); }
+        .card.apk:hover  { border-color: rgba(255,95,109,0.3); box-shadow: 0 8px 40px rgba(255,95,109,0.08); }
+        .card.web:hover  { border-color: rgba(79,172,254,0.3); box-shadow: 0 8px 40px rgba(79,172,254,0.08); }
+
+        .card-icon {
+            flex-shrink: 0;
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            font-size: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card.win  .card-icon { background: rgba(0,212,170,0.12);  }
+        .card.apk  .card-icon { background: rgba(255,95,109,0.12); }
+        .card.web  .card-icon { background: rgba(79,172,254,0.12); }
+
+        .card-body {
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-title {
+            font-family: 'Bricolage Grotesque', sans-serif;
+            font-weight: 600;
+            font-size: 17px;
+            color: var(--text);
+            margin-bottom: 3px;
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: var(--mute);
+        }
+
+        .card-pill {
+            position: relative;
+            z-index: 1;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 5px 11px;
+            border-radius: 99px;
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+        }
+
+        .card.win  .card-pill { background: rgba(0,212,170,0.1);  color: var(--teal); border: 1px solid rgba(0,212,170,0.25); }
+        .card.apk  .card-pill { background: rgba(255,95,109,0.1); color: var(--red);  border: 1px solid rgba(255,95,109,0.25); }
+        .card.web  .card-pill { background: rgba(79,172,254,0.1); color: var(--blue); border: 1px solid rgba(79,172,254,0.25); }
+
+        .card-arrow {
+            position: relative;
+            z-index: 1;
+            color: var(--mute);
+            font-size: 18px;
+            transition: transform 0.2s, color 0.2s;
+        }
+        .card:hover .card-arrow { transform: translate(3px, -3px); color: var(--text); }
+
+        /* ── FEATURES ── */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 48px;
+            opacity: 0;
+            animation: fadeUp 0.6s 0.85s ease forwards;
+        }
+
+        .feat {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px 18px;
+            text-align: center;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .feat:hover {
+            border-color: rgba(245,166,35,0.25);
+            transform: translateY(-2px);
+        }
+
+        .feat-icon {
+            font-size: 26px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .feat-name {
+            font-family: 'Bricolage Grotesque', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .feat-desc {
+            font-size: 11.5px;
+            color: var(--mute);
+            line-height: 1.5;
+        }
+
+        /* ── PREVIEW IMAGE ── */
+        .preview {
+            position: relative;
+            margin-bottom: 48px;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            opacity: 0;
+            animation: fadeUp 0.6s 0.72s ease forwards;
+        }
+
+        .preview img {
+            width: 100%;
+            display: block;
+            border-radius: 20px;
+        }
+
+        .preview-overlay {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 60%;
+            background: linear-gradient(to top, var(--bg), transparent);
+            pointer-events: none;
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            text-align: center;
+            color: var(--mute);
+            font-size: 13px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border);
+            opacity: 0;
+            animation: fadeUp 0.5s 1s ease forwards;
+        }
+
+        footer span { color: var(--amber); }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 520px) {
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .hero h1 { letter-spacing: -1px; }
+            .stats { gap: 20px; }
+            .card { padding: 18px; gap: 14px; }
+            .card-icon { width: 44px; height: 44px; font-size: 20px; }
+        }
+
+        @media (max-width: 360px) {
+            .features-grid { grid-template-columns: 1fr; }
+            .card-pill { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<div class="wrap">
+
+    <nav>
+        <div class="nav-logo">
+            <span>🎓</span>
+            StudentPro
+        </div>
+        <div class="nav-badge">v2.0 Beta</div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-tag">Study smarter, not harder</div>
+        <h1>Your personal<br><em>study engine</em></h1>
+        <p>Track subjects, crush deadlines, and study with focus — on any device, anytime.</p>
+    </section>
+
+    <!-- STATS -->
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-val">3+</div>
+            <div class="stat-lbl">Platforms</div>
+        </div>
+        <div class="stat-div"></div>
+        <div class="stat">
+            <div class="stat-val">25</div>
+            <div class="stat-lbl">Min Focus Sessions</div>
+        </div>
+        <div class="stat-div"></div>
+        <div class="stat">
+            <div class="stat-val">100%</div>
+            <div class="stat-lbl">Free</div>
+        </div>
+    </div>
+
+    <!-- PREVIEW IMAGE -->
+    <div class="preview">
+        <img src="dashboard.png" alt="StudentPro Dashboard Preview">
+        <div class="preview-overlay"></div>
+    </div>
+
+    <!-- DOWNLOAD SECTION -->
+    <div class="section-label">Choose your platform</div>
+
+    <div class="cards">
+        <a href="https://www.mediafire.com/file/60a87sv5kewr4g4/StudentPro_Setup.exe/file"
+           target="_blank" class="card win">
+            <div class="card-icon">💻</div>
+            <div class="card-body">
+                <div class="card-title">Windows App</div>
+                <div class="card-desc">Full desktop experience, offline support</div>
+            </div>
+            <div class="card-pill">EXE · Win 10+</div>
+            <div class="card-arrow">↗</div>
+        </a>
+
+        <a href="https://www.mediafire.com/file/c4as1muqgrgpmw0/StudentPro.apk/file"
+           target="_blank" class="card apk">
+            <div class="card-icon">📱</div>
+            <div class="card-body">
+                <div class="card-title">Android App</div>
+                <div class="card-desc">Study on the go, works offline</div>
+            </div>
+            <div class="card-pill">APK · Android 8+</div>
+            <div class="card-arrow">↗</div>
+        </a>
+
+        <a href="webversion/index.html" class="card web">
+            <div class="card-icon">🌐</div>
+            <div class="card-body">
+                <div class="card-title">Web Version</div>
+                <div class="card-desc">No install needed, open instantly</div>
+            </div>
+            <div class="card-pill">Open Now →</div>
+            <div class="card-arrow">↗</div>
+        </a>
+    </div>
+
+    <!-- FEATURES -->
+    <div class="features-grid">
+        <div class="feat">
+            <span class="feat-icon">📚</span>
+            <div class="feat-name">Study Planner</div>
+            <div class="feat-desc">Organize subjects & track chapters</div>
+        </div>
+        <div class="feat">
+            <span class="feat-icon">⏱️</span>
+            <div class="feat-name">Pomodoro Timer</div>
+            <div class="feat-desc">Deep focus with session tracking</div>
+        </div>
+        <div class="feat">
+            <span class="feat-icon">🏆</span>
+            <div class="feat-name">Gamification</div>
+            <div class="feat-desc">XP, levels & global leaderboard</div>
+        </div>
+        <div class="feat">
+            <span class="feat-icon">☁️</span>
+            <div class="feat-name">Cloud Sync</div>
+            <div class="feat-desc">Always in sync across devices</div>
+        </div>
+        <div class="feat">
+            <span class="feat-icon">📊</span>
+            <div class="feat-name">Analytics</div>
+            <div class="feat-desc">Visualize your study habits</div>
+        </div>
+        <div class="feat">
+            <span class="feat-icon">🌙</span>
+            <div class="feat-name">Dark Mode</div>
+            <div class="feat-desc">Easy on the eyes, day or night</div>
+        </div>
+    </div>
+
+    <footer>
+        Made with <span>♥</span> for students worldwide · By Chenoufi
+    </footer>
+
+</div>
+
+<script>
+/* Animated floating particles background */
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+
+let W, H, particles;
+
+function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+}
+
+function makeParticle() {
+    const colors = ['rgba(245,166,35,', 'rgba(0,212,170,', 'rgba(79,172,254,'];
+    const c = colors[Math.floor(Math.random() * colors.length)];
+    return {
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.8 + 0.3,
+        vx: (Math.random() - 0.5) * 0.18,
+        vy: (Math.random() - 0.5) * 0.18,
+        alpha: Math.random() * 0.4 + 0.1,
+        color: c
+    };
+}
+
+function init() {
+    resize();
+    particles = Array.from({ length: 80 }, makeParticle);
+}
+
+function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    /* subtle radial glow in center-top */
+    const g = ctx.createRadialGradient(W * 0.5, H * 0.1, 0, W * 0.5, H * 0.1, W * 0.55);
+    g.addColorStop(0, 'rgba(91,95,199,0.05)');
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.color + p.alpha + ')';
+        ctx.fill();
+
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < -10) p.x = W + 10;
+        if (p.x > W + 10) p.x = -10;
+        if (p.y < -10) p.y = H + 10;
+        if (p.y > H + 10) p.y = -10;
+    });
+
+    requestAnimationFrame(draw);
+}
+
+window.addEventListener('resize', () => {
+    resize();
+    particles.forEach(p => {
+        p.x = Math.min(p.x, W);
+        p.y = Math.min(p.y, H);
+    });
+});
+
+init();
+draw();
+</script>
+
+</body>
+</html>

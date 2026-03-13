@@ -1,0 +1,175 @@
+/* ============================================================
+   STUDY PLANNER
+   ============================================================ */
+
+/* Semester Selector Row */
+.h-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.h-right select {
+    margin-bottom: 0;
+    padding: 9px 14px;
+    min-width: 180px;
+}
+
+/* Subjects Grid */
+#subjects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+/* Subject Card */
+.subject-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.subject-card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.subject-card.active {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.subject-card h4 {
+    font-family: 'Sora', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--text);
+}
+
+/* List Items (generic) */
+.list-item {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 13px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+}
+
+.list-item:hover { border-color: var(--primary); }
+
+.list-item.active {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.list-item span { font-size: 14px; font-weight: 500; }
+
+/* Subject Card Actions */
+.subject-card-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+/* Chapter Buttons */
+.chapter-btn {
+    padding: 7px 11px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--progress-bg);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-mute);
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.chapter-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+.chapter-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Mini Progress Bar */
+.mini-progress-container {
+    width: 100%;
+    height: 5px;
+    background: var(--progress-bg);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.mini-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-radius: 99px;
+    transition: width 0.4s cubic-bezier(.4,0,.2,1);
+}
+
+/* Subject Details Panel */
+#subject-details-panel {
+    transition: opacity 0.2s;
+}
+
+#subject-details-panel.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* Chapter list inside subject window */
+#sw-chapters-list .list-item {
+    font-size: 14px;
+}
+
+/* Add chapter area */
+.add-chapter-area {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.add-chapter-area input {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.add-chapter-area .primary-btn {
+    flex-shrink: 0;
+    padding: 11px 16px;
+}
+
+/* Subject progress display */
+#subject-progress-bar {
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+}
+
+/* Planner Two-Column Layout */
+.planner-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .planner-layout {
+        grid-template-columns: 1fr;
+    }
+}

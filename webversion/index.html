@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>StudentPro — Study Sync</title>
+
+    <!-- Modular Styles -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/planner.css">
+    <link rel="stylesheet" href="css/pomodoro.css">
+    <link rel="stylesheet" href="css/responsive.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
+
+    <!-- Supabase & Charts -->
+    <script src="assets/vendor/supabase.js"></script>
+    <script src="assets/vendor/chart.js"></script>
+</head>
+<body class="light-theme">
+
+    <!-- ==========================================
+         MOBILE TOP HEADER
+    ========================================== -->
+    <header id="mobile-header" class="hidden-desktop">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span class="logo-icon" style="font-size:22px;">🎓</span>
+            <h1 class="logo-text" style="font-size:18px;">StudentPro</h1>
+        </div>
+        <button id="mobile-logout-btn" class="btn-icon" title="Logout">
+            <i class="fas fa-sign-out-alt"></i>
+        </button>
+    </header>
+
+    <!-- ==========================================
+         1. LOGIN SCREEN
+    ========================================== -->
+    <div id="login-screen" class="hidden">
+        <form id="login-form" class="login-card card" novalidate>
+            <span class="logo-icon">🎓</span>
+            <h2 id="login-title">StudentPro Sync</h2>
+            <p id="login-desc" class="mute">Connect to your cloud database</p>
+
+            <!-- Language Selector -->
+            <div id="login-lang-selector">
+                <select id="login-lang-select">
+                    <option value="English">🌐 English</option>
+                    <option value="Arabic">🌐 العربية</option>
+                    <option value="French">🌐 Français</option>
+                </select>
+            </div>
+
+            <!-- Auth Tabs -->
+            <div class="auth-tabs">
+                <button type="button" id="tab-login" class="auth-tab active">Login</button>
+                <button type="button" id="tab-signup" class="auth-tab">Create Account</button>
+            </div>
+
+            <!-- Auth Fields -->
+            <div id="auth-fields">
+                <input type="email" id="login-email" name="email"
+                    autocomplete="username" placeholder="Email Address" required>
+
+                <div id="password-area">
+                    <div class="password-group">
+                        <input type="password" id="login-password" name="password"
+                            autocomplete="current-password" placeholder="Password" required>
+                        <button type="button" id="toggle-password" class="btn-icon" title="Show/hide password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BUG FIX: do-signup-btn had class "auth-tab" (wrong) — now uses correct ID styling -->
+            <button type="submit" id="do-login-btn" class="primary-btn">Login</button>
+            <button type="button" id="do-signup-btn">Create New Account</button>
+            <button type="button" id="work-offline-btn" class="secondary-btn">Work Offline</button>
+
+            <p id="login-error" class="error-text hidden"></p>
+        </form>
+    </div>
+
+    <!-- ==========================================
+         2. MAIN APP
+    ========================================== -->
+    <div id="app" class="hidden">
+
+        <!-- Sidebar -->
+        <aside id="sidebar">
+            <div class="logo-container">
+                <span class="logo-icon">🎓</span>
+                <h1 class="logo-text">StudentPro</h1>
+            </div>
+
+            <div id="user-info-sidebar">
+                <p id="sidebar-user-email">👤 Connecting...</p>
+                <div class="sync-status-row">
+                    <p id="last-sync-label">🔄 Last sync: Never</p>
+                    <button id="manual-sync-btn" class="btn-icon" title="Sync now">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+
+            <nav id="navigation">
+                <button class="nav-btn active" data-tab="dashboard">
+                    <i class="fas fa-th-large"></i>
+                    <span class="nav-text">Dashboard</span>
+                </button>
+                <button class="nav-btn" data-tab="planner">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span class="nav-text">Planner</span>
+                </button>
+                <button class="nav-btn" data-tab="pomodoro">
+                    <i class="fas fa-clock"></i>
+                    <span class="nav-text">Pomodoro</span>
+                </button>
+                <button class="nav-btn" data-tab="analytics">
+                    <i class="fas fa-chart-pie"></i>
+                    <span class="nav-text">Analytics</span>
+                </button>
+                <button class="nav-btn" data-tab="leaderboard">
+                    <i class="fas fa-trophy"></i>
+                    <span class="nav-text">Leaderboard</span>
+                </button>
+                <button class="nav-btn" data-tab="settings">
+                    <i class="fas fa-cog"></i>
+                    <span class="nav-text">Settings</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="logout-btn" class="nav-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="nav-text">Logout</span>
+                </button>
+                <p class="version">v3.0 · By Chenoufi</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main id="content">
+
+            <!-- ==========================================
+                 DASHBOARD TAB
+            ========================================== -->
+            <section id="dashboard" class="tab-content active">
+                <div class="header">
+                    <div>
+                        <h2 class="h1">Dashboard</h2>
+                        <p id="current-date" class="mute">Loading date...</p>
+                    </div>
+                </div>
+
+                <!-- Stats Row — BUG FIX: now has proper grid CSS defined in main.css -->
+                <div class="stats-row">
+                    <div class="stat-card card">
+                        <p class="mute" id="dash-progress-label">📈 Overall Progress</p>
+                        <h2 id="overall-progress-val">0%</h2>
+                        <p class="mute sub">Tasks Completed</p>
+                        <div class="progress-bar-container">
+                            <div id="overall-progress-bar" class="progress-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card card">
+                        <p class="mute" id="dash-exam-label">📅 Next Exam</p>
+                        <h2 id="next-exam-val">None</h2>
+                        <p class="mute sub">Countdown</p>
+                    </div>
+                    <div class="stat-card card">
+                        <p class="mute" id="dash-streak-label">🔥 Study Streak</p>
+                        <h2 id="streak-val">0 Days</h2>
+                        <p class="mute sub">Current consistency</p>
+                    </div>
+                    <div class="stat-card card challenge-card">
+                        <p class="mute" id="dash-challenge-label">🚀 Study Challenge</p>
+                        <p id="mini-challenge-text" class="mute" style="font-size:13px; margin:6px 0;"></p>
+                        <button id="start-challenge-btn" class="primary-btn small-btn full-width" style="margin-top:8px;">
+                            Start Focus
+                        </button>
+                    </div>
+                    <div class="stat-card card daily-challenge-card">
+                        <p class="mute">📅 Daily Goal</p>
+                        <h2 id="daily-goal-val">0/3</h2>
+                        <div class="progress-bar-container">
+                            <div id="daily-goal-bar" class="progress-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-bottom">
+                    <div class="todo-column">
+                        <h3 class="h2" id="up-next-label">Up Next</h3>
+                        <div id="todo-container" class="scroll-area" style="margin-top:12px;"></div>
+                    </div>
+                    <div id="weekly-chart-container" class="card">
+                        <h3 class="h2" style="margin-bottom:16px;">📊 Weekly Activity</h3>
+                        <canvas id="weekly-chart" height="160"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 PLANNER TAB
+            ========================================== -->
+            <section id="planner" class="tab-content">
+                <div class="header">
+                    <h2 class="h1">Study Planner</h2>
+                    <div class="h-right header-actions">
+                        <select id="semester-selector"></select>
+                        <button id="add-semester-btn" class="primary-btn small-btn">
+                            <i class="fas fa-plus"></i> Semester
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Subject List -->
+                <div class="card">
+                    <h3 class="h2" style="margin-bottom:12px;">Subjects</h3>
+                    <!-- add-subject-row uses CSS class so it wraps on mobile -->
+                    <div class="add-subject-row" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px;">
+                        <input type="text" id="subject-name-input" placeholder="Subject name..." style="flex:2; min-width:140px; margin-bottom:0;">
+                        <input type="date" id="exam-date-input" style="flex:1; min-width:130px; margin-bottom:0;">
+                        <select id="subject-type-input" style="flex:1; min-width:120px; margin-bottom:0;">
+                            <option value="true">Has Exercises</option>
+                            <option value="false">Course Only</option>
+                        </select>
+                        <button id="save-subject-btn" class="primary-btn small-btn" style="white-space:nowrap;">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                    </div>
+                    <ul id="subject-list" class="scroll-area" style="list-style:none; max-height:360px;"></ul>
+                </div>
+
+                <!-- Subject Details Panel -->
+                <div id="subject-details-panel" class="card disabled">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+                        <h3 id="selected-subject-title" class="h2">Select a subject</h3>
+                        <div style="display:flex; gap:8px;">
+                            <button id="open-subject-details-btn" class="secondary-btn small-btn">
+                                <i class="fas fa-list"></i> Chapters
+                            </button>
+                            <button id="delete-subject-btn" class="danger-btn small-btn">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div id="subject-progress-bar" class="progress-bar" style="width:0%"></div>
+                    </div>
+                    <p id="subject-progress-label" class="mute" style="font-size:12px; margin-top:6px;">0% complete</p>
+                    <ul id="chapters-list-display" style="list-style:none; margin-top:12px; display:flex; flex-direction:column; gap:6px;"></ul>
+                    <textarea id="subject-notes-display" placeholder="Notes..." rows="3" style="margin-top:14px; resize:vertical;"></textarea>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 POMODORO TAB
+            ========================================== -->
+            <section id="pomodoro" class="tab-content">
+                <div class="header">
+                    <h2 class="h1">Pomodoro Timer</h2>
+                </div>
+
+                <div class="pomodoro-container">
+                    <!-- Level Header -->
+                    <div class="card pomodoro-header-card">
+                        <div class="level-info">
+                            <span id="level-display">Level 1</span>
+                            <span class="level-badge" id="level-badge-display">Beginner</span>
+                        </div>
+                        <div class="xp-container">
+                            <div class="xp-fill" id="xp-bar" style="width:0%"></div>
+                        </div>
+                        <p class="mute" style="font-size:12px; margin-top:6px;" id="xp-label">0 / 500 XP</p>
+                    </div>
+
+                    <div class="focus-grid">
+                        <!-- Timer Card -->
+                        <div class="card timer-card">
+                            <div class="timer-display-wrapper">
+                                <svg class="timer-svg" viewBox="0 0 100 100">
+                                    <defs>
+                                        <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" style="stop-color:var(--primary);stop-opacity:1" />
+                                            <stop offset="100%" style="stop-color:var(--secondary);stop-opacity:1" />
+                                        </linearGradient>
+                                    </defs>
+                                    <circle class="timer-bg" cx="50" cy="50" r="45"/>
+                                    <circle class="timer-path" cx="50" cy="50" r="45"/>
+                                </svg>
+                                <div class="timer-inner-content">
+                                    <div class="timer-digits" id="timer-display">25:00</div>
+                                    <div class="timer-status" id="timer-status">Focus Time</div>
+                                </div>
+                            </div>
+
+                            <div class="timer-controls-row">
+                                <button id="timer-start" class="primary-btn play-btn">
+                                    <i class="fas fa-play"></i> Start Focus
+                                </button>
+                                <button id="timer-reset" class="secondary-btn icon-only-btn" title="Reset">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Controls Column -->
+                        <div class="controls-column">
+                            <!-- Subject Selector -->
+                            <div class="card control-card">
+                                <h4>📚 Studying</h4>
+                                <select id="active-subject-selector" class="modern-select">
+                                    <option value="">Select Subject</option>
+                                </select>
+                                <p id="smart-suggestion" class="mute">Smart Suggestion</p>
+                            </div>
+
+                            <!-- Lo-Fi Music -->
+                            <div class="card control-card">
+                                <h4>🎵 Focus Music</h4>
+                                <div class="lofi-controls">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="lofi-toggle">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <select id="lofi-music-select" class="modern-select" style="flex:1; margin-bottom:0;">
+                                        <option value="fassounds-lofi-study-calm-peaceful-chill-hop-112191.mp3">Lo-Fi Beats</option>
+                                        <option value="lofi_rain.mp3">Rainy Lo-Fi</option>
+                                        <option value="nature.mp3">Nature Sounds</option>
+                                    </select>
+                                </div>
+                                <audio id="bg-music-player" loop></audio>
+                            </div>
+
+                            <!-- Session Stats -->
+                            <div class="card control-card">
+                                <h4>📈 Today</h4>
+                                <div class="session-stats">
+                                    <div class="stat-pill">
+                                        <div class="val" id="sessions-today">0</div>
+                                        <div class="lbl">Sessions</div>
+                                    </div>
+                                    <div class="stat-pill">
+                                        <div class="val" id="minutes-today">0</div>
+                                        <div class="lbl">Minutes</div>
+                                    </div>
+                                    <div class="stat-pill">
+                                        <div class="val" id="xp-today">0</div>
+                                        <div class="lbl">XP Earned</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- YouTube Embed Card -->
+                    <div id="youtube-video-card" class="card" style="display:none;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <h4 class="h2">📹 Lecture Video</h4>
+                            <button id="open-youtube-btn" class="secondary-btn small-btn">
+                                <i class="fab fa-youtube" style="color:red;"></i> Open
+                            </button>
+                        </div>
+                        <iframe id="youtube-iframe" width="100%" height="220" frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen style="border-radius:12px;"></iframe>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 ANALYTICS TAB
+            ========================================== -->
+            <section id="analytics" class="tab-content">
+                <div class="header">
+                    <h2 class="h1">Analytics</h2>
+                </div>
+                <div class="analytics-grid">
+                    <div class="card chart-card">
+                        <h3 class="h2" style="margin-bottom:16px;">📅 Weekly Sessions</h3>
+                        <canvas id="weekly-bar-chart" height="200"></canvas>
+                    </div>
+                    <div class="card chart-card">
+                        <h3 class="h2" style="margin-bottom:16px;">📊 Subject Progress</h3>
+                        <canvas id="subject-pie-chart" height="200"></canvas>
+                    </div>
+                    <div class="card chart-card">
+                        <h3 class="h2" style="margin-bottom:16px;">🕐 Subject Time Breakdown</h3>
+                        <div id="subject-breakdown-list" class="list-widget" style="margin-top:12px;"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 LEADERBOARD TAB
+            ========================================== -->
+            <section id="leaderboard" class="tab-content">
+                <div class="header">
+                    <h2 class="h1">Leaderboard</h2>
+                </div>
+                <div class="card">
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center; width:60px;">Rank</th>
+                                <th>Student</th>
+                                <th style="text-align:center;">Level</th>
+                                <th style="text-align:center;">Sessions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-body">
+                            <tr>
+                                <td colspan="4" style="padding:20px; text-align:center; color:var(--text-mute);">
+                                    Loading leaderboard...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 SETTINGS TAB
+            ========================================== -->
+            <section id="settings" class="tab-content">
+                <div class="header">
+                    <h2 class="h1">Settings</h2>
+                </div>
+                <div class="settings-container">
+                    <!-- Account Profile -->
+                    <div class="card">
+                        <h3 class="h2" style="margin-bottom:14px;">👤 Account Profile</h3>
+                        <div class="setting-item">
+                            <label>Name</label>
+                            <span id="acc-display-name" style="font-weight:600;">—</span>
+                        </div>
+                        <div class="setting-item">
+                            <label>Email</label>
+                            <span id="acc-email" class="mute" style="font-size:13px;">—</span>
+                        </div>
+                        <div class="setting-item">
+                            <label>Progress</label>
+                            <span id="acc-stats" class="banner" style="background:var(--primary-light); color:var(--primary);">
+                                Level 1 Student
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- General Settings -->
+                    <div class="card">
+                        <h3 class="h2" style="margin-bottom:14px;">⚙️ General</h3>
+                        <div class="setting-item">
+                            <label>Language</label>
+                            <select id="lang-select" style="margin-bottom:0;">
+                                <option value="English">English</option>
+                                <option value="Arabic">العربية</option>
+                                <option value="French">Français</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label>Theme</label>
+                            <select id="theme-select" style="margin-bottom:0;">
+                                <option value="Light">☀️ Light</option>
+                                <option value="Dark">🌙 Dark</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Cloud Sync -->
+                    <div class="card">
+                        <h3 class="h2" id="cloud-sync-title" style="margin-bottom:14px;">☁️ Cloud Sync</h3>
+                        <div class="setting-item">
+                            <label id="sync-mode-label">Sync Mode</label>
+                            <select id="sync-mode-select" style="margin-bottom:0;">
+                                <option value="Automatic">Automatic</option>
+                                <option value="Manual">Manual</option>
+                            </select>
+                        </div>
+                        <div class="sync-buttons">
+                            <button id="web-upload-btn" class="secondary-btn small-btn">
+                                <i class="fas fa-cloud-upload-alt"></i> Upload
+                            </button>
+                            <button id="web-download-btn" class="secondary-btn small-btn">
+                                <i class="fas fa-cloud-download-alt"></i> Download
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Danger Zone -->
+                    <div class="card danger-zone">
+                        <h3 class="h2" style="margin-bottom:14px; color:var(--danger);">⚠️ Danger Zone</h3>
+                        <p class="mute" style="font-size:13px; margin-bottom:14px;">
+                            This will permanently delete all your study data from both local storage and the cloud.
+                        </p>
+                        <button id="reset-data-btn" class="danger-btn">
+                            <i class="fas fa-trash-alt"></i> Reset All Data
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ==========================================
+         MODALS
+    ========================================== -->
+    <div id="modal-container" class="hidden">
+
+        <!-- Welcome / Onboarding Modal -->
+        <div id="welcome-modal" class="modal hidden" style="text-align:center;">
+            <span class="logo-icon" style="font-size:48px; display:block; margin-bottom:8px;">🎓</span>
+            <h2 class="h2" id="welcome-title" style="margin-bottom:6px;">Welcome to StudentPro!</h2>
+            <p id="welcome-desc" class="mute" style="margin-bottom:20px;">Set your name and choose a template to begin.</p>
+
+            <div style="margin-bottom:16px;">
+                <input type="text" id="user-display-name"
+                    placeholder="What should we call you?"
+                    style="text-align:center; font-size:15px; font-weight:600;">
+            </div>
+
+            <div style="margin-bottom:14px;">
+                <label class="mute" style="display:block; margin-bottom:6px; text-align:left; font-size:13px;">Select Your Year:</label>
+                <select id="year-selector">
+                    <option value="">— Select Year —</option>
+                    <option value="bac">BAC (Final Year)</option>
+                    <option value="2as">2AS (2nd Year Secondary)</option>
+                    <option value="l1">L1 (1st Year University)</option>
+                    <option value="l2">L2 (2nd Year University)</option>
+                    <option value="l3">L3 (3rd Year University)</option>
+                </select>
+            </div>
+
+            <div id="specialization-container" class="hidden" style="margin-bottom:14px;">
+                <label class="mute" style="display:block; margin-bottom:6px; text-align:left; font-size:13px;">Choose Specialization:</label>
+                <select id="spec-selector"></select>
+            </div>
+
+            <div class="modal-actions" style="justify-content:center;">
+                <button class="secondary-btn" id="skip-onboarding-btn">Create Custom</button>
+                <button class="primary-btn" id="start-onboarding-btn" disabled>Let's get started 🚀</button>
+            </div>
+        </div>
+
+        <!-- Add Semester Modal -->
+        <div id="add-semester-modal" class="modal hidden">
+            <div class="modal-header">
+                <h3 class="h2">New Semester</h3>
+            </div>
+            <p class="mute" style="margin-bottom:14px;">Create a custom semester or apply a template.</p>
+
+            <input type="text" id="semester-name-input"
+                placeholder="Semester Name (e.g., Spring 2026)">
+
+            <div style="margin-bottom:14px;">
+                <label class="mute" style="display:block; margin-bottom:6px; font-size:13px;">Quick Template (Year):</label>
+                <select id="semester-template-selector">
+                    <option value="">— No Template (Custom) —</option>
+                    <option value="bac">BAC (Final Year)</option>
+                    <option value="2as">2AS (2nd Year Secondary)</option>
+                    <option value="l1">L1 (1st Year University)</option>
+                    <option value="l2">L2 (2nd Year University)</option>
+                    <option value="l3">L3 (3rd Year University)</option>
+                </select>
+            </div>
+
+            <div id="semester-spec-container" class="hidden" style="margin-bottom:16px;">
+                <label class="mute" style="display:block; margin-bottom:6px; font-size:13px;">Choose Specialization:</label>
+                <select id="semester-spec-selector"></select>
+            </div>
+
+            <div class="modal-actions">
+                <button class="secondary-btn" id="close-semester-modal">Cancel</button>
+                <button class="primary-btn" id="save-semester-modal-btn">Create Semester</button>
+            </div>
+        </div>
+
+        <!-- Subject Chapter Manager Modal -->
+        <div id="subject-window-modal" class="modal large-modal hidden">
+            <div class="modal-header">
+                <h2 class="h2" id="sw-title">Subject</h2>
+                <button class="btn-icon" id="close-sw-modal" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="sw-content">
+                <!-- BUG FIX: exam date now auto-saves via event listener in app.js -->
+                <div style="margin-bottom:12px;">
+                    <label class="mute" style="font-size:12px; display:block; margin-bottom:4px;">📅 Exam Date:</label>
+                    <input type="date" id="sw-exam-date-input">
+                </div>
+
+                <div class="add-chapter-area">
+                    <input type="text" id="sw-chapter-input" placeholder="Add Chapter...">
+                    <button id="sw-add-chapter-btn" class="primary-btn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+
+                <div style="margin-bottom:12px;">
+                    <input type="url" id="sw-youtube-input" placeholder="YouTube URL (optional)...">
+                </div>
+
+                <div id="sw-chapters-list" class="scroll-area"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Toast Container (injected by JS, fallback here) -->
+    <div id="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="translations.js"></script>
+    <script src="templates.js"></script>
+    <script src="auth.js"></script>
+    <script src="db.js"></script>
+    <script src="app.js"></script>
+
+</body>
+</html>

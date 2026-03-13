@@ -1,0 +1,234 @@
+/* ============================================================
+   AUTH / LOGIN SCREEN
+   ============================================================ */
+
+#login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Decorative background blobs */
+#login-screen::before,
+#login-screen::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+#login-screen::before {
+    width: 400px; height: 400px;
+    background: var(--primary);
+    top: -100px; left: -100px;
+}
+
+#login-screen::after {
+    width: 350px; height: 350px;
+    background: var(--secondary);
+    bottom: -80px; right: -80px;
+}
+
+/* Login Card */
+.login-card {
+    position: relative;
+    z-index: 1;
+    max-width: 440px;
+    width: 92%;
+    padding: 44px 40px;
+    background: var(--card);
+    border-radius: 28px;
+    box-shadow: 0 24px 60px rgba(91,95,199,0.15), 0 8px 24px rgba(0,0,0,0.08);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    animation: cardEntrance 0.4s cubic-bezier(.4,0,.2,1);
+}
+
+@keyframes cardEntrance {
+    from { opacity: 0; transform: translateY(30px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.login-card .logo-icon {
+    font-size: 52px;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 4px 12px rgba(91,95,199,0.3));
+}
+
+.login-card h2 {
+    font-family: 'Sora', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 4px;
+}
+
+.login-card p.mute {
+    font-size: 14px;
+    margin-bottom: 24px;
+    color: var(--text-mute);
+}
+
+/* Language Selector on Login */
+#login-lang-selector {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+#login-lang-select {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--progress-bg);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+/* Auth Tabs */
+.auth-tabs {
+    display: flex;
+    width: 100%;
+    background: var(--progress-bg);
+    padding: 4px;
+    border-radius: 12px;
+    margin-bottom: 22px;
+    gap: 4px;
+}
+
+.auth-tab {
+    flex: 1;
+    padding: 9px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--text-mute);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.auth-tab.active {
+    background: var(--card);
+    color: var(--primary);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* Auth Fields */
+#auth-fields {
+    width: 100%;
+}
+
+#auth-fields input {
+    width: 100%;
+    text-align: left;
+}
+
+html[dir="rtl"] #auth-fields input { text-align: right; }
+
+/* Password Group */
+.password-group {
+    position: relative;
+    width: 100%;
+}
+
+.password-group input {
+    padding-right: 48px;
+    margin-bottom: 10px;
+}
+
+html[dir="rtl"] .password-group input {
+    padding-right: 14px;
+    padding-left: 48px;
+}
+
+#toggle-password {
+    position: absolute;
+    right: 14px;
+    top: 38%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-mute);
+    font-size: 15px;
+    padding: 4px;
+    border-radius: 6px;
+    transition: color 0.2s;
+}
+
+html[dir="rtl"] #toggle-password {
+    right: auto;
+    left: 14px;
+}
+
+#toggle-password:hover { color: var(--primary); }
+
+/* Login Buttons */
+.login-card .primary-btn {
+    width: 100%;
+    padding: 13px;
+    font-size: 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+}
+
+/* BUG FIX: do-signup-btn had class "auth-tab" incorrectly */
+#do-signup-btn {
+    width: 100%;
+    padding: 13px;
+    font-size: 15px;
+    border-radius: 12px;
+    margin-bottom: 0;
+    background: var(--primary-light);
+    color: var(--primary);
+    border: 1.5px solid rgba(91,95,199,0.25);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#do-signup-btn:hover {
+    background: var(--primary);
+    color: white;
+}
+
+#work-offline-btn {
+    width: 100%;
+    margin-top: 8px !important;
+    color: var(--text-mute);
+    font-size: 13px;
+}
+
+/* Error Text */
+.error-text {
+    color: var(--danger);
+    font-size: 13px;
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: var(--danger-light);
+    border-radius: 10px;
+    border: 1px solid rgba(239,68,68,0.2);
+    width: 100%;
+    text-align: left;
+}
+
+html[dir="rtl"] .error-text { text-align: right; }
