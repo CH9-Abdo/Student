@@ -342,6 +342,12 @@ class StudentProApp {
             });
         });
 
+        // Dashboard - Start Focus button navigates to Pomodoro
+        get('start-challenge-btn')?.addEventListener('click', () => {
+            console.log("[App] Nav: Switching to Pomodoro timer");
+            this.switchTab('pomodoro');
+        });
+
         // Planner
         get('add-semester-btn')?.addEventListener('click', () => {
             this.showModal('add-semester-modal');
