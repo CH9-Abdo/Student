@@ -8,6 +8,7 @@
     <!-- Modular Styles -->
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/planner.css">
     <link rel="stylesheet" href="css/pomodoro.css">
     <link rel="stylesheet" href="css/responsive.css">
@@ -148,59 +149,119 @@
                  DASHBOARD TAB
             ========================================== -->
             <section id="dashboard" class="tab-content active">
-                <div class="header">
-                    <div>
-                        <h2 class="h1">Dashboard</h2>
-                        <p id="current-date" class="mute">Loading date...</p>
+
+                <!-- ── Banner ─────────────────────────────── -->
+                <div class="db-banner">
+                    <div class="db-banner-text">
+                        <p class="db-date" id="current-date">Loading…</p>
+                        <h2 class="db-title">Welcome back, <em id="dash-username">Student</em></h2>
+                        <p class="db-subtitle" id="mini-challenge-text">Keep pushing — every session counts.</p>
                     </div>
+                    <button id="start-challenge-btn" class="db-cta-btn">
+                        <i class="fas fa-bolt"></i><span>Start Focus</span>
+                    </button>
+                    <!-- decorative circles -->
+                    <div class="db-banner-blob b1"></div>
+                    <div class="db-banner-blob b2"></div>
                 </div>
 
-                <!-- Stats Row — BUG FIX: now has proper grid CSS defined in main.css -->
-                <div class="stats-row">
-                    <div class="stat-card card">
-                        <p class="mute" id="dash-progress-label">📈 Overall Progress</p>
-                        <h2 id="overall-progress-val">0%</h2>
-                        <p class="mute sub">Tasks Completed</p>
-                        <div class="progress-bar-container">
-                            <div id="overall-progress-bar" class="progress-bar" style="width:0%"></div>
+                <!-- ── KPI Strip ───────────────────────────── -->
+                <div class="db-kpi-strip">
+
+                    <!-- Progress ring tile -->
+                    <div class="db-kpi-tile db-kpi-ring" id="db-tile-progress">
+                        <div class="db-kpi-ring-wrap">
+                            <svg viewBox="0 0 80 80">
+                                <defs>
+                                    <linearGradient id="dbRingGrad" x1="0" y1="0" x2="1" y2="1">
+                                        <stop offset="0%"   stop-color="#5b5fc7"/>
+                                        <stop offset="100%" stop-color="#0ea5a0"/>
+                                    </linearGradient>
+                                </defs>
+                                <circle class="dbr-track" cx="40" cy="40" r="32"/>
+                                <circle class="dbr-fill"  cx="40" cy="40" r="32" id="overall-ring-fill"/>
+                            </svg>
+                            <span class="db-ring-num" id="overall-progress-val">0%</span>
+                        </div>
+                        <div class="db-kpi-meta">
+                            <p class="db-kpi-label" id="dash-progress-label">Overall</p>
+                            <p class="db-kpi-sub"><span id="dash-chapters-done">0</span>/<span id="dash-chapters-total">0</span> tasks</p>
+                        </div>
+                        <div id="overall-progress-bar" style="display:none;"></div>
+                    </div>
+
+                    <!-- Exam tile -->
+                    <div class="db-kpi-tile" id="db-tile-exam">
+                        <div class="db-kpi-icon" style="--ic:#f59e0b;--icbg:rgba(245,158,11,.12);">
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                        <p class="db-kpi-label" id="dash-exam-label">Next Exam</p>
+                        <p class="db-kpi-big" id="next-exam-val">—</p>
+                        <p class="db-kpi-sub" id="next-exam-sub">No exams set</p>
+                    </div>
+
+                    <!-- Streak tile -->
+                    <div class="db-kpi-tile" id="db-tile-streak">
+                        <div class="db-kpi-icon" style="--ic:#ef4444;--icbg:rgba(239,68,68,.1);">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <p class="db-kpi-label" id="dash-streak-label">Streak</p>
+                        <p class="db-kpi-big" id="streak-val">0</p>
+                        <p class="db-kpi-sub">days in a row</p>
+                    </div>
+
+                    <!-- Sessions tile -->
+                    <div class="db-kpi-tile" id="db-tile-sessions">
+                        <div class="db-kpi-icon" style="--ic:#0ea5a0;--icbg:rgba(14,165,160,.1);">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <p class="db-kpi-label">Sessions</p>
+                        <p class="db-kpi-big" id="dash-total-sessions">0</p>
+                        <p class="db-kpi-sub">pomodoros done</p>
+                    </div>
+
+                    <!-- Daily goal tile -->
+                    <div class="db-kpi-tile db-kpi-goal">
+                        <div class="db-goal-header">
+                            <p class="db-kpi-label">Daily Goal</p>
+                            <span id="daily-goal-val" class="db-goal-count">0/3</span>
+                        </div>
+                        <div class="db-goal-dots" id="daily-dots">
+                            <span class="ddot"></span>
+                            <span class="ddot"></span>
+                            <span class="ddot"></span>
+                        </div>
+                        <div class="db-goal-track">
+                            <div id="daily-goal-bar" class="db-goal-fill"></div>
                         </div>
                     </div>
-                    <div class="stat-card card">
-                        <p class="mute" id="dash-exam-label">📅 Next Exam</p>
-                        <h2 id="next-exam-val">None</h2>
-                        <p class="mute sub">Countdown</p>
-                    </div>
-                    <div class="stat-card card">
-                        <p class="mute" id="dash-streak-label">🔥 Study Streak</p>
-                        <h2 id="streak-val">0 Days</h2>
-                        <p class="mute sub">Current consistency</p>
-                    </div>
-                    <div class="stat-card card challenge-card">
-                        <p class="mute" id="dash-challenge-label">🚀 Study Challenge</p>
-                        <p id="mini-challenge-text" class="mute" style="font-size:13px; margin:6px 0;"></p>
-                        <button id="start-challenge-btn" class="primary-btn small-btn full-width" style="margin-top:8px;">
-                            Start Focus
-                        </button>
-                    </div>
-                    <div class="stat-card card daily-challenge-card">
-                        <p class="mute">📅 Daily Goal</p>
-                        <h2 id="daily-goal-val">0/3</h2>
-                        <div class="progress-bar-container">
-                            <div id="daily-goal-bar" class="progress-bar" style="width:0%"></div>
-                        </div>
-                    </div>
+
                 </div>
 
-                <div class="dashboard-bottom">
-                    <div class="todo-column">
-                        <h3 class="h2" id="up-next-label">Up Next</h3>
-                        <div id="todo-container" class="scroll-area" style="margin-top:12px;"></div>
+                <!-- ── Two-column bottom ───────────────────── -->
+                <div class="db-bottom">
+
+                    <!-- Up Next -->
+                    <div class="card db-upnext-card">
+                        <div class="db-card-head">
+                            <h3 class="db-card-title" id="up-next-label">Up Next</h3>
+                            <span id="todo-count-badge" class="db-count-badge">0</span>
+                        </div>
+                        <div id="todo-container" class="db-todo-list"></div>
                     </div>
-                    <div id="weekly-chart-container" class="card">
-                        <h3 class="h2" style="margin-bottom:16px;">📊 Weekly Activity</h3>
-                        <canvas id="weekly-chart" height="160"></canvas>
+
+                    <!-- Week Activity -->
+                    <div class="card db-week-card">
+                        <div class="db-card-head">
+                            <h3 class="db-card-title">This Week</h3>
+                            <span id="week-sessions-total" class="db-week-pill">0 sessions</span>
+                        </div>
+                        <div id="week-bars-container" class="db-week-bars"></div>
+                        <div id="week-subject-mini" class="db-week-legend"></div>
                     </div>
+
                 </div>
+
             </section>
 
             <!-- ==========================================
@@ -388,23 +449,66 @@
                  ANALYTICS TAB
             ========================================== -->
             <section id="analytics" class="tab-content">
-                <div class="header">
-                    <h2 class="h1">Analytics</h2>
-                </div>
-                <div class="analytics-grid">
-                    <div class="card chart-card">
-                        <h3 class="h2" style="margin-bottom:16px;">📅 Weekly Sessions</h3>
-                        <canvas id="weekly-bar-chart" height="200"></canvas>
-                    </div>
-                    <div class="card chart-card">
-                        <h3 class="h2" style="margin-bottom:16px;">📊 Subject Progress</h3>
-                        <canvas id="subject-pie-chart" height="200"></canvas>
-                    </div>
-                    <div class="card chart-card">
-                        <h3 class="h2" style="margin-bottom:16px;">🕐 Subject Time Breakdown</h3>
-                        <div id="subject-breakdown-list" class="list-widget" style="margin-top:12px;"></div>
+
+                <div class="an-header">
+                    <div>
+                        <h2 class="h1">Analytics</h2>
+                        <p class="mute" id="analytics-semester-label">All semesters</p>
                     </div>
                 </div>
+
+                <!-- KPI row -->
+                <div class="an-kpi-row" id="an-kpi-row"></div>
+
+                <!-- Main grid -->
+                <div class="an-grid">
+
+                    <!-- Subject Progress (tall, left) -->
+                    <div class="card an-card an-card-tall">
+                        <div class="an-card-head">
+                            <h3 class="an-card-title">Subject Progress</h3>
+                            <span class="an-card-badge" id="an-subjects-count">0 subjects</span>
+                        </div>
+                        <div id="an-subject-bars" class="an-subject-bars"></div>
+                    </div>
+
+                    <!-- Right column: two stacked cards -->
+                    <div class="an-right-col">
+
+                        <!-- Weekly bar chart -->
+                        <div class="card an-card">
+                            <div class="an-card-head">
+                                <h3 class="an-card-title">Weekly Sessions</h3>
+                                <span class="an-card-badge" id="an-week-total">0 this week</span>
+                            </div>
+                            <div id="an-weekly-chart" class="an-bar-chart"></div>
+                        </div>
+
+                        <!-- Exam countdown -->
+                        <div class="card an-card">
+                            <div class="an-card-head">
+                                <h3 class="an-card-title">Exam Countdown</h3>
+                            </div>
+                            <div id="an-exam-timeline" class="an-exam-list"></div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Full-width breakdown -->
+                <div class="card an-card an-card-full">
+                    <div class="an-card-head">
+                        <h3 class="an-card-title">Time per Subject</h3>
+                        <span class="an-card-badge" id="an-total-mins">0 min total</span>
+                    </div>
+                    <div id="subject-breakdown-list" class="an-breakdown"></div>
+                </div>
+
+                <!-- hidden compat canvases -->
+                <canvas id="weekly-bar-chart" style="display:none;"></canvas>
+                <canvas id="subject-pie-chart" style="display:none;"></canvas>
+
             </section>
 
             <!-- ==========================================
