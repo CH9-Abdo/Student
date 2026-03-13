@@ -1,5 +1,6 @@
 // Analytics Specific Logic
 StudentProApp.prototype.refreshAnalytics = function() {
+    const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
     const ACCENT_COLORS = ['#6366f1','#0ea5a0','#f59e0b','#ef4444','#8b5cf6','#10b981','#f43f5e','#3b82f6'];
     const subjects = db.data.subjects;
     const chapters = db.data.chapters;
@@ -24,46 +25,53 @@ StudentProApp.prototype.refreshAnalytics = function() {
     if (kpiRow) {
         const exam = db.getNextExamInfo();
         const examText = exam
-            ? (exam.days === 0 ? 'Today!' : `${exam.days}d`)
-            : '—';
+            ? (exam.days === 0 ? (T.today || 'Today!') : `${exam.days}${T.days_left ? ' ' + T.days_left : 'd'}`)
+            : (T.none || '—');
         const examNote = exam
-            ? (exam.days <= 7 ? `<span class="an-kpi-note warn">⚠ ${exam.name}</span>`
-                              : `<span class="an-kpi-note">${exam.name}</span>`)
-            : `<span class="an-kpi-note">No exams set</span>`;
+            ? (exam.days <= 7
+                ? `<span class="an-kpi-note warn">⚠ ${exam.name}</span>`
+                : `<span class="an-kpi-note">${exam.name}</span>`)
+            : `<span class="an-kpi-note">${T.no_exams_set || 'No exams set'}</span>`;
+        const weekNote = weekSessions > 0
+            ? `${weekSessions} ${T.sessions_this_week_label || 'this week'}`
+            : `0 ${T.sessions_this_week_label || 'this week'}`;
 
         kpiRow.innerHTML = `
             <div class="an-kpi" style="--kpi-color:#6366f1;">
                 <div class="an-kpi-val">${overallPerc}%</div>
-                <div class="an-kpi-lbl">Overall Progress</div>
-                <div class="an-kpi-note">${stats.done}/${stats.total} tasks</div>
+                <div class="an-kpi-lbl">${T.overall_progress_an || T.overall_progress || 'Overall Progress'}</div>
+                <div class="an-kpi-note">${stats.done}/${stats.total} ${T.tasks_label || T.tasks_completed || 'tasks'}</div>
             </div>
             <div class="an-kpi" style="--kpi-color:#0ea5a0;">
                 <div class="an-kpi-val">${totalSubs}</div>
-                <div class="an-kpi-lbl">Subjects</div>
-                <div class="an-kpi-note">${totalChaps} chapters total</div>
+                <div class="an-kpi-lbl">${T.subjects_an || T.subjects || 'Subjects'}</div>
+                <div class="an-kpi-note">${totalChaps} ${T.chapters_total || 'chapters total'}</div>
             </div>
             <div class="an-kpi" style="--kpi-color:#f59e0b;">
                 <div class="an-kpi-val">${examText}</div>
-                <div class="an-kpi-lbl">Next Exam</div>
+                <div class="an-kpi-lbl">${T.next_exam || 'Next Exam'}</div>
                 ${examNote}
             </div>
             <div class="an-kpi" style="--kpi-color:#ef4444;">
                 <div class="an-kpi-val">${totalSess}</div>
-                <div class="an-kpi-lbl">Total Sessions</div>
-                <div class="an-kpi-note ${weekSessions > 0 ? 'up' : ''}">${weekSessions} this week</div>
+                <div class="an-kpi-lbl">${T.total_sessions_label || 'Total Sessions'}</div>
+                <div class="an-kpi-note ${weekSessions > 0 ? 'up' : ''}">${weekNote}</div>
             </div>
         `;
     }
 
     // ── Subject count badge ───────────────────────────────
     const subsBadge = get('an-subjects-count');
-    if (subsBadge) subsBadge.textContent = `${totalSubs} subject${totalSubs !== 1 ? 's' : ''}`;
+    if (subsBadge) {
+        const subWord = T.subjects_an || T.subjects || 'subjects';
+        subsBadge.textContent = `${totalSubs} ${subWord}`;
+    }
 
     // ── Subject Progress Bars ─────────────────────────────
     const subBarsEl = get('an-subject-bars');
     if (subBarsEl) {
         if (subjects.length === 0) {
-            subBarsEl.innerHTML = '<div class="an-sb-empty">No subjects yet</div>';
+            subBarsEl.innerHTML = `<div class="an-sb-empty">${T.no_subjects_analytics || T.no_subjects_yet || 'No subjects yet'}</div>`;
         } else {
             subBarsEl.innerHTML = subjects.map((s, idx) => {
                 const color   = ACCENT_COLORS[idx % ACCENT_COLORS.length];
@@ -98,7 +106,12 @@ StudentProApp.prototype.refreshAnalytics = function() {
     const weekChartEl = get('an-weekly-chart');
     const weekTotalEl = get('an-week-total');
     if (weekChartEl) {
-        const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const DAYS_EN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const DAYS_AR = ['أحد','اثن','ثلا','أرب','خمي','جمع','سبت'];
+        const DAYS_FR = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+        const DAYS = this.selectedLang === 'Arabic' ? DAYS_AR
+                   : this.selectedLang === 'French' ? DAYS_FR
+                   : DAYS_EN;
         const counts = Array(7).fill(0);
         sessions.forEach(s => {
             const d    = new Date(s.timestamp || s.created_at || 0);
@@ -107,7 +120,10 @@ StudentProApp.prototype.refreshAnalytics = function() {
         });
         const maxC = Math.max(...counts, 1);
         const weekTotal7 = counts.reduce((a, b) => a + b, 0);
-        if (weekTotalEl) weekTotalEl.textContent = `${weekTotal7} this week`;
+        const sessWord = weekTotal7 === 1
+            ? (T.session_singular || 'session')
+            : (T.sessions_this_week || 'sessions');
+        if (weekTotalEl) weekTotalEl.textContent = `${weekTotal7} ${sessWord}`;
 
         weekChartEl.innerHTML = counts.map((c, i) => {
             const dayIdx   = (now.getDay() - 6 + i + 7) % 7;
@@ -137,11 +153,13 @@ StudentProApp.prototype.refreshAnalytics = function() {
             .sort((a, b) => a.days - b.days);
 
         if (exams.length === 0) {
-            examListEl.innerHTML = '<div class="an-exam-empty">No upcoming exams 🎉</div>';
+            examListEl.innerHTML = `<div class="an-exam-empty">${T.no_exams_upcoming || T.no_exams || 'No upcoming exams 🎉'}</div>`;
         } else {
             examListEl.innerHTML = exams.slice(0, 5).map(e => {
                 const cls  = e.days <= 7  ? 'urgent' : e.days <= 21 ? 'soon' : 'safe';
-                const lbl  = e.days === 0 ? 'Today!' : `${e.days}d left`;
+                const lbl  = e.days === 0
+                    ? (T.today || 'Today!')
+                    : `${e.days} ${T.days_left || 'd left'}`;
                 return `
                     <div class="an-exam-item ${cls}">
                         <span class="an-exam-name">${e.name}</span>
@@ -166,10 +184,11 @@ StudentProApp.prototype.refreshAnalytics = function() {
 
         const entries = Object.entries(subMap).sort((a, b) => b[1] - a[1]);
         const totalMins = entries.reduce((acc, [, v]) => acc + v, 0);
-        if (bkTotal) bkTotal.textContent = totalMins > 0 ? `${totalMins} min total` : '0 min total';
+        const minTotalLabel = T.min_total || 'min total';
+        if (bkTotal) bkTotal.textContent = `${totalMins} ${minTotalLabel}`;
 
         if (entries.length === 0) {
-            bkEl.innerHTML = '<div class="an-bk-empty">No sessions recorded yet</div>';
+            bkEl.innerHTML = `<div class="an-bk-empty">${T.no_sessions_analytics || T.no_sessions || 'No sessions recorded yet'}</div>`;
         } else {
             const maxVal = entries[0][1];
             bkEl.innerHTML = entries.map(([name, mins], idx) => {
@@ -182,7 +201,7 @@ StudentProApp.prototype.refreshAnalytics = function() {
                         <div class="an-bk-bar-wrap">
                             <div class="an-bk-bar" style="width:${width}%;background:${color};opacity:0.8;"></div>
                         </div>
-                        <span class="an-bk-val">${mins} min</span>
+                        <span class="an-bk-val">${mins} ${minTotalLabel}</span>
                     </div>
                 `;
             }).join('');

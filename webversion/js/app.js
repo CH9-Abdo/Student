@@ -93,73 +93,197 @@ class StudentProApp {
 
     updateLanguage() {
         console.log(`[App] Translating UI to: ${this.selectedLang}`);
-        const texts = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
+        const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
 
-        // 1. Login Screen
-        const loginIds = {
-            'login-title': 'login_title', 'login-desc': 'login_desc',
-            'login-email': 'login_email_placeholder', 'login-password': 'login_password_placeholder',
-            'do-login-btn': 'login_btn', 'do-signup-btn': 'signup_btn',
-            'tab-login': 'tab_login', 'tab-signup': 'tab_signup',
-            'work-offline-btn': 'work_offline'
-        };
-        for (let [id, key] of Object.entries(loginIds)) {
+        // Helper: set textContent or placeholder
+        const t = (id, key, attr) => {
             const el = get(id);
-            if (!el) continue;
-            if (el.tagName === 'INPUT') el.placeholder = texts[key] || el.placeholder;
-            else el.textContent = texts[key] || el.textContent;
-        }
-
-        // 2. Sidebar Navigation
-        const navItems = {
-            'dashboard': 'dashboard', 'planner': 'planner',
-            'pomodoro': 'pomodoro', 'analytics': 'analytics',
-            'leaderboard': 'leaderboard', 'settings': 'settings'
+            if (!el || !T[key]) return;
+            if (attr === 'placeholder' || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                el.placeholder = T[key];
+            } else {
+                el.textContent = T[key];
+            }
         };
+
+        // ── 1. LOGIN SCREEN ──────────────────────────────────
+        t('login-title',        'login_title');
+        t('login-desc',         'login_desc');
+        t('login-email',        'login_email_placeholder');
+        t('login-password',     'login_password_placeholder');
+        t('do-login-btn',       'login_btn');
+        t('do-signup-btn',      'signup_btn');
+        t('tab-login',          'tab_login');
+        t('tab-signup',         'tab_signup');
+        t('work-offline-btn',   'work_offline');
+
+        // ── 2. SIDEBAR NAV ───────────────────────────────────
+        const navMap = { dashboard:'dashboard', planner:'planner', pomodoro:'pomodoro', analytics:'analytics', leaderboard:'leaderboard', settings:'settings' };
         document.querySelectorAll('.nav-btn[data-tab]').forEach(btn => {
-            const key = navItems[btn.dataset.tab];
+            const key  = navMap[btn.dataset.tab];
             const span = btn.querySelector('.nav-text');
-            if (span && key) span.textContent = texts[key] || span.textContent;
+            if (span && key && T[key]) span.textContent = T[key];
         });
+        const logoutSpan = get('logout-btn')?.querySelector('.nav-text');
+        if (logoutSpan && T.logout) logoutSpan.textContent = T.logout;
 
-        const logoutBtn = get('logout-btn');
-        if (logoutBtn) {
-            const span = logoutBtn.querySelector('.nav-text');
-            if (span) span.textContent = texts['logout'] || "Logout";
+        // ── 3. DASHBOARD ─────────────────────────────────────
+        t('dash-progress-label', 'overall_progress');
+        t('dash-exam-label',     'next_exam');
+        t('dash-streak-label',   'streak');
+        t('up-next-label',       'up_next');
+
+        const welcomeEl = get('db-welcome-text');
+        if (welcomeEl) welcomeEl.textContent = T.welcome_back || 'Welcome back,';
+
+        const ctaSpan = document.querySelector('.db-cta-btn span');
+        if (ctaSpan) ctaSpan.textContent = T.start_focus || 'Start Focus';
+
+        const streakSub = get('db-streak-sub');
+        if (streakSub) streakSub.textContent = T.current_consistency || 'days in a row';
+
+        const sessionsLabel = get('db-sessions-label');
+        if (sessionsLabel) sessionsLabel.textContent = T.sessions || 'Sessions';
+
+        const sessionsSub = get('db-sessions-sub');
+        if (sessionsSub) sessionsSub.textContent = T.sessions_completed || 'pomodoros done';
+
+        const dailyGoalLabel = get('db-daily-goal-label');
+        if (dailyGoalLabel) dailyGoalLabel.textContent = T.daily_goal || 'Daily Goal';
+
+        const tasksLabel = get('db-tasks-label');
+        if (tasksLabel) tasksLabel.textContent = T.tasks_label || T.tasks_completed || 'tasks';
+
+        const weekTitle = get('db-week-title');
+        if (weekTitle) weekTitle.textContent = T.this_week || 'This Week';
+
+        // ── 4. PLANNER ───────────────────────────────────────
+        t('subject-name-input',     'subject_name');
+        t('exam-date-input',        'exam_date');
+        t('cancel-add-subject-btn', 'cancel');
+
+        const addToggleSpan = document.querySelector('.add-subject-toggle span:last-child');
+        if (addToggleSpan) addToggleSpan.textContent = T.add_subject || 'Add Subject';
+
+        const saveSubjBtn = get('save-subject-btn');
+        if (saveSubjBtn) saveSubjBtn.innerHTML = `<i class="fas fa-check"></i> ${T.add || '+'}`;
+
+        const newSemBtn = get('add-semester-btn');
+        if (newSemBtn) newSemBtn.innerHTML = `<i class="fas fa-plus"></i> ${T.new_semester || 'New Semester'}`;
+
+        const plannerEmptySpan = document.querySelector('#planner-empty span');
+        if (plannerEmptySpan) plannerEmptySpan.textContent = T.add_subject_hint || (T.add_subject || 'Add Subject');
+
+        const typeInput = get('subject-type-input');
+        if (typeInput && typeInput.options.length >= 2) {
+            typeInput.options[0].textContent = T.with_exercises || 'Has Exercises';
+            typeInput.options[1].textContent = T.course_only    || 'Course Only';
         }
 
-        // 3. Dashboard Labels
-        const dashboardIds = {
-            'dash-progress-label': 'overall_progress',
-            'dash-exam-label': 'next_exam',
-            'dash-streak-label': 'streak',
-            'dash-challenge-label': 'challenge',
-            'up-next-label': 'up_next'
-        };
-        for (let [id, key] of Object.entries(dashboardIds)) {
-            const el = get(id);
-            if (el) el.textContent = texts[key] || el.textContent;
+        const semSel = get('semester-selector');
+        if (semSel && semSel.options.length > 0 && semSel.options[0].value === '') {
+            semSel.options[0].textContent = T.select_semester || '-- Select Semester --';
         }
 
-        // 4. Pomodoro Tab
-        const pomodoroIds = {
-            'timer-status': 'focus_time',
-            'smart-suggestion': 'smart_suggestion'
-        };
-        for (let [id, key] of Object.entries(pomodoroIds)) {
-            const el = get(id);
-            if (el) el.textContent = texts[key] || el.textContent;
-        }
+        t('semester-name-input', 'semester_name');
+        const semModalTitle = document.querySelector('#add-semester-modal .h2');
+        if (semModalTitle) semModalTitle.textContent = T.new_semester || 'New Semester';
+        const saveSemBtn = get('save-semester-modal-btn');
+        if (saveSemBtn) saveSemBtn.textContent = T.save || 'Save';
+        const closeSemBtn = get('close-semester-modal');
+        if (closeSemBtn) closeSemBtn.textContent = T.cancel || 'Cancel';
 
+        // ── 5. ANALYTICS ─────────────────────────────────────
+        const anCards = document.querySelectorAll('.an-card-title');
+        const anTitles = [
+            T.subject_progress  || 'Subject Progress',
+            T.weekly_sessions   || 'Weekly Sessions',
+            T.exam_countdown    || 'Exam Countdown',
+            T.time_per_subject  || 'Time per Subject'
+        ];
+        anCards.forEach((el, i) => { if (anTitles[i]) el.textContent = anTitles[i]; });
+
+        const anHeader = document.querySelector('#analytics .h1');
+        if (anHeader) anHeader.textContent = T.analytics || 'Analytics';
+
+        // ── 6. POMODORO ──────────────────────────────────────
+        t('timer-status',     'focus_time');
+        t('smart-suggestion', 'smart_suggestion');
         const subjectSel = get('active-subject-selector');
-        if (subjectSel && subjectSel.options.length > 0) {
-            subjectSel.options[0].textContent = texts['select_subject'] || 'Select Subject';
+        if (subjectSel?.options.length > 0) subjectSel.options[0].textContent = T.select_subject || 'Select Subject';
+
+        const timerStartBtn = get('timer-start');
+        if (timerStartBtn && !timerStartBtn.classList.contains('running')) {
+            timerStartBtn.innerHTML = `<i class="fas fa-play"></i> ${T.start_focus || 'Start Focus'}`;
         }
 
-        // Apply RTL/LTR
-        const langDir = this.selectedLang === 'Arabic' ? "rtl" : "ltr";
-        document.documentElement.dir = langDir;
-        document.body.classList.toggle('rtl', langDir === 'rtl');
+        // ── 7. SETTINGS ─────────────────────────────────────
+        t('lang-select-label',      'language');
+        t('theme-label',            'theme');
+        t('sync-mode-label',        'sync_mode');
+
+        const settingsTitleHeader = get('settings-title');
+        if (settingsTitleHeader) settingsTitleHeader.textContent = T.settings_title || T.settings || 'Settings';
+        const accProfileTitle = get('acc-profile-title');
+        if (accProfileTitle) accProfileTitle.textContent = '👤 ' + (T.acc_profile_title || T.account_profile || 'Account Profile');
+        const generalTitle = get('general-settings-title');
+        if (generalTitle) generalTitle.textContent = '⚙️ ' + (T.general_title || T.general || 'General');
+        const dangerTitle = get('danger-zone-title');
+        if (dangerTitle) dangerTitle.textContent = '⚠️ ' + (T.danger_zone_title || T.danger_zone || 'Danger Zone');
+        const dangerDesc = get('danger-zone-desc');
+        if (dangerDesc) dangerDesc.textContent = T.danger_zone_desc || 'This will permanently delete all your study data.';
+        const resetBtnText = get('reset-btn-text');
+        if (resetBtnText) resetBtnText.textContent = T.reset_all_data || 'Reset All Data';
+
+        t('acc-name-label',     'name');
+        t('acc-email-label',    'email');
+        t('acc-progress-label', 'progress');
+
+        const uploadText = get('upload-btn-text');
+        if (uploadText) uploadText.textContent = T.upload_btn || T.upload || 'Upload';
+        const downloadText = get('download-btn-text');
+        if (downloadText) downloadText.textContent = T.download_btn || T.download || 'Download';
+
+        const themeOptLight = get('theme-opt-light');
+        if (themeOptLight) themeOptLight.textContent = T.light_theme || '☀️ Light';
+        const themeOptDark = get('theme-opt-dark');
+        if (themeOptDark) themeOptDark.textContent = T.dark_theme || '🌙 Dark';
+
+        const syncOptAuto = get('sync-opt-auto');
+        if (syncOptAuto) syncOptAuto.textContent = T.sync_auto || T.automatic || 'Automatic';
+        const syncOptManual = get('sync-opt-manual');
+        if (syncOptManual) syncOptManual.textContent = T.sync_manual || T.manual || 'Manual';
+
+        // ── 7b. LEADERBOARD ──────────────────────────────────
+        const lbTitleHeader = get('leaderboard-title');
+        if (lbTitleHeader) lbTitleHeader.textContent = T.leaderboard || 'Leaderboard';
+        const lbThRank = get('lb-th-rank');
+        if (lbThRank) lbThRank.textContent = T.lb_rank || T.rank || 'Rank';
+        const lbThStudent = get('lb-th-student');
+        if (lbThStudent) lbThStudent.textContent = T.lb_student || T.student_label || 'Student';
+        const lbThLevel = get('lb-th-level');
+        if (lbThLevel) lbThLevel.textContent = T.lb_level || T.level_label || 'Level';
+        const lbThSessions = get('lb-th-sessions');
+        if (lbThSessions) lbThSessions.textContent = T.lb_sessions || T.sessions || 'Sessions';
+
+        // ── 8. CHAPTER MANAGER MODAL ─────────────────────────
+        t('sw-chapter-input', 'add_chapter_placeholder');
+        const swModalTitle = document.querySelector('#subject-window-modal .modal-title');
+        if (swModalTitle) swModalTitle.textContent = T.chapter_manager || 'Chapter Manager';
+
+        // ── 9. LEADERBOARD ───────────────────────────────────
+        const lbTitle = document.querySelector('#leaderboard .h1');
+        if (lbTitle) lbTitle.textContent = T.leaderboard || 'Leaderboard';
+
+        // ── 10. RTL / LTR ────────────────────────────────────
+        const isRTL = this.selectedLang === 'Arabic';
+        document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
+        document.body.classList.toggle('rtl', isRTL);
+
+        // Re-render dynamic sections so they pick up translated strings
+        this.refreshDashboard();
+        this.refreshSubjects();
+        this.refreshAnalytics();
     }
 
     showOfflineIndicator() {
@@ -267,7 +391,7 @@ class StudentProApp {
             btn.disabled = true;
             try {
                 await auth.signUp(email, pass);
-                showToast("Account created! Check your email to confirm.", 'success', 5000);
+                showToast((TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_signup_ok || "Account created! Check your email to confirm.", 'success', 5000);
                 err.classList.add('hidden');
             } catch (e) {
                 err.textContent = e.message;
@@ -340,7 +464,7 @@ class StudentProApp {
             const spec = semSpecSel?.value;
 
             if (!name || !name.trim()) {
-                showToast("Please enter a semester name.", 'warning');
+                showToast((TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_enter_semester || "Please enter a semester name.", 'warning');
                 return;
             }
 
@@ -359,7 +483,7 @@ class StudentProApp {
             if (semSpecCont) semSpecCont.classList.add('hidden');
             this.closeModal('add-semester-modal');
             this.refreshPlanner();
-            showToast("Semester created!", 'success');
+            showToast((TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_semester_created || "Semester created!", 'success');
         });
 
         get('semester-selector')?.addEventListener('change', (e) => {
@@ -374,7 +498,7 @@ class StudentProApp {
             const hasEx = get('subject-type-input').value === 'true';
 
             if (!this.activeSemesterId) {
-                showToast("Select a semester first.", 'warning');
+                showToast((TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_select_semester || "Select a semester first.", 'warning');
                 return;
             }
             if (name) {
@@ -384,7 +508,7 @@ class StudentProApp {
                 get('add-subject-form')?.classList.add('hidden');
                 get('add-subject-toggle-btn')?.classList.remove('hidden');
                 this.refreshSubjects();
-                showToast("Subject added!", 'success');
+                showToast((TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_subject_added || "Subject added!", 'success');
             }
         });
 
@@ -393,7 +517,7 @@ class StudentProApp {
                 await db.deleteSubject(this.activeSubjectId);
                 this.activeSubjectId = null;
                 this.refreshSubjects();
-                showToast("Subject deleted.", 'info');
+                showToast((TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_subject_deleted || "Subject deleted.", 'info');
             }
         });
 
@@ -477,7 +601,7 @@ class StudentProApp {
 
         get('web-upload-btn')?.addEventListener('click', async () => {
             const result = await db.syncPendingChanges();
-            showToast(result ? "Sync successful! ☁️" : "Nothing to sync.", result ? 'success' : 'info');
+            showToast(result ? (TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_sync_ok||"Sync successful! ☁️" : (TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_sync_nothing||"Nothing to sync.", result ? 'success' : 'info');
             this.refreshLastSync();
         });
 
@@ -485,10 +609,10 @@ class StudentProApp {
             try {
                 await db.syncFromCloud();
                 this.refreshAll();
-                showToast("Data downloaded from cloud! ☁️", 'success');
+                showToast((TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_download_ok || "Data downloaded from cloud! ☁️", 'success');
                 this.refreshLastSync();
             } catch (e) {
-                showToast("Download failed: " + e.message, 'error');
+                showToast(((TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_sync_fail || "Download failed") + ": " + e.message, 'error');
             }
         });
 
@@ -520,7 +644,7 @@ class StudentProApp {
             db.save();
 
             this.refreshAll();
-            showToast("All data has been reset.", 'info');
+            showToast((TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_data_reset || "All data has been reset.", 'info');
             this.showModal('welcome-modal');
         });
 
@@ -536,9 +660,9 @@ class StudentProApp {
                 await db.syncPendingChanges();
                 await db.syncFromCloud();
                 this.refreshAll();
-                showToast("Synced! ☁️", 'success');
+                showToast((TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_sync_ok || "Synced! ☁️", 'success');
                 this.refreshLastSync();
-            } catch (e) { showToast("Sync failed.", 'error'); }
+            } catch (e) { showToast((TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_sync_fail || "Sync failed.", 'error'); }
         });
 
         // Onboarding
@@ -612,6 +736,15 @@ class StudentProApp {
         });
     }
 
+    async applyTemplateToSemester(semId, template) {
+        for (let sub of template.subjects) {
+            const subId = await db.addSubject(semId, sub.name, null, sub.has_exercises !== false);
+            if (subId) {
+                for (let ch of sub.chapters) await db.addChapter(subId, ch);
+            }
+        }
+    }
+
     switchTab(tabId) {
         this.currentTab = tabId;
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -625,6 +758,7 @@ class StudentProApp {
     }
 
     refreshAll() {
+        const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
         this.refreshDashboard();
         this.refreshPlanner();
         this.refreshAnalytics();
@@ -646,7 +780,7 @@ class StudentProApp {
         const accStats = get('acc-stats');
         if (accStats && db.data?.user_profile) {
             const level = db.data.user_profile.level || 1;
-            accStats.textContent = `Level ${level} Student`;
+            accStats.textContent = `${T.level_label || T.level || 'Level'} ${level} ${T.student || 'Student'}`;
         }
     }
 

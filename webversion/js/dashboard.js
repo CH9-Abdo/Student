@@ -1,14 +1,18 @@
 // Dashboard Specific Logic
 StudentProApp.prototype.refreshDashboard = function() {
+    const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
     const ACCENT_COLORS = ['#6366f1','#0ea5a0','#f59e0b','#ef4444','#8b5cf6','#10b981','#f43f5e','#3b82f6'];
 
     // ── Date ─────────────────────────────────────────────
     const dateEl = get('current-date');
-    if (dateEl) dateEl.textContent = new Date().toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+    if (dateEl) dateEl.textContent = new Date().toLocaleDateString(
+        this.selectedLang === 'Arabic' ? 'ar-DZ' : this.selectedLang === 'French' ? 'fr-FR' : 'en-US',
+        { weekday:'long', month:'long', day:'numeric' }
+    );
 
     // ── Username ──────────────────────────────────────────
     const uname = get('dash-username');
-    if (uname) uname.textContent = db.data?.user_profile?.display_name || 'Student';
+    if (uname) uname.textContent = db.data?.user_profile?.display_name || (T.student || 'Student');
 
     // ── Progress ring ─────────────────────────────────────
     const stats = db.getProgressStats();
@@ -30,11 +34,11 @@ StudentProApp.prototype.refreshDashboard = function() {
     const examSub = get('next-exam-sub');
     if (examVal) {
         if (exam) {
-            examVal.textContent = exam.days === 0 ? 'Today!' : `${exam.days}d`;
+            examVal.textContent = exam.days === 0 ? (T.today || 'Today!') : `${exam.days}${T.days_left ? ' '+T.days_left : 'd'}`;
             if (examSub) examSub.textContent = exam.name;
         } else {
-            examVal.textContent = '—';
-            if (examSub) examSub.textContent = 'No exams set';
+            examVal.textContent = T.none || '—';
+            if (examSub) examSub.textContent = T.no_exams_set || T.no_exams || 'No exams set';
         }
     }
 
@@ -70,11 +74,11 @@ StudentProApp.prototype.refreshDashboard = function() {
         todoContainer.innerHTML = '';
 
         if (todos.length === 0) {
-            todoContainer.innerHTML = '<div class="db-todo-empty">🎉 All caught up!</div>';
+            todoContainer.innerHTML = `<div class="db-todo-empty">${T.all_caught_up || '🎉 All caught up!'}</div>`;
         } else {
             todos.slice(0, 6).forEach((t, idx) => {
                 const color = ACCENT_COLORS[idx % ACCENT_COLORS.length];
-                const type  = !t.video_completed ? 'Course' : 'Exercises';
+                const type  = !t.video_completed ? (T.course || 'Course') : (T.exercises || 'Exercises');
                 const badge = !t.video_completed
                     ? `background:rgba(91,95,199,0.12);color:var(--primary)`
                     : `background:rgba(16,185,129,0.12);color:#059669`;
@@ -99,7 +103,11 @@ StudentProApp.prototype.refreshDashboard = function() {
     const legendEl      = get('week-subject-mini');
 
     if (barsContainer) {
-        const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const isArabic = this.selectedLang === 'Arabic';
+        const DAYS_EN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const DAYS_AR = ['أحد','اثن','ثلا','أرب','خمي','جمع','سبت'];
+        const DAYS_FR = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+        const DAYS = isArabic ? DAYS_AR : this.selectedLang === 'French' ? DAYS_FR : DAYS_EN;
         const today = new Date();
         const weekCounts = Array(7).fill(0);
         const subjectCounts = {};
@@ -120,7 +128,8 @@ StudentProApp.prototype.refreshDashboard = function() {
 
         const maxCount = Math.max(...weekCounts, 1);
         const weekTotal = weekCounts.reduce((a, b) => a + b, 0);
-        if (weekPill) weekPill.textContent = `${weekTotal} session${weekTotal !== 1 ? 's' : ''}`;
+        const sessWord = weekTotal === 1 ? (T.session_singular || 'session') : (T.sessions_this_week || 'sessions');
+        if (weekPill) weekPill.textContent = `${weekTotal} ${sessWord}`;
 
         barsContainer.innerHTML = '';
         weekCounts.forEach((count, i) => {
@@ -152,12 +161,14 @@ StudentProApp.prototype.refreshDashboard = function() {
 };
 
 StudentProApp.prototype.updateMiniChallenge = function() {
+    const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
     const text = get('mini-challenge-text');
     if (!text) return;
     if (!db.data.subjects || db.data.subjects.length === 0) {
-        text.textContent = "Add subjects first!";
+        text.textContent = T.mini_challenge_no_subjects || "Add subjects first!";
         return;
     }
     const sub = db.data.subjects[0];
-    text.innerHTML = `Balance Challenge: Study <b>${sub.name}</b>`;
+    const challengeTitle = T.balance_challenge || "Balance Challenge";
+    text.innerHTML = `${challengeTitle}: ${T.course || 'Study'} <b>${sub.name}</b>`;
 };

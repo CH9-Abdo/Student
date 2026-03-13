@@ -1,5 +1,6 @@
 // Planner & Subject Logic
 StudentProApp.prototype.refreshPlanner = function() {
+    const T   = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
     const sel = get('semester-selector');
     if (!sel) return;
 
@@ -12,7 +13,7 @@ StudentProApp.prototype.refreshPlanner = function() {
         }
     }
 
-    sel.innerHTML = '<option value="">-- Select Semester --</option>';
+    sel.innerHTML = `<option value="">${T.select_semester || '-- Select Semester --'}</option>`;
     db.data.semesters.forEach(s => {
         const opt = document.createElement('option');
         opt.value = s.id; opt.textContent = s.name;
@@ -23,6 +24,7 @@ StudentProApp.prototype.refreshPlanner = function() {
 };
 
 StudentProApp.prototype.refreshSubjects = function() {
+    const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
     const grid    = get('subject-cards-grid');
     const empty   = get('planner-empty');
     const strip   = get('planner-stats-strip');
@@ -48,10 +50,10 @@ StudentProApp.prototype.refreshSubjects = function() {
         const overallPerc    = totalChapters > 0 ? Math.round((doneChapters / totalChapters) * 100) : 0;
 
         strip.innerHTML = `
-            <div class="pstat"><div class="pstat-val">${subjects.length}</div><div class="pstat-lbl">Subjects</div></div>
-            <div class="pstat"><div class="pstat-val">${totalChapters}</div><div class="pstat-lbl">Chapters</div></div>
-            <div class="pstat"><div class="pstat-val">${overallPerc}%</div><div class="pstat-lbl">Progress</div></div>
-            <div class="pstat"><div class="pstat-val">${upcomingExams}</div><div class="pstat-lbl">Upcoming Exams</div></div>
+            <div class="pstat"><div class="pstat-val">${subjects.length}</div><div class="pstat-lbl">${T.subjects || 'Subjects'}</div></div>
+            <div class="pstat"><div class="pstat-val">${totalChapters}</div><div class="pstat-lbl">${T.chapters || 'Chapters'}</div></div>
+            <div class="pstat"><div class="pstat-val">${overallPerc}%</div><div class="pstat-lbl">${T.progress || 'Progress'}</div></div>
+            <div class="pstat"><div class="pstat-val">${upcomingExams}</div><div class="pstat-lbl">${T.upcoming_exams || 'Upcoming Exams'}</div></div>
         `;
     }
 
@@ -83,7 +85,7 @@ StudentProApp.prototype.refreshSubjects = function() {
         if (s.exam_date) {
             const days = Math.ceil((new Date(s.exam_date) - new Date()) / 86400000);
             const cls  = days < 0 ? 'done' : days <= 7 ? 'urgent' : days <= 21 ? 'soon' : '';
-            const lbl  = days < 0 ? 'Exam passed' : days === 0 ? 'Exam today!' : `${days}d to exam`;
+            const lbl  = days < 0 ? (T.exam_passed || 'Exam passed') : days === 0 ? (T.exam_today || 'Exam today!') : `${days} ${T.days_to_exam || 'd to exam'}`;
             examBadge  = `<span class="subj-exam-badge ${cls}">📅 ${lbl}</span>`;
         }
 
@@ -107,7 +109,7 @@ StudentProApp.prototype.refreshSubjects = function() {
         card.dataset.subjectId = s.id;
 
         card.innerHTML = `
-            <button class="subj-delete-btn" onclick="event.stopPropagation();app.deleteSubjectCard(${s.id})" title="Delete subject">
+            <button class="subj-delete-btn" onclick="event.stopPropagation();app.deleteSubjectCard(${s.id})" title="${T.delete_subject || 'Delete subject'}">
                 <i class="fas fa-trash-alt"></i>
             </button>
 
@@ -128,7 +130,7 @@ StudentProApp.prototype.refreshSubjects = function() {
 
             <div class="subj-chapter-stats">
                 ${chapters.length === 0
-                    ? '<span class="subj-stat-chip">No chapters yet</span>'
+                    ? `<span class="subj-stat-chip">${T.no_chapters_yet || 'No chapters yet'}</span>`
                     : vChip + exChip
                 }
             </div>
@@ -137,15 +139,15 @@ StudentProApp.prototype.refreshSubjects = function() {
                 ${chapters.length > 0 ? `
                 <button class="subj-action-btn ${vBtnDone ? 'all-done' : ''}"
                     onclick="event.stopPropagation();app.toggleSubjectProgress(${s.id},'video')">
-                    ${vBtnDone ? '✓ Course Done' : '📖 Toggle Course'}
+                    ${vBtnDone ? (T.course_done || '✓ Course Done') : '📖 ' + (T.toggle_course || 'Toggle Course')}
                 </button>
                 ${hasEx ? `
                 <button class="subj-action-btn ${eBtnDone ? 'all-done' : ''}"
                     onclick="event.stopPropagation();app.toggleSubjectProgress(${s.id},'exercises')">
-                    ${eBtnDone ? '✓ Exercises Done' : '✍️ Toggle Exercises'}
+                    ${eBtnDone ? (T.exercises_done || '✓ Exercises Done') : '✍️ ' + (T.toggle_exercises || 'Toggle Exercises')}
                 </button>` : ''}
                 ` : ''}
-                <button class="subj-open-btn" onclick="event.stopPropagation();app.openSubjectWindow(${s.id})" title="Manage chapters">
+                <button class="subj-open-btn" onclick="event.stopPropagation();app.openSubjectWindow(${s.id})" title="${T.add_chapter || 'Manage chapters'}">
                     <i class="fas fa-list-ul"></i>
                 </button>
             </div>
@@ -158,11 +160,12 @@ StudentProApp.prototype.refreshSubjects = function() {
 };
 
 StudentProApp.prototype.deleteSubjectCard = async function(subId) {
+    const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
     if (!confirm("Delete this subject and all its chapters?")) return;
     await db.deleteSubject(subId);
     if (this.activeSubjectId === subId) this.activeSubjectId = null;
     this.refreshSubjects();
-    showToast("Subject deleted.", 'info');
+    showToast(T.toast_subject_deleted || "Subject deleted.", 'info');
 };
 
 StudentProApp.prototype.toggleSubjectProgress = async function(subId, type) {
