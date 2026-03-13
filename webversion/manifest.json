@@ -1,0 +1,16 @@
+{
+  "name": "StudentPro — Study Sync",
+  "short_name": "StudentPro",
+  "description": "Smart student companion with cloud sync and offline support.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#5b5fc7",
+  "icons": [
+    {
+      "src": "assets/130manstudent2_100617.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}

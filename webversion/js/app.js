@@ -666,12 +666,10 @@ class StudentProApp {
         });
 
         // Onboarding
-        get('skip-onboarding-btn')?.addEventListener('click', () => {
+        get('skip-onboarding-btn')?.addEventListener('click', async () => {
             const nameInput = get('user-display-name');
-            if (db && db.data && db.data.user_profile) {
-                db.data.user_profile.display_name = nameInput?.value?.trim() || "Student";
-                db.save();
-            }
+            const name = nameInput?.value?.trim() || "Student";
+            await db.updateProfile({ display_name: name });
             this.closeModal('welcome-modal');
             this.refreshAll();
         });
@@ -713,9 +711,7 @@ class StudentProApp {
             const year = yearSelector?.value;
             const spec = specSelector?.value;
 
-            if (db && db.data && db.data.user_profile) {
-                db.data.user_profile.display_name = name;
-            }
+            await db.updateProfile({ display_name: name });
 
             if (onboardingBtn) {
                 onboardingBtn.textContent = "Setting up...";
@@ -730,7 +726,6 @@ class StudentProApp {
                 await db.applyTemplate(template);
             }
 
-            db.save();
             this.closeModal('welcome-modal');
             this.refreshAll();
         });
@@ -746,6 +741,7 @@ class StudentProApp {
     }
 
     switchTab(tabId) {
+        console.log(`[App] Switching to tab: ${tabId}`);
         this.currentTab = tabId;
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -802,6 +798,7 @@ class StudentProApp {
     }
 
     showModal(id) {
+        console.log(`[App] Showing modal: ${id}`);
         document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
         const container = get('modal-container');
         if (container) container.classList.remove('hidden');
@@ -810,6 +807,7 @@ class StudentProApp {
     }
 
     closeModal(id) {
+        console.log(`[App] Closing modal: ${id}`);
         const container = get('modal-container');
         if (container) container.classList.add('hidden');
         document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));

@@ -54,11 +54,10 @@ StudentProApp.prototype.completeSession = async function() {
 
     if (this.activeSubjectId) {
         await db.logSession(this.activeSubjectId, 25);
-        if (db.data?.user_profile) {
-            db.data.user_profile.xp += 50;
-            db.data.user_profile.total_sessions = (db.data.user_profile.total_sessions || 0) + 1;
-        }
-        db.save();
+        await db.updateProfile({
+            xp: (db.data.user_profile.xp || 0) + 50,
+            total_sessions: (db.data.user_profile.total_sessions || 0) + 1
+        });
     }
     this.refreshAll();
 };

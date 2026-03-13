@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>StudentPro — Study Sync</title>
+    <link rel="manifest" href="manifest.json">
 
     <!-- Modular Styles -->
     <link rel="stylesheet" href="css/main.css">
@@ -19,6 +20,17 @@
     <!-- Supabase & Charts -->
     <script src="assets/vendor/supabase.js"></script>
     <script src="assets/vendor/chart.js"></script>
+
+    <!-- PWA Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW Registered!', reg))
+                    .catch(err => console.log('SW Registration failed:', err));
+            });
+        }
+    </script>
 </head>
 <body class="light-theme">
 

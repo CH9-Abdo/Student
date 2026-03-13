@@ -24,13 +24,8 @@ class Database {
 
     save() {
         localStorage.setItem(DB_KEY, JSON.stringify(this.data));
-        
-        // If offline, mark data as dirty for later sync
-        if (!navigator.onLine && auth && auth.user) {
-            localStorage.setItem('studentpro_pending_sync', 'true');
-        }
     }
-    
+
     // Track deletions while offline
     trackDeletion(table, id) {
         if (!navigator.onLine && auth && auth.user) {
@@ -85,80 +80,33 @@ class Database {
         localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(this.offlineQueue));
     }
 
-    queueForSync(table, data, action = 'upsert') {
-        // Check if we're online
-        if (!navigator.onLine) {
-            // Add to offline queue
-            this.offlineQueue.push({
-                table,
-                data,
-                action,
-                timestamp: Date.now()
-            });
-            this.saveOfflineQueue();
-            console.log(`[Offline] Queued ${action} for ${table}:`, data);
-            return false; // Not pushed to cloud
-        }
-        return null; // Will be pushed to cloud normally
+    queueForSync(table, data) {
+        // Deduplicate: remove any existing entry for this table/id combo
+        this.offlineQueue = this.offlineQueue.filter(item => 
+            !(item.table === table && item.data.id === data.id)
+        );
+        
+        // Add to offline queue
+        this.offlineQueue.push({
+            table,
+            data,
+            timestamp: Date.now()
+        });
+        this.saveOfflineQueue();
+        console.log(`[Offline] Queued update for ${table}:`, data);
+        return true; 
     }
 
     async syncPendingChanges() {
-        if (!auth || !auth.user) return false;
-        if (auth.user.id === 'offline-user') {
-            console.log('[Sync] Offline user, skipping sync');
-            return false;
-        }
-        if (!auth.client) {
-            console.log('[Sync] Supabase client not ready yet');
-            return false;
-        }
-        if (!navigator.onLine) {
-            console.log('[Offline] Cannot sync, no internet connection');
-            return false;
-        }
-        
-        // First: Apply any pending deletions
+        if (!auth || !auth.user || !navigator.onLine) return false;
+        if (auth.user.id === 'offline-user') return false;
+        if (!auth.client) return false;
+
+        // Apply any pending deletions first
         await this.applyPendingDeletions();
-        
-        // Check if we have pending changes flagged
-        const hasPendingSync = localStorage.getItem('studentpro_pending_sync') === 'true';
+
         const queue = this.loadOfflineQueue();
-        
-        // If we have the flag, upload all current data (full sync)
-        if (hasPendingSync) {
-            console.log('[Sync] Full sync: Uploading all local data...');
-            localStorage.removeItem('studentpro_pending_sync');
-            
-            try {
-                // Upload all data
-                if (this.data.user_profile) {
-                    await this.pushToCloud('user_profile', this.data.user_profile);
-                }
-                for (const s of this.data.semesters) {
-                    await this.pushToCloud('semesters', s);
-                }
-                for (const s of this.data.subjects) {
-                    await this.pushToCloud('subjects', s);
-                }
-                for (const c of this.data.chapters) {
-                    await this.pushToCloud('chapters', c);
-                }
-                for (const s of this.data.study_sessions) {
-                    await this.pushToCloud('study_sessions', s);
-                }
-                console.log('[Sync] Full upload complete!');
-                return true;
-            } catch (e) {
-                console.error('[Sync] Full upload failed:', e);
-                return false;
-            }
-        }
-        
-        // Otherwise, use queue-based sync
-        if (queue.length === 0) {
-            console.log('[Sync] No pending changes to upload');
-            return true;
-        }
+        if (queue.length === 0) return true;
 
         console.log(`[Sync] Uploading ${queue.length} pending changes...`);
         let successCount = 0;
@@ -167,11 +115,8 @@ class Database {
         for (const item of queue) {
             try {
                 const result = await this.pushToCloud(item.table, item.data);
-                if (result) {
-                    successCount++;
-                } else {
-                    failedItems.push(item);
-                }
+                if (result) successCount++;
+                else failedItems.push(item);
             } catch (e) {
                 console.error(`[Sync] Failed to push ${item.table}:`, e);
                 failedItems.push(item);
@@ -182,62 +127,99 @@ class Database {
         this.offlineQueue = failedItems;
         this.saveOfflineQueue();
 
-        if (successCount > 0) {
-            console.log(`[Sync] Successfully uploaded ${successCount} changes`);
-        }
-        
-        if (failedItems.length > 0) {
-            console.warn(`[Sync] ${failedItems.length} changes failed to upload`);
-        }
-
+        if (successCount > 0) console.log(`[Sync] Successfully uploaded ${successCount} changes`);
         return failedItems.length === 0;
     }
 
     async pushToCloud(table, data) {
         if (!auth || !auth.user || auth.user.id === 'offline-user') return false;
-        if (!auth.client) {
-            console.log('[Sync] Supabase client not ready, queueing for later');
+
+        // If offline or client not ready, queue it
+        if (!navigator.onLine || !auth.client) {
             return this.queueForSync(table, data);
         }
-        
-        // Check if online, if not queue for later
-        if (!navigator.onLine) {
-            return this.queueForSync(table, data);
-        }
-        
+
         try {
-            // For local records (newly created offline), we should insert them
-            // For cloud-synced records, we should upsert
-            // Check if the ID looks like a local timestamp ID
-            const isLocalId = data.id > 1700000000000 || !data.id;
-            
-            let payload, options = {};
-            
-            if (isLocalId) {
-                // Local record: remove ID so cloud generates proper one
-                const { id, ...dataWithoutId } = data;
-                payload = { ...dataWithoutId, user_id: auth.user.id };
+            const isLocalId = (typeof data.id === 'number' && data.id > 1700000000000) || !data.id;
+            let result;
+
+            if (table === 'user_profile') {
+                const { id, ...profileData } = data;
+                result = await auth.client.from('user_profile').upsert({ ...profileData, user_id: auth.user.id }, { onConflict: 'user_id' });
+            } else if (isLocalId) {
+                // New local record
+                const { id, ...insertData } = data;
+                result = await auth.client.from(table).insert({ ...insertData, user_id: auth.user.id }).select();
+
+                if (!result.error && result.data && result.data.length > 0) {
+                    // Update local ID with the one from the cloud
+                    this.updateLocalId(table, data.id, result.data[0].id);
+                }
             } else {
-                // Cloud-synced record: keep ID for upsert
-                payload = { ...data, user_id: auth.user.id };
+                // Existing cloud record - use update to avoid identity column issues with upsert
+                // Strip the ID from the update data to avoid "cannot update identity column" errors
+                const { id: _, user_id: __, ...updateData } = data;
+                result = await auth.client.from(table).update(updateData).eq('id', data.id);
             }
-            
-            if (table === 'user_profile') options.onConflict = 'user_id';
-            
-            let result = await auth.client.from(table).upsert(payload, options);
-            
-            // If the upsert fails (e.g. column display_name doesn't exist yet)
+
             if (result.error) {
-                console.warn(`Initial push failed for ${table}:`, result.error.message);
+                console.warn(`[Sync] Push failed for ${table}:`, result.error.message);
+                // If update failed (e.g. record deleted on cloud), we could try to re-insert 
+                // but we'd need to strip the ID first.
+                if (result.error.code === 'PGRST116' || result.status === 404) {
+                    console.log(`[Sync] Record not found on cloud for ${table}, re-inserting...`);
+                    const { id, ...reInsertData } = data;
+                    const retry = await auth.client.from(table).insert({ ...reInsertData, user_id: auth.user.id }).select();
+                    if (!retry.error && retry.data && retry.data.length > 0) {
+                        this.updateLocalId(table, data.id, retry.data[0].id);
+                        return true;
+                    }
+                }
             }
 
             return !result.error;
         } catch (e) { 
-            console.error(`Critical Push Error (${table}):`, e); 
+            console.error(`[Sync] Critical Push Error (${table}):`, e); 
             return false; 
         }
     }
 
+    updateLocalId(table, oldId, newId) {
+        console.log(`[DB] Updating local ID: ${table} ${oldId} -> ${newId}`);
+        const list = this.data[table];
+        if (!list) return;
+
+        const item = list.find(i => i.id === oldId);
+        if (item) {
+            item.id = newId;
+
+            // Update any foreign keys pointing to this ID in local data
+            if (table === 'semesters') {
+                this.data.subjects.forEach(s => { if (s.semester_id === oldId) s.semester_id = newId; });
+            } else if (table === 'subjects') {
+                this.data.chapters.forEach(c => { if (c.subject_id === oldId) c.subject_id = newId; });
+                this.data.study_sessions.forEach(s => { if (s.subject_id === oldId) s.subject_id = newId; });
+            }
+
+            // ALSO update the offline queue to ensure pending items use the correct new ID
+            this.offlineQueue.forEach(qItem => {
+                // If the item itself changed its ID
+                if (qItem.table === table && qItem.data.id === oldId) {
+                    qItem.data.id = newId;
+                }
+                // If the item has a foreign key to the changed ID
+                if (table === 'semesters' && qItem.table === 'subjects' && qItem.data.semester_id === oldId) {
+                    qItem.data.semester_id = newId;
+                }
+                if (table === 'subjects' && (qItem.table === 'chapters' || qItem.table === 'study_sessions') && qItem.data.subject_id === oldId) {
+                    qItem.data.subject_id = newId;
+                }
+            });
+            this.saveOfflineQueue();
+
+            this.save();
+        }
+    }
     // --- SIMPLE SYNC ---
     async syncFromCloud() {
         if (!auth || !auth.user || auth.user.id === 'offline-user') {
@@ -334,33 +316,25 @@ class Database {
 
     // --- ACTIONS ---
     async addSemester(name) {
-        try {
-            if (navigator.onLine && auth.user && auth.user.id !== 'offline-user') {
-                const { data, error } = await auth.client.from("semesters").insert({ name, user_id: auth.user.id }).select();
-                if (data && data.length > 0) { 
-                    this.data.semesters.push(data[0]); 
-                    this.save(); 
-                    return data[0].id; 
-                }
-            }
-            
-            // Fallback for offline or error
-            const localId = Date.now();
-            const newSem = { id: localId, name, user_id: auth.user?.id || 'offline-user' };
-            this.data.semesters.push(newSem);
-            this.save();
-            return localId;
-        } catch (e) { 
-            console.error('addSemester error:', e);
-            const localId = Date.now();
-            const newSem = { id: localId, name, user_id: auth.user?.id || 'offline-user' };
-            this.data.semesters.push(newSem);
-            this.save();
-            return localId;
-        }
+        console.log(`[DB] addSemester: name="${name}"`);
+        const localId = Date.now();
+        const newSem = { 
+            id: localId, 
+            name, 
+            user_id: auth.user?.id || 'offline-user' 
+        };
+        
+        this.data.semesters.push(newSem);
+        this.save();
+        
+        // Try to push to cloud (will queue if offline)
+        await this.pushToCloud('semesters', newSem);
+        
+        return localId;
     }
 
     async deleteSemester(semesterId) {
+        console.log(`[DB] deleteSemester: id=${semesterId}`);
         const idx = this.data.semesters.findIndex(s => s.id === semesterId);
         if (idx === -1) return;
         
@@ -392,55 +366,30 @@ class Database {
     }
 
     async addSubject(semesterId, name, examDate, hasExercises = true) {
-        try {
-            const examDateValue = examDate && examDate.trim() ? examDate : null;
-            const payload = { 
-                name, 
-                semester_id: semesterId, 
-                exam_date: examDateValue, 
-                user_id: auth.user?.id || 'offline-user',
-                has_exercises: hasExercises
-            };
+        console.log(`[DB] addSubject: semesterId=${semesterId}, name="${name}"`);
+        const examDateValue = examDate && examDate.trim() ? examDate : null;
+        const localId = Date.now();
+        const newSub = {
+            id: localId,
+            name,
+            semester_id: semesterId,
+            exam_date: examDateValue,
+            has_exercises: hasExercises,
+            user_id: auth.user?.id || 'offline-user',
+            notes: ''
+        };
 
-            if (navigator.onLine && auth.user && auth.user.id !== 'offline-user') {
-                const { data, error } = await auth.client.from("subjects").insert(payload).select();
-                if (!error && data && data.length > 0) { 
-                    this.data.subjects.push(data[0]); 
-                    this.save(); 
-                    return data[0].id; 
-                }
-                console.warn('Cloud insert failed, using local:', error);
-            }
-            
-            // Fallback: local only
-            const localId = Date.now();
-            const newSub = { 
-                ...payload,
-                id: localId, 
-                notes: ''
-            };
-            this.data.subjects.push(newSub);
-            this.save();
-            return localId;
-        } catch (e) { 
-            console.error('addSubject error:', e);
-            const localId = Date.now();
-            const newSub = { 
-                id: localId, 
-                name, 
-                semester_id: semesterId, 
-                exam_date: null, 
-                user_id: auth.user?.id || 'offline-user',
-                has_exercises: hasExercises,
-                notes: ''
-            };
-            this.data.subjects.push(newSub);
-            this.save();
-            return localId;
-        }
+        this.data.subjects.push(newSub);
+        this.save();
+        
+        // Push to cloud (queues if offline)
+        await this.pushToCloud('subjects', newSub);
+        
+        return localId;
     }
 
     async deleteSubject(subjectId) {
+        console.log(`[DB] deleteSubject: id=${subjectId}`);
         const idx = this.data.subjects.findIndex(s => s.id === subjectId);
         if (idx === -1) return;
         
@@ -449,7 +398,6 @@ class Database {
         
         // Delete local
         this.data.subjects.splice(idx, 1);
-        // Also delete related chapters
         this.data.chapters = this.data.chapters.filter(c => c.subject_id !== subjectId);
         this.save();
         
@@ -457,7 +405,7 @@ class Database {
         this.trackDeletion('subjects', subjectId);
         chapterIds.forEach(id => this.trackDeletion('chapters', id));
         
-        // Delete from cloud
+        // If online, try to delete now
         if (navigator.onLine && auth.user && auth.user.id !== 'offline-user') {
             try {
                 await auth.client.from("subjects").delete().eq("id", subjectId);
@@ -467,96 +415,65 @@ class Database {
     }
 
     async updateSubjectExamDate(subjectId, examDate) {
+        console.log(`[DB] updateSubjectExamDate: id=${subjectId}, date=${examDate}`);
         const idx = this.data.subjects.findIndex(s => s.id === subjectId);
         if (idx === -1) return;
         this.data.subjects[idx].exam_date = examDate;
         this.save();
 
-        if (navigator.onLine && auth.user && auth.user.id !== 'offline-user') {
-            try {
-                await auth.client.from("subjects").update({ exam_date: examDate }).eq("id", subjectId);
-            } catch (e) {}
-        } else {
-            this.queueForSync('subjects', this.data.subjects[idx], 'upsert');
-        }
+        // Push to cloud (queues if offline)
+        await this.pushToCloud('subjects', this.data.subjects[idx]);
     }
 
     async updateSubjectName(subjectId, newName) {
+        console.log(`[DB] updateSubjectName: id=${subjectId}, name=${newName}`);
         const idx = this.data.subjects.findIndex(s => s.id === subjectId);
         if (idx === -1) return;
         this.data.subjects[idx].name = newName;
         this.save();
 
-        if (navigator.onLine && auth.user && auth.user.id !== 'offline-user') {
-            try {
-                await auth.client.from("subjects").update({ name: newName }).eq("id", subjectId);
-            } catch (e) {}
-        } else {
-            this.queueForSync('subjects', this.data.subjects[idx], 'upsert');
-        }
+        // Push to cloud (queues if offline)
+        await this.pushToCloud('subjects', this.data.subjects[idx]);
     }
 
     async addChapter(subjectId, name, youtubeUrl = null) {
-        console.log(`[DB] addChapter: subjectId=${subjectId}, name="${name}", youtubeUrl="${youtubeUrl}"`);
-        const payload = { 
-            name, 
-            subject_id: subjectId, 
-            user_id: auth.user?.id || 'offline-user', 
-            youtube_url: youtubeUrl 
+        console.log(`[DB] addChapter: subjectId=${subjectId}, name="${name}"`);
+        const localId = Date.now();
+        const newChap = {
+            id: localId,
+            subject_id: subjectId,
+            name,
+            youtube_url: youtubeUrl,
+            video_completed: false,
+            exercises_completed: false,
+            is_completed: false,
+            user_id: auth.user?.id || 'offline-user'
         };
 
-        try {
-            if (navigator.onLine && auth.user && auth.user.id !== 'offline-user') {
-                const { data } = await auth.client.from("chapters").insert(payload).select();
-                if (data && data.length > 0) { 
-                    this.data.chapters.push(data[0]); 
-                    this.save(); 
-                    console.log(`[DB] addChapter: Saved to cloud & local`);
-                    return true; 
-                }
-            }
-            
-            const newChap = { 
-                id: Date.now() + 2, 
-                ...payload,
-                video_completed: false, 
-                exercises_completed: false, 
-                is_completed: false 
-            };
-            this.data.chapters.push(newChap);
-            this.save();
-            console.log(`[DB] addChapter: Saved locally only`);
-            return true;
-        } catch (e) { 
-            console.log(`[DB] addChapter error: ${e}`); 
-            return false; 
-        }
+        this.data.chapters.push(newChap);
+        this.save();
+        
+        // Push to cloud (queues if offline)
+        await this.pushToCloud('chapters', newChap);
+        
+        return localId;
     }
 
     async updateChapterYouTube(chapterId, youtubeUrl) {
-        console.log(`[DB] updateChapterYouTube: chapterId=${chapterId}, youtubeUrl="${youtubeUrl}"`);
         const idx = this.data.chapters.findIndex(c => c.id === chapterId);
         if (idx === -1) return false;
-        const c = this.data.chapters[idx];
-        c.youtube_url = youtubeUrl;
-        this.save();
-        console.log(`[DB] updateChapterYouTube: Updated locally`);
         
-        // Update in cloud if user is logged in
-        if (navigator.onLine && auth.user && auth.user.id !== 'offline-user') {
-            try {
-                await auth.client.from("chapters").update({ youtube_url: youtubeUrl }).eq("id", chapterId);
-                console.log(`[DB] updateChapterYouTube: Updated in cloud`);
-            } catch (e) { console.log("Failed to update YouTube in cloud"); }
-        } else {
-            this.queueForSync('chapters', c, 'upsert');
-        }
+        this.data.chapters[idx].youtube_url = youtubeUrl;
+        this.save();
+        
+        await this.pushToCloud('chapters', this.data.chapters[idx]);
         return true;
     }
 
     async toggleChapterStatus(chapterId, type, status) {
         const idx = this.data.chapters.findIndex(c => c.id === chapterId);
         if (idx === -1) return;
+        
         const c = this.data.chapters[idx];
         const sub = this.data.subjects.find(s => s.id === c.subject_id);
         const subHasEx = sub ? (sub.has_exercises !== false) : true;
@@ -565,45 +482,44 @@ class Database {
         else c.exercises_completed = status;
         
         c.is_completed = subHasEx ? !!(c.video_completed && c.exercises_completed) : !!c.video_completed;
-        
         this.save();
 
-        if (navigator.onLine && auth.user && auth.user.id !== 'offline-user') {
-            try {
-                await auth.client.from("chapters").update({ 
-                    video_completed: c.video_completed, 
-                    exercises_completed: c.exercises_completed, 
-                    is_completed: c.is_completed 
-                }).eq("id", c.id);
-            } catch (e) {}
-        } else {
-            this.queueForSync('chapters', c, 'upsert');
+        await this.pushToCloud('chapters', c);
+    }
+
+    async updateProfile(updates) {
+        if (!this.data.user_profile) return;
+        
+        Object.assign(this.data.user_profile, updates);
+        
+        // Basic Level Up Logic
+        const xp = this.data.user_profile.xp || 0;
+        const newLevel = Math.floor(xp / 1000) + 1;
+        if (newLevel > (this.data.user_profile.level || 1)) {
+            this.data.user_profile.level = newLevel;
+            console.log(`[DB] Level Up! New Level: ${newLevel}`);
+            // You could trigger a celebration event here
         }
+        
+        this.save();
+        await this.pushToCloud('user_profile', this.data.user_profile);
     }
 
     async logSession(subjectId, duration) {
-        const payload = { 
-            subject_id: subjectId, 
-            duration_minutes: duration, 
-            user_id: auth.user?.id || 'offline-user' 
+        console.log(`[DB] logSession: subjectId=${subjectId}, duration=${duration}`);
+        const localId = Date.now();
+        const newSession = {
+            id: localId,
+            subject_id: subjectId,
+            duration_minutes: duration,
+            timestamp: new Date().toISOString(),
+            user_id: auth.user?.id || 'offline-user'
         };
 
-        try {
-            if (navigator.onLine && auth.user && auth.user.id !== 'offline-user') {
-                const { data } = await auth.client.from("study_sessions").insert(payload).select();
-                if (data) { 
-                    this.data.study_sessions.push(data[0]); 
-                    this.save();
-                    return;
-                }
-            }
-            
-            this.data.study_sessions.push({ 
-                ...payload,
-                timestamp: new Date().toISOString() 
-            });
-            this.save();
-        } catch (e) {}
+        this.data.study_sessions.push(newSession);
+        this.save();
+        
+        await this.pushToCloud('study_sessions', newSession);
     }
 
     async applyTemplate(template) {
