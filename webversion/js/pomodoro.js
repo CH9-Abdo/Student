@@ -315,6 +315,63 @@ StudentProApp.prototype.refreshPomodoroSubjects = function() {
     };
 };
 
+StudentProApp.prototype.refreshPomodoroUI = function() {
+    const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
+
+    const xpTotal = Number(db.data?.user_profile?.xp || 0);
+    const level = Number(db.data?.user_profile?.level || 1);
+
+    const levelEl = get('level-display');
+    if (levelEl) levelEl.textContent = `${T.level_label || T.level || 'Level'} ${level}`;
+
+    const badgeEl = get('level-badge-display');
+    if (badgeEl) {
+        const badges = ['Beginner', 'Focused', 'Disciplined', 'Advanced', 'Master'];
+        badgeEl.textContent = badges[Math.min(level - 1, badges.length - 1)];
+    }
+
+    // Progress to next level: DB uses 1000 XP per level.
+    const XP_PER_LEVEL = 1000;
+    const xpIntoLevel = ((xpTotal % XP_PER_LEVEL) + XP_PER_LEVEL) % XP_PER_LEVEL;
+    const pct = Math.max(0, Math.min(100, Math.round((xpIntoLevel / XP_PER_LEVEL) * 100)));
+
+    const bar = get('xp-bar');
+    if (bar) bar.style.width = `${pct}%`;
+
+    const label = get('xp-label');
+    if (label) label.textContent = `${xpIntoLevel} / ${XP_PER_LEVEL} XP`;
+
+    // Today stats from sessions
+    const sessions = db.data?.study_sessions || [];
+    const now = new Date();
+    const sameDay = (a, b) =>
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate();
+
+    let sessionsToday = 0;
+    let minutesToday = 0;
+    for (const s of sessions) {
+        const ts = s.timestamp || s.created_at;
+        if (!ts) continue;
+        const d = new Date(ts);
+        if (!Number.isFinite(d.getTime())) continue;
+        if (!sameDay(d, now)) continue;
+        sessionsToday += 1;
+        minutesToday += Number(s.duration_minutes || 0);
+    }
+
+    const sessionsEl = get('sessions-today');
+    if (sessionsEl) sessionsEl.textContent = String(sessionsToday);
+
+    const minutesEl = get('minutes-today');
+    if (minutesEl) minutesEl.textContent = String(minutesToday);
+
+    const XP_PER_SESSION = 50;
+    const xpTodayEl = get('xp-today');
+    if (xpTodayEl) xpTodayEl.textContent = String(sessionsToday * XP_PER_SESSION);
+};
+
 StudentProApp.prototype.updateYouTubeEmbed = function() {
     const videoCard = get('youtube-video-card');
     const iframe = get('youtube-iframe');

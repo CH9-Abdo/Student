@@ -781,6 +781,7 @@ class StudentProApp {
         this.refreshPlanner();
         this.refreshAnalytics();
         this.refreshPomodoroSubjects();
+        if (typeof this.refreshPomodoroUI === 'function') this.refreshPomodoroUI();
         this.refreshLastSync();
         this.updateMiniChallenge();
 
