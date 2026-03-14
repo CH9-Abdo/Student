@@ -59,6 +59,7 @@ class StudentProApp {
         });
 
         this.setupEventListeners();
+        if (typeof this.initPomodoro === 'function') this.initPomodoro();
         this.refreshDate();
         this.initCharts();
     }
@@ -542,8 +543,14 @@ class StudentProApp {
             if (!this.activeSubjectId) return;
             const sub = db.data.subjects.find(s => s.id === this.activeSubjectId);
             if (sub) {
-                sub.exam_date = e.target.value || null;
-                await db.save();
+                const examDate = e.target.value || null;
+                console.log(`[App] Subject: exam date update requested (subjectId=${this.activeSubjectId}, exam_date=${examDate || 'null'})`);
+                try {
+                    await db.updateSubjectExamDate(this.activeSubjectId, examDate);
+                    console.log(`[App] Subject: exam date saved+queued (subjectId=${this.activeSubjectId})`);
+                } catch (err) {
+                    console.error(`[App] Subject: exam date update failed (subjectId=${this.activeSubjectId}):`, err);
+                }
             }
         });
 
@@ -600,18 +607,33 @@ class StudentProApp {
         });
 
         get('web-upload-btn')?.addEventListener('click', async () => {
-            const result = await db.syncPendingChanges();
-            showToast(result ? (TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_sync_ok||"Sync successful! ☁️" : (TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_sync_nothing||"Nothing to sync.", result ? 'success' : 'info');
-            this.refreshLastSync();
+            console.log("[App] Sync: upload (pending changes) started");
+            try {
+                const result = await db.syncPendingChanges();
+                console.log(`[App] Sync: upload finished (changed=${result ? 'yes' : 'no'})`);
+                showToast(
+                    result
+                        ? (TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"]).toast_sync_ok || "Sync successful! ☁️"
+                        : (TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"]).toast_sync_nothing || "Nothing to sync.",
+                    result ? 'success' : 'info'
+                );
+                this.refreshLastSync();
+            } catch (e) {
+                console.error("[App] Sync: upload failed:", e);
+                showToast(((TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"]).toast_sync_fail || "Sync failed") + ": " + (e?.message || e), 'error');
+            }
         });
 
         get('web-download-btn')?.addEventListener('click', async () => {
+            console.log("[App] Sync: download (from cloud) started");
             try {
                 await db.syncFromCloud();
                 this.refreshAll();
+                console.log("[App] Sync: download finished");
                 showToast((TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_download_ok || "Data downloaded from cloud! ☁️", 'success');
                 this.refreshLastSync();
             } catch (e) {
+                console.error("[App] Sync: download failed:", e);
                 showToast(((TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_sync_fail || "Download failed") + ": " + e.message, 'error');
             }
         });
