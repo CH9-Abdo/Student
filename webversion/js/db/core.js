@@ -10,6 +10,12 @@ class Database {
         this.offlineQueue = this.loadOfflineQueue();
     }
 
+    getXpPerLevel() {
+        // Single source of truth for level progression.
+        // Keep in sync with updateProfile() logic.
+        return 1000;
+    }
+
     load() {
         console.log('[DB] Loading local data...');
         const saved = localStorage.getItem(DB_KEY);

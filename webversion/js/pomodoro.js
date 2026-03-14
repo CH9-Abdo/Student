@@ -7,7 +7,16 @@
 // when the @capacitor/local-notifications plugin is installed.
 
 const POMODORO_STATE_KEY = 'studentpro_pomodoro_state_v1';
-const POMODORO_NOTIFICATION_ID = 9125;
+const POMODORO_FOCUS_END_NOTIFICATION_ID = 9125;
+const POMODORO_BREAK_END_NOTIFICATION_ID = 9126;
+const POMODORO_END_SOUND_CANDIDATES = [
+    'assets/sounds/clock_1.mp3',
+    'assets/sounds/clock1.mp3',
+    'assets/sounds/clock 1.mp3',
+    'assets/sounds/clock%201.mp3',
+    'assets/sounds/Clock 1.mp3',
+    'assets/sounds/Clock%201.mp3'
+];
 
 StudentProApp.prototype._loadPomodoroState = function() {
     try {
@@ -66,27 +75,42 @@ StudentProApp.prototype._cancelPomodoroEndNotification = async function() {
     const LocalNotifications = this._getLocalNotificationsPlugin();
     if (!LocalNotifications) return;
     try {
-        await LocalNotifications.cancel({ notifications: [{ id: POMODORO_NOTIFICATION_ID }] });
+        await LocalNotifications.cancel({
+            notifications: [
+                { id: POMODORO_FOCUS_END_NOTIFICATION_ID },
+                { id: POMODORO_BREAK_END_NOTIFICATION_ID }
+            ]
+        });
     } catch {
         // Payload shape differs slightly across versions.
-        try { await LocalNotifications.cancel({ ids: [POMODORO_NOTIFICATION_ID] }); } catch {}
+        try { await LocalNotifications.cancel({ ids: [POMODORO_FOCUS_END_NOTIFICATION_ID, POMODORO_BREAK_END_NOTIFICATION_ID] }); } catch {}
     }
 };
 
-StudentProApp.prototype._schedulePomodoroEndNotification = async function(endAtMs) {
+StudentProApp.prototype._schedulePomodoroEndNotification = async function(kind, endAtMs) {
     const LocalNotifications = this._getLocalNotificationsPlugin();
     if (!LocalNotifications) return;
 
     const allowed = await this._ensurePomodoroNotificationsPermission();
     if (!allowed) return;
 
+    const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
+    const isBreak = kind === 'break';
+    const id = isBreak ? POMODORO_BREAK_END_NOTIFICATION_ID : POMODORO_FOCUS_END_NOTIFICATION_ID;
+    const title = isBreak
+        ? (T.break_over_title || 'Break Over')
+        : (T.pomodoro_complete_title || 'Pomodoro Complete');
+    const body = isBreak
+        ? (T.break_over_body || 'Break finished. Ready to focus again?')
+        : (T.pomodoro_complete_body || 'Time is up. Great work.');
+
     try {
         await this._cancelPomodoroEndNotification();
         const baseNotif = {
-            id: POMODORO_NOTIFICATION_ID,
-            title: 'Pomodoro Complete',
-            body: 'Time is up. Great work.',
-            extra: { kind: 'pomodoro-end' }
+            id,
+            title,
+            body,
+            extra: { kind: isBreak ? 'pomodoro-break-end' : 'pomodoro-focus-end' }
         };
 
         try {
@@ -110,6 +134,48 @@ StudentProApp.prototype._schedulePomodoroEndNotification = async function(endAtM
     }
 };
 
+StudentProApp.prototype._getFocusDurationSec = function() {
+    const workMins = db.data?.settings?.pomodoro?.work || 25;
+    return Math.max(1, Number(workMins) || 25) * 60;
+};
+
+StudentProApp.prototype._getBreakDurationSec = function() {
+    // Default to 5 minutes unless settings specify otherwise.
+    const breakMins = db.data?.settings?.pomodoro?.short || 5;
+    return Math.max(1, Number(breakMins) || 5) * 60;
+};
+
+StudentProApp.prototype._setPomodoroStatus = function(kind) {
+    this._pomodoroKind = kind;
+    const el = get('timer-status');
+    if (!el) return;
+    const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
+    el.textContent = kind === 'break'
+        ? (T.break_time || 'Break Time')
+        : (T.focus_time || 'Focus Time');
+};
+
+StudentProApp.prototype._playPomodoroEndSound = async function() {
+    // Audio playback may be blocked in background; try best-effort.
+    try {
+        for (const src of POMODORO_END_SOUND_CANDIDATES) {
+            try {
+                const audio = new Audio(src);
+                audio.volume = 1.0;
+                await audio.play();
+                return true;
+            } catch {
+                // try next candidate
+            }
+        }
+        console.warn("[App] Pomodoro: end sound not found or playback blocked. Expected one of:", POMODORO_END_SOUND_CANDIDATES);
+        return false;
+    } catch (e) {
+        console.warn("[App] Pomodoro: end sound error:", e);
+        return false;
+    }
+};
+
 StudentProApp.prototype._computePomodoroRemaining = function(endAtMs) {
     const remainingMs = endAtMs - Date.now();
     return Math.max(0, Math.ceil(remainingMs / 1000));
@@ -127,6 +193,7 @@ StudentProApp.prototype._startPomodoroUiTick = function() {
         this.timeLeft = this._computePomodoroRemaining(state.endAtMs);
         this._pomodoroTotalSec = state.totalSec || this._pomodoroTotalSec;
         this._pomodoroSubjectId = state.subjectId ?? this._pomodoroSubjectId;
+        this._setPomodoroStatus(state.kind || this._pomodoroKind || 'focus');
         this.updateTimerDisplay();
 
         if (this.timeLeft <= 0) this.completeSession({ fromBackground: false });
@@ -143,6 +210,7 @@ StudentProApp.prototype._reconcilePomodoro = async function() {
     if (state.running && state.endAtMs) {
         this.timerRunning = true;
         this.timeLeft = this._computePomodoroRemaining(state.endAtMs);
+        this._setPomodoroStatus(state.kind || 'focus');
         this.updateTimerDisplay();
 
         const btn = get('timer-start');
@@ -160,6 +228,7 @@ StudentProApp.prototype._reconcilePomodoro = async function() {
     // Paused state
     this.timerRunning = false;
     this.timeLeft = Math.max(0, state.remainingSec || 0);
+    this._setPomodoroStatus(state.kind || 'focus');
     this.updateTimerDisplay();
     const btn = get('timer-start');
     if (btn) btn.innerHTML = '<i class="fas fa-play"></i> Resume';
@@ -177,7 +246,10 @@ StudentProApp.prototype.initPomodoro = function() {
 };
 
 StudentProApp.prototype.toggleTimer = function() {
-    const workMins = db.data?.settings?.pomodoro?.work || 25;
+    const kind = this._pomodoroKind || this._loadPomodoroState()?.kind || 'focus';
+    const totalSec = kind === 'break'
+        ? (this._pomodoroTotalSec || this._getBreakDurationSec())
+        : (this._pomodoroTotalSec || this._getFocusDurationSec());
 
     if (this.timerRunning) {
         // Pause
@@ -194,9 +266,9 @@ StudentProApp.prototype.toggleTimer = function() {
             running: false,
             endAtMs: null,
             remainingSec: this.timeLeft,
-            totalSec: this._pomodoroTotalSec || (workMins * 60),
-            subjectId: this._pomodoroSubjectId ?? this.activeSubjectId ?? null,
-            kind: 'focus'
+            totalSec,
+            subjectId: kind === 'focus' ? (this._pomodoroSubjectId ?? this.activeSubjectId ?? null) : null,
+            kind
         });
         this._cancelPomodoroEndNotification();
 
@@ -206,9 +278,9 @@ StudentProApp.prototype.toggleTimer = function() {
     }
 
     // Start / resume
-    const totalSec = this._pomodoroTotalSec || (workMins * 60);
     this._pomodoroTotalSec = totalSec;
-    this._pomodoroSubjectId = this._pomodoroSubjectId ?? this.activeSubjectId ?? null;
+    this._pomodoroSubjectId = kind === 'focus' ? (this._pomodoroSubjectId ?? this.activeSubjectId ?? null) : null;
+    this._setPomodoroStatus(kind);
 
     const endAtMs = Date.now() + (this.timeLeft * 1000);
     this._savePomodoroState({
@@ -218,14 +290,14 @@ StudentProApp.prototype.toggleTimer = function() {
         remainingSec: null,
         totalSec,
         subjectId: this._pomodoroSubjectId,
-        kind: 'focus'
+        kind
     });
 
     this.timerRunning = true;
     const btn = get('timer-start');
     if (btn) btn.innerHTML = '<i class="fas fa-pause"></i> Pause';
 
-    this._schedulePomodoroEndNotification(endAtMs);
+    this._schedulePomodoroEndNotification(kind, endAtMs);
     this._startPomodoroUiTick();
 };
 
@@ -233,8 +305,8 @@ StudentProApp.prototype.resetTimer = function() {
     clearInterval(this.timer);
     this.timerRunning = false;
 
-    const workMins = db.data?.settings?.pomodoro?.work || 25;
-    this.timeLeft = workMins * 60;
+    this._setPomodoroStatus('focus');
+    this.timeLeft = this._getFocusDurationSec();
     this._pomodoroTotalSec = this.timeLeft;
     this._pomodoroSubjectId = null;
 
@@ -270,13 +342,21 @@ StudentProApp.prototype.completeSession = async function(opts = {}) {
     clearInterval(this.timer);
     this.timerRunning = false;
 
+    const completedKind = this._pomodoroKind || 'focus';
+
+    if (completedKind === 'break') {
+        // Break finished: return to focus.
+        const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
+        showToast(T.toast_break_finished || "✅ Break finished. Ready to focus.", 'info', 3500);
+        this.resetTimer();
+        this.refreshAll();
+        return;
+    }
+
+    // Focus finished: play sound, award XP, then start break automatically.
+    this._playPomodoroEndSound();
     const workMins = db.data?.settings?.pomodoro?.work || 25;
     const subjectId = this._pomodoroSubjectId ?? this.activeSubjectId ?? null;
-
-    // Reset UI + internal counters
-    this.resetTimer();
-
-    showToast("🎉 Session Done! +50 XP", 'success', 4000);
 
     if (subjectId) {
         await db.logSession(subjectId, workMins);
@@ -285,6 +365,36 @@ StudentProApp.prototype.completeSession = async function(opts = {}) {
             total_sessions: (db.data.user_profile.total_sessions || 0) + 1
         });
     }
+
+    // Start break immediately
+    const breakSec = this._getBreakDurationSec();
+    const breakMins = Math.round(breakSec / 60);
+    {
+        const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
+        const tmpl = T.toast_session_done_break || "🎉 Session Done! +50 XP • Break: {minutes} min";
+        showToast(String(tmpl).replace('{minutes}', String(breakMins)), 'success', 4500);
+    }
+    this._setPomodoroStatus('break');
+    this._pomodoroTotalSec = breakSec;
+    this.timeLeft = breakSec;
+    this._pomodoroSubjectId = null;
+
+    const endAtMs = Date.now() + (breakSec * 1000);
+    this._savePomodoroState({
+        v: 1,
+        running: true,
+        endAtMs,
+        remainingSec: null,
+        totalSec: breakSec,
+        subjectId: null,
+        kind: 'break'
+    });
+    this.timerRunning = true;
+    const btn = get('timer-start');
+    if (btn) btn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+
+    this._schedulePomodoroEndNotification('break', endAtMs);
+    this._startPomodoroUiTick();
     this.refreshAll();
 };
 
@@ -330,8 +440,8 @@ StudentProApp.prototype.refreshPomodoroUI = function() {
         badgeEl.textContent = badges[Math.min(level - 1, badges.length - 1)];
     }
 
-    // Progress to next level: DB uses 1000 XP per level.
-    const XP_PER_LEVEL = 1000;
+    // Progress to next level: use the same threshold as the DB level-up logic.
+    const XP_PER_LEVEL = (typeof db?.getXpPerLevel === 'function') ? db.getXpPerLevel() : 1000;
     const xpIntoLevel = ((xpTotal % XP_PER_LEVEL) + XP_PER_LEVEL) % XP_PER_LEVEL;
     const pct = Math.max(0, Math.min(100, Math.round((xpIntoLevel / XP_PER_LEVEL) * 100)));
 
