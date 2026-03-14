@@ -15,7 +15,8 @@ Database.prototype.addSemester = async function(name) {
     this.save();
     
     await this.pushToCloud('semesters', newSem);
-    return localId;
+    // pushToCloud() can update the ID in-place (newSem is the same object stored in this.data).
+    return newSem.id || localId;
 };
 
 Database.prototype.deleteSemester = async function(semesterId) {
@@ -65,7 +66,7 @@ Database.prototype.addSubject = async function(semesterId, name, examDate, hasEx
     this.save();
     
     await this.pushToCloud('subjects', newSub);
-    return localId;
+    return newSub.id || localId;
 };
 
 Database.prototype.deleteSubject = async function(subjectId) {
@@ -129,7 +130,7 @@ Database.prototype.addChapter = async function(subjectId, name, youtubeUrl = nul
     this.save();
     
     await this.pushToCloud('chapters', newChap);
-    return localId;
+    return newChap.id || localId;
 };
 
 Database.prototype.updateChapterYouTube = async function(chapterId, youtubeUrl) {
@@ -196,6 +197,7 @@ Database.prototype.logSession = async function(subjectId, duration) {
     this.save();
     
     await this.pushToCloud('study_sessions', newSession);
+    return newSession.id || localId;
 };
 
 Database.prototype.applyTemplate = async function(template) {

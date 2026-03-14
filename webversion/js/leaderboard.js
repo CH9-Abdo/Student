@@ -28,7 +28,7 @@ StudentProApp.prototype.refreshLeaderboard = async function() {
                 <td style="padding:14px; font-weight:bold; text-align:center;">${rankDisplay}</td>
                 <td style="text-align:left; padding:14px; font-weight:500;">${studentName} ${isMe ? '<span class="badge">Me</span>' : ''}</td>
                 <td style="padding:14px; text-align:center;">${levelLabel} ${u.level || 1}</td>
-                <td style="padding:14px; text-align:center; font-weight:600; color:var(--primary);">${u.total_sessions || 0}</td>
+                <td style="padding:14px; text-align:center; font-weight:600; color:var(--primary);">${(u.total_sessions ?? u.sessions ?? 0)}</td>
             `;
             body.appendChild(tr);
         });

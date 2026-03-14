@@ -164,7 +164,27 @@ Database.prototype.getLeaderboard = async function() {
     if (!navigator.onLine || !auth.user || auth.user.id === 'offline-user') return [];
     try {
         const { data } = await auth.client.from("weekly_leaderboard").select("*"); 
-        const rankings = data || [];
+        const rankings = (data || []).map(r => {
+            // Normalize common column name variants from different leaderboard views.
+            const normalized = { ...r };
+            const sessionsVal =
+                normalized.total_sessions ??
+                normalized.sessions ??
+                normalized.weekly_sessions ??
+                normalized.session_count ??
+                normalized.sessions_count ??
+                null;
+            if (sessionsVal !== null && sessionsVal !== undefined) {
+                normalized.total_sessions = Number(sessionsVal) || 0;
+            }
+            if (normalized.level !== null && normalized.level !== undefined) {
+                normalized.level = Number(normalized.level) || 1;
+            }
+            if (normalized.xp !== null && normalized.xp !== undefined) {
+                normalized.xp = Number(normalized.xp) || 0;
+            }
+            return normalized;
+        });
         
         // Inject my current local data into the rankings to show instant progress
         const meIdx = rankings.findIndex(u => u.user_id === auth.user.id);
@@ -175,7 +195,7 @@ Database.prototype.getLeaderboard = async function() {
         
         const myWeeklySessions = this.data.study_sessions.filter(s => {
             try {
-                const sessionDate = new Date(s.timestamp);
+                const sessionDate = new Date(s.timestamp || s.created_at || 0);
                 const isRecent = sessionDate > sevenDaysAgo;
                 return isRecent;
             } catch(e) {

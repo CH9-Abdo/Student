@@ -3,6 +3,7 @@ StudentProApp.prototype.refreshPlanner = function() {
     const T   = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
     const sel = get('semester-selector');
     if (!sel) return;
+    const delBtn = get('delete-semester-btn');
 
     if (!this.activeSemesterId && db.data.semesters.length > 0) {
         const savedId = localStorage.getItem('studentpro_active_semester');
@@ -20,6 +21,7 @@ StudentProApp.prototype.refreshPlanner = function() {
         if (s.id === this.activeSemesterId) opt.selected = true;
         sel.appendChild(opt);
     });
+    if (delBtn) delBtn.disabled = !this.activeSemesterId;
     this.refreshSubjects();
 };
 

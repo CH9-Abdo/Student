@@ -35,14 +35,15 @@ Database.prototype.syncPendingChanges = async function() {
     // Apply any pending deletions first
     await this.applyPendingDeletions();
 
-    const queue = this.loadOfflineQueue();
-    if (queue.length === 0) return true;
+    // Use the in-memory queue so updateLocalId() can rewrite IDs/foreign keys during sync.
+    this.offlineQueue = this.loadOfflineQueue();
+    if (this.offlineQueue.length === 0) return true;
 
-    console.log(`[Sync] Uploading ${queue.length} pending changes...`);
+    console.log(`[Sync] Uploading ${this.offlineQueue.length} pending changes...`);
     let successCount = 0;
     let failedItems = [];
 
-    for (const item of queue) {
+    for (const item of this.offlineQueue) {
         try {
             const result = await this.pushToCloud(item.table, item.data);
             if (result) successCount++;

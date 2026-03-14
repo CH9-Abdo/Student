@@ -209,6 +209,13 @@ class AuthManager {
     showLogin() {
         document.getElementById('login-screen').classList.remove('hidden');
         document.getElementById('app').classList.add('hidden');
+
+        // Help Android Autofill / password managers by prefilling the last used email.
+        const cachedEmail = localStorage.getItem('studentpro_cached_email');
+        const emailInput = document.getElementById('login-email');
+        if (emailInput && cachedEmail && !emailInput.value) {
+            emailInput.value = cachedEmail;
+        }
     }
 
     onAuthSuccess(user) {

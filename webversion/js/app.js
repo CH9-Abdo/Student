@@ -172,6 +172,9 @@ class StudentProApp {
         const newSemBtn = get('add-semester-btn');
         if (newSemBtn) newSemBtn.innerHTML = `<i class="fas fa-plus"></i> ${T.new_semester || 'New Semester'}`;
 
+        const delSemBtn = get('delete-semester-btn');
+        if (delSemBtn) delSemBtn.innerHTML = `<i class="fas fa-trash-alt"></i> ${T.delete_semester || 'Delete Semester'}`;
+
         const plannerEmptySpan = document.querySelector('#planner-empty span');
         if (plannerEmptySpan) plannerEmptySpan.textContent = T.add_subject_hint || (T.add_subject || 'Add Subject');
 
@@ -435,11 +438,41 @@ class StudentProApp {
             this.showModal('add-semester-modal');
         });
 
+        get('delete-semester-btn')?.addEventListener('click', async () => {
+            if (!this.activeSemesterId) return;
+            const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
+            const sem = db.data.semesters.find(s => s.id === this.activeSemesterId);
+            const semName = sem?.name || '';
+
+            const promptText = (T.confirm_delete_semester || "Delete this semester and all its subjects/chapters?")
+                + (semName ? `\n\n${semName}` : '');
+            if (!confirm(promptText)) return;
+
+            const btn = get('delete-semester-btn');
+            if (btn) btn.disabled = true;
+
+            try {
+                showToast(T.semester_deleting || "Deleting semester...", 'info', 2500);
+                await db.deleteSemester(this.activeSemesterId);
+                this.activeSemesterId = null;
+                localStorage.removeItem('studentpro_active_semester');
+                this.refreshPlanner();
+                this.refreshAll();
+                showToast(T.semester_deleted || "Semester deleted.", 'info');
+            } catch (e) {
+                console.error("[App] Delete semester failed:", e);
+                showToast((T.sync_failed || "Delete failed") + ": " + (e?.message || e), 'error');
+            } finally {
+                if (btn) btn.disabled = !this.activeSemesterId;
+            }
+        });
+
         get('close-semester-modal')?.addEventListener('click', () => this.closeModal('add-semester-modal'));
 
         const semTemplateSel = get('semester-template-selector');
         const semSpecSel = get('semester-spec-selector');
         const semSpecCont = get('semester-spec-container');
+        const semNameInput = get('semester-name-input');
 
         if (semTemplateSel) {
             semTemplateSel.addEventListener('change', (e) => {
@@ -453,22 +486,45 @@ class StudentProApp {
                         semSpecSel.appendChild(opt);
                     });
                     semSpecCont.classList.remove('hidden');
+                    if (semSpecSel) semSpecSel.value = '';
                 } else {
                     semSpecCont.classList.add('hidden');
+                    if (semSpecSel) semSpecSel.value = '';
+                    if (year && filtered.length === 1 && semNameInput && !semNameInput.value.trim()) {
+                        semNameInput.value = filtered[0].name;
+                    }
                 }
             });
         }
 
+        semSpecSel?.addEventListener('change', (e) => {
+            const specName = e.target.value;
+            if (specName && semNameInput && !semNameInput.value.trim()) {
+                semNameInput.value = specName;
+            }
+        });
+
         get('save-semester-modal-btn')?.addEventListener('click', async () => {
-            const name = get('semester-name-input').value;
+            let name = semNameInput?.value || '';
             const year = semTemplateSel?.value;
             const spec = semSpecSel?.value;
 
             if (!name || !name.trim()) {
-                showToast((TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_enter_semester || "Please enter a semester name.", 'warning');
-                return;
+                const templatesForYear = year ? TEMPLATES.filter(t => t.year === year) : [];
+                const derivedName = (spec && spec.trim())
+                    ? spec.trim()
+                    : (templatesForYear.length === 1 ? templatesForYear[0].name : '');
+
+                if (derivedName) {
+                    name = derivedName;
+                    if (semNameInput) semNameInput.value = derivedName;
+                } else {
+                    showToast((TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_enter_semester || "Please enter a semester name.", 'warning');
+                    return;
+                }
             }
 
+            showToast((TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"]).semester_creating || "Creating semester...", 'info', 2500);
             const id = await db.addSemester(name.trim());
             if (id && (year || spec)) {
                 let template;
