@@ -532,27 +532,35 @@
                  LEADERBOARD TAB
             ========================================== -->
             <section id="leaderboard" class="tab-content">
-                <div class="header">
-                    <h2 class="h1">Leaderboard</h2>
-                </div>
-                <div class="card">
-                    <table class="leaderboard-table">
-                        <thead>
-                            <tr>
-                                <th style="text-align:center; width:60px;">Rank</th>
-                                <th>Student</th>
-                                <th style="text-align:center;">Level</th>
-                                <th style="text-align:center;">Sessions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="leaderboard-body">
-                            <tr>
-                                <td colspan="4" style="padding:20px; text-align:center; color:var(--text-mute);">
-                                    Loading leaderboard...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="lb-shell">
+                    <div class="lb-top">
+                        <div class="lb-title">
+                            <h2 class="h1" id="leaderboard-title">Leaderboard</h2>
+                            <p class="mute" id="lb-subtitle">Ranked by sessions, then XP</p>
+                        </div>
+                        <div class="lb-segments" role="tablist" aria-label="Leaderboard period">
+                            <button class="lb-seg active" role="tab" aria-selected="true" data-period="daily" id="lb-seg-daily">Daily</button>
+                            <button class="lb-seg" role="tab" aria-selected="false" data-period="weekly" id="lb-seg-weekly">Weekly</button>
+                            <button class="lb-seg" role="tab" aria-selected="false" data-period="monthly" id="lb-seg-monthly">Monthly</button>
+                            <button class="lb-seg" role="tab" aria-selected="false" data-period="all_time" id="lb-seg-alltime">All Time</button>
+                        </div>
+                    </div>
+
+                    <div class="lb-grid">
+                        <div class="card lb-podium" id="lb-podium">
+                            <div class="lb-loading">Loading leaderboard...</div>
+                        </div>
+
+                        <div class="card lb-list">
+                            <div class="lb-list-head">
+                                <div class="lb-col-rank" id="lb-th-rank">Rank</div>
+                                <div class="lb-col-student" id="lb-th-student">Student</div>
+                                <div class="lb-col-level" id="lb-th-level">Level</div>
+                                <div class="lb-col-sessions" id="lb-th-sessions">Sessions</div>
+                            </div>
+                            <div class="lb-list-body" id="lb-list-body"></div>
+                        </div>
+                    </div>
                 </div>
             </section>
 

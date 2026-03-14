@@ -269,6 +269,16 @@ class StudentProApp {
         if (lbThLevel) lbThLevel.textContent = T.lb_level || T.level_label || 'Level';
         const lbThSessions = get('lb-th-sessions');
         if (lbThSessions) lbThSessions.textContent = T.lb_sessions || T.sessions || 'Sessions';
+        const lbSegDaily = get('lb-seg-daily');
+        if (lbSegDaily) lbSegDaily.textContent = T.lb_daily || 'Daily';
+        const lbSegWeekly = get('lb-seg-weekly');
+        if (lbSegWeekly) lbSegWeekly.textContent = T.lb_weekly || 'Weekly';
+        const lbSegMonthly = get('lb-seg-monthly');
+        if (lbSegMonthly) lbSegMonthly.textContent = T.lb_monthly || 'Monthly';
+        const lbSegAll = get('lb-seg-alltime');
+        if (lbSegAll) lbSegAll.textContent = T.lb_all_time || 'All Time';
+        const lbSub = get('lb-subtitle');
+        if (lbSub) lbSub.textContent = T.lb_ranked_by || 'Ranked by sessions, then XP';
 
         // ── 8. CHAPTER MANAGER MODAL ─────────────────────────
         t('sw-chapter-input', 'add_chapter_placeholder');
@@ -426,6 +436,14 @@ class StudentProApp {
         document.querySelectorAll('.nav-btn[data-tab]').forEach(btn => {
             btn.addEventListener('click', () => {
                 this.switchTab(btn.dataset.tab);
+            });
+        });
+
+        // Leaderboard scope switching (daily/weekly/monthly/all-time)
+        document.querySelectorAll('.lb-seg[data-period]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.leaderboardScope = btn.dataset.period;
+                this.refreshLeaderboard();
             });
         });
 

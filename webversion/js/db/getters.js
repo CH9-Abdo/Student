@@ -160,10 +160,17 @@ Database.prototype.getAdvancedRecommendation = function(now = new Date()) {
     return { ...best, reasonKey, reasonVars };
 };
 
-Database.prototype.getLeaderboard = async function() { 
+Database.prototype.getLeaderboard = async function(scope = 'weekly') { 
     if (!navigator.onLine || !auth.user || auth.user.id === 'offline-user') return [];
     try {
-        const { data } = await auth.client.from("weekly_leaderboard").select("*"); 
+        const viewByScope = {
+            daily: 'daily_leaderboard',
+            weekly: 'weekly_leaderboard',
+            monthly: 'monthly_leaderboard',
+            all_time: 'all_time_leaderboard'
+        };
+        const viewName = viewByScope[scope] || viewByScope.weekly;
+        const { data } = await auth.client.from(viewName).select("*"); 
         const rankings = (data || []).map(r => {
             // Normalize common column name variants from different leaderboard views.
             const normalized = { ...r };
@@ -185,29 +192,36 @@ Database.prototype.getLeaderboard = async function() {
             }
             return normalized;
         });
-        
+
         // Inject my current local data into the rankings to show instant progress
         const meIdx = rankings.findIndex(u => u.user_id === auth.user.id);
         
-        // Calculate my sessions from the last 7 days locally
         const now = new Date();
-        const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
-        
-        const myWeeklySessions = this.data.study_sessions.filter(s => {
-            try {
-                const sessionDate = new Date(s.timestamp || s.created_at || 0);
-                const isRecent = sessionDate > sevenDaysAgo;
-                return isRecent;
-            } catch(e) {
-                return false;
-            }
-        }).length;
+        const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const startOfMonth = d => new Date(d.getFullYear(), d.getMonth(), 1);
+        const windowStart =
+            scope === 'daily' ? startOfDay(now)
+            : scope === 'weekly' ? new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000))
+            : scope === 'monthly' ? startOfMonth(now)
+            : null;
 
-        console.log(`[DB] Leaderboard Local Calc: Found ${myWeeklySessions} sessions in last 7 days`);
+        const sessions = this.data.study_sessions || [];
+        const mySessionsInWindow = windowStart
+            ? sessions.filter(s => {
+                try {
+                    const sessionDate = new Date(s.timestamp || s.created_at || 0);
+                    return sessionDate >= windowStart;
+                } catch {
+                    return false;
+                }
+            }).length
+            : (this.data?.user_profile?.total_sessions || sessions.length);
+
+        console.log(`[DB] Leaderboard Local Calc (${scope}): ${mySessionsInWindow} sessions`);
 
         if (meIdx !== -1) {
             // Update my existing record in the list
-            rankings[meIdx].total_sessions = myWeeklySessions;
+            rankings[meIdx].total_sessions = mySessionsInWindow;
             rankings[meIdx].xp = this.data.user_profile.xp;
             rankings[meIdx].level = this.data.user_profile.level;
             rankings[meIdx].display_name = this.data.user_profile.display_name;
@@ -218,11 +232,15 @@ Database.prototype.getLeaderboard = async function() {
                 display_name: this.data.user_profile.display_name || "Me",
                 xp: this.data.user_profile.xp,
                 level: this.data.user_profile.level,
-                total_sessions: myWeeklySessions
+                total_sessions: mySessionsInWindow
             });
         }
 
-        return rankings.sort((a, b) => (b.xp || 0) - (a.xp || 0));
+        // For period leaderboards, sessions are the main ranking; XP breaks ties.
+        return rankings.sort((a, b) =>
+            (Number(b.total_sessions || 0) - Number(a.total_sessions || 0)) ||
+            (Number(b.xp || 0) - Number(a.xp || 0))
+        );
     } catch (e) {
         console.error("[DB] Leaderboard fetch error:", e);
         return [];
