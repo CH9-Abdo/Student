@@ -63,6 +63,103 @@ Database.prototype.getSmartSuggestion = function(subId) {
     return "🎉 All chapters completed for this subject!";
 };
 
+Database.prototype.getAdvancedRecommendation = function(now = new Date()) {
+    const subjects = this.data?.subjects || [];
+    const chapters = this.data?.chapters || [];
+    const sessions = this.data?.study_sessions || [];
+    if (subjects.length === 0) return null;
+
+    const nowMs = now.getTime();
+    const MS_PER_DAY = 86400000;
+    const clamp01 = n => Math.max(0, Math.min(1, n));
+
+    const best = subjects
+        .map(sub => {
+            const subChaps = chapters.filter(c => c.subject_id === sub.id);
+            const hasEx = sub.has_exercises !== false;
+
+            const totalTasks = subChaps.length * (hasEx ? 2 : 1);
+            let doneTasks = 0;
+            let nextTask = null; // { type: 'course'|'exercises', chapterName }
+
+            for (const c of subChaps) {
+                if (c.video_completed) doneTasks += 1;
+                else if (!nextTask) nextTask = { type: 'course', chapterName: c.name };
+
+                if (hasEx) {
+                    if (c.exercises_completed) doneTasks += 1;
+                    else if (c.video_completed && !nextTask) nextTask = { type: 'exercises', chapterName: c.name };
+                }
+            }
+
+            const completion = totalTasks > 0 ? (doneTasks / totalTasks) : 0;
+
+            let daysToExam = null;
+            if (sub.exam_date) {
+                const exam = new Date(sub.exam_date);
+                if (Number.isFinite(exam.getTime())) {
+                    const days = Math.ceil((exam.getTime() - nowMs) / MS_PER_DAY);
+                    if (days >= 0) daysToExam = days;
+                }
+            }
+
+            let lastSessionMs = null;
+            for (const s of sessions) {
+                if (s.subject_id !== sub.id) continue;
+                const ts = s.timestamp || s.created_at;
+                if (!ts) continue;
+                const d = new Date(ts);
+                const t = d.getTime();
+                if (!Number.isFinite(t)) continue;
+                if (lastSessionMs === null || t > lastSessionMs) lastSessionMs = t;
+            }
+            const daysSinceLastStudy = lastSessionMs === null ? null : Math.floor((nowMs - lastSessionMs) / MS_PER_DAY);
+
+            // Scoring:
+            // - Exams soon are highest priority (0..14 days window).
+            // - Lower completion and longer time since last study increase priority.
+            const examScore = daysToExam === null ? 0 : clamp01((14 - Math.min(daysToExam, 14)) / 14);
+            const progressScore = totalTasks === 0 ? 0 : (1 - completion);
+            const recencyScore = daysSinceLastStudy === null ? 1 : clamp01(daysSinceLastStudy / 7);
+
+            let score = (0.55 * examScore) + (0.25 * progressScore) + (0.20 * recencyScore);
+            if (daysToExam !== null && daysToExam <= 3) score += 0.25; // hard push for very near exams
+            if (totalTasks === 0) score *= 0.25; // no chapters: de-prioritize
+
+            return {
+                subjectId: sub.id,
+                subjectName: sub.name,
+                daysToExam,
+                completion,
+                totalTasks,
+                doneTasks,
+                daysSinceLastStudy,
+                nextTask,
+                score
+            };
+        })
+        .sort((a, b) => b.score - a.score)[0];
+
+    if (!best) return null;
+
+    // Translatable reason for UI
+    let reasonKey = null;
+    let reasonVars = null;
+    if (best.daysToExam !== null) {
+        if (best.daysToExam === 0) reasonKey = 'rec_reason_exam_today';
+        else { reasonKey = 'rec_reason_exam_in_days'; reasonVars = { days: best.daysToExam }; }
+    } else if (best.daysSinceLastStudy === null) {
+        reasonKey = 'rec_reason_not_studied_yet';
+    } else if (best.daysSinceLastStudy > 0) {
+        reasonKey = 'rec_reason_last_studied_days_ago';
+        reasonVars = { days: best.daysSinceLastStudy };
+    } else {
+        reasonKey = 'rec_reason_keep_momentum';
+    }
+
+    return { ...best, reasonKey, reasonVars };
+};
+
 Database.prototype.getLeaderboard = async function() { 
     if (!navigator.onLine || !auth.user || auth.user.id === 'offline-user') return [];
     try {

@@ -166,9 +166,49 @@ StudentProApp.prototype.updateMiniChallenge = function() {
     if (!text) return;
     if (!db.data.subjects || db.data.subjects.length === 0) {
         text.textContent = T.mini_challenge_no_subjects || "Add subjects first!";
+        const smart = get('smart-suggestion');
+        if (smart) smart.textContent = T.smart_suggestion || 'Smart Suggestion';
         return;
     }
-    const sub = db.data.subjects[0];
-    const challengeTitle = T.balance_challenge || "Balance Challenge";
-    text.innerHTML = `${challengeTitle}: ${T.course || 'Study'} <b>${sub.name}</b>`;
+
+    const rec = typeof db.getAdvancedRecommendation === 'function' ? db.getAdvancedRecommendation() : null;
+    const challengeTitle = T.balance_challenge || "Mini Challenge";
+
+    if (rec) {
+        const format = (tmpl, vars) =>
+            String(tmpl || '').replace(/\{(\w+)\}/g, (_, k) => (vars && vars[k] !== undefined ? String(vars[k]) : ''));
+
+        const typeLabel = rec.nextTask?.type === 'exercises'
+            ? (T.exercises || 'Exercises')
+            : (T.course || 'Course');
+        const verb = rec.nextTask?.type === 'exercises'
+            ? (T.practice || 'Practice')
+            : (T.study || 'Study');
+
+        const chapterPart = rec.nextTask?.chapterName ? `: <b>${rec.nextTask.chapterName}</b>` : '';
+        const reasonText = rec.reasonKey ? format(T[rec.reasonKey] || rec.reasonKey, rec.reasonVars) : '';
+        const reasonPart = reasonText ? ` <span class="mini-challenge-reason">${reasonText}</span>` : '';
+        text.innerHTML = `${challengeTitle}: ${verb} <b>${rec.subjectName}</b> ${typeLabel}${chapterPart}${reasonPart}`;
+    } else {
+        // Fallback to any subject
+        const sub = db.data.subjects[0];
+        text.innerHTML = `${challengeTitle}: ${(T.study || T.course || 'Study')} <b>${sub.name}</b>`;
+    }
+
+    // Pomodoro "Smart Suggestion": if a subject is selected, suggest the next actionable chapter for it.
+    const smart = get('smart-suggestion');
+    if (smart) {
+        const subId = this.activeSubjectId || null;
+        if (!subId) {
+            smart.textContent = T.smart_suggestion || 'Smart Suggestion';
+        } else {
+            const chaps = db.data.chapters.filter(c => c.subject_id === subId);
+            let msg = null;
+            for (const c of chaps) {
+                if (!c.video_completed) { msg = `📖 ${T.course || 'Course'}: ${c.name}`; break; }
+                if (!c.exercises_completed) { msg = `✍️ ${T.exercises || 'Exercises'}: ${c.name}`; break; }
+            }
+            smart.textContent = msg || (T.all_done || "🎉 All chapters completed!");
+        }
+    }
 };

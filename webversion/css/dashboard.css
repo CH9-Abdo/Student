@@ -469,6 +469,19 @@
 .an-bk-val { font-size: 12px; font-weight: 700; color: var(--text-mute); min-width: 52px; text-align: right; }
 .an-bk-empty { text-align: center; padding: 24px; color: var(--text-mute); font-size: 13px; }
 
+/* Mini challenge reason pill (higher contrast than .mute) */
+.mini-challenge-reason {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #1e40af;
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    vertical-align: middle;
+}
+
 /* ── RESPONSIVE ──────────────────────────────────────────────── */
 @media (max-width: 1100px) {
     .db-kpi-strip { grid-template-columns: 1fr 1fr 1fr; }

@@ -170,7 +170,8 @@ Database.prototype.updateProfile = async function(updates) {
     
     // Basic Level Up Logic
     const xp = this.data.user_profile.xp || 0;
-    const newLevel = Math.floor(xp / 1000) + 1;
+    const xpPerLevel = (typeof this.getXpPerLevel === 'function') ? this.getXpPerLevel() : 1000;
+    const newLevel = Math.floor(xp / xpPerLevel) + 1;
     if (newLevel > (this.data.user_profile.level || 1)) {
         this.data.user_profile.level = newLevel;
         console.log(`[DB] Level Up! New Level: ${newLevel}`);
