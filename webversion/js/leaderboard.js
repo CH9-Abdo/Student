@@ -47,14 +47,16 @@ StudentProApp.prototype.refreshLeaderboard = async function() {
             const xp = Number(u.xp || 0) || 0;
             const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
             const cls = rank === 1 ? 'gold' : rank === 2 ? 'silver' : 'bronze';
-            const meTag = isMe ? ` <span class="lb-chip primary">Me</span>` : '';
+            const meTag = isMe ? ` <span class="lb-chip primary lb-mechip">Me</span>` : '';
             return `
-                <div class="lb-pod ${cls}">
+                <div class="lb-pod ${cls} rank-${rank}" data-rank="${rank}">
                     <div class="lb-pod-top">
                         <span class="lb-medal">${medal}</span>
                         <span class="lb-rankpill">#${rank}</span>
                     </div>
-                    <div class="lb-name" title="${name}">${name}${meTag}</div>
+                    <div class="lb-name">
+                        <span class="lb-name-text" title="${name}">${name}</span>${meTag}
+                    </div>
                     <div class="lb-meta">
                         <span class="lb-chip"><strong>${sessions}</strong> ${T.lb_sessions || 'Sessions'}</span>
                         <span class="lb-chip"><strong>${xp}</strong> ${T.xp || 'XP'}</span>
@@ -76,10 +78,12 @@ StudentProApp.prototype.refreshLeaderboard = async function() {
                 <h3>${title}</h3>
                 <span class="mute">${scopeLabel}</span>
             </div>
-            <div class="lb-podium-row">
-                ${renderPod(top3[1], 2)}
-                ${renderPod(top3[0], 1)}
-                ${renderPod(top3[2], 3)}
+            <div class="lb-podium-scroll" aria-label="${title} podium">
+                <div class="lb-podium-row">
+                    ${renderPod(top3[0], 1)}
+                    ${renderPod(top3[1], 2)}
+                    ${renderPod(top3[2], 3)}
+                </div>
             </div>
         `;
 
