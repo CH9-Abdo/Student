@@ -335,13 +335,23 @@ StudentProApp.prototype.applyTemplateToSemester = async function(semId, template
     for (let sub of template.subjects) {
         const hasEx = sub.has_exercises !== false;
         const subId = await db.addSubject(semId, sub.name, null, hasEx);
-        if (subId) {
-            for (let ch of sub.chapters) {
-                if (typeof ch === 'string') {
-                    await db.addChapter(subId, ch);
-                } else {
-                    await db.addChapter(subId, ch.name, ch.url || null);
+        if (!subId) continue;
+
+        for (let chap of sub.chapters) {
+            if (typeof chap === 'string') {
+                await db.addChapter(subId, chap);
+            } else {
+                const resources = chap.resources ? JSON.parse(JSON.stringify(chap.resources)) : [];
+                let ytUrl = chap.url || null;
+
+                // Ensure consistency
+                if (ytUrl && !resources.some(r => r.type === 'video')) {
+                    resources.push({ type: 'video', url: ytUrl, label: 'Video Lesson' });
+                } else if (!ytUrl && resources.some(r => r.type === 'video')) {
+                    ytUrl = resources.find(r => r.type === 'video').url;
                 }
+
+                await db.addChapter(subId, chap.name, ytUrl, resources);
             }
         }
     }

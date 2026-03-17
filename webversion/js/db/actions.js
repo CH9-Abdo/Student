@@ -247,14 +247,19 @@ Database.prototype.applyTemplate = async function(template) {
             if (typeof chap === 'string') {
                 await this.addChapter(subId, chap);
             } else {
-                const resources = chap.resources || [];
+                // Clone resources if they exist, otherwise start empty
+                let resources = chap.resources ? JSON.parse(JSON.stringify(chap.resources)) : [];
                 let ytUrl = chap.url || null;
-                // If url exists but not in resources, add it
+                
+                // If there's a standalone url but it's not in the resources yet, add it as a video
                 if (ytUrl && !resources.some(r => r.type === 'video')) {
                     resources.push({ type: 'video', url: ytUrl, label: 'Video Lesson' });
-                } else if (!ytUrl && resources.some(r => r.type === 'video')) {
+                } 
+                // If there's no standalone url but there is a video in resources, use that as the main ytUrl
+                else if (!ytUrl && resources.some(r => r.type === 'video')) {
                     ytUrl = resources.find(r => r.type === 'video').url;
                 }
+
                 await this.addChapter(subId, chap.name, ytUrl, resources);
             }
         }

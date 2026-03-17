@@ -7,68 +7,68 @@ const TEMPLATES = [
             { 
                 name: "الرياضيات", 
                 chapters: [
-                    { name: "الدوال العددية والنهايات", url: "" },
-                    { name: "الدوال الأسية واللوغاريتمية", url: "" },
-                    { name: "المتتاليات العددية", url: "" },
-                    { name: "الاحتمالات", url: "" },
-                    { name: "الهندسة في الفضاء", url: "" },
-                    { name: "الأعداد المركبة", url: "" },
-                    { name: "الحساب التكاملي", url: "" },
-                    { name: "المعادلات التفاضلية", url: "" }
+                    { name: "الدوال العددية والنهايات" },
+                    { name: "الدوال الأسية واللوغاريتمية" },
+                    { name: "المتتاليات العددية" },
+                    { name: "الاحتمالات" },
+                    { name: "الهندسة في الفضاء" },
+                    { name: "الأعداد المركبة" },
+                    { name: "الحساب التكاملي" },
+                    { name: "المعادلات التفاضلية" }
                 ] 
             },
             { 
                 name: "العلوم الفيزيائية", 
                 chapters: [
-                    { name: "المتابعة الزمنية لتدفق كيميائي", url: "" },
-                    { name: "التحولات النووية", url: "" },
-                    { name: "الظواهر الكهربائية", url: "" },
-                    { name: "حالة التوازن الكيميائي", url: "" },
-                    { name: "الميكانيك", url: "" },
-                    { name: "الأسترة", url: "" },
-                    { name: "الاهتزازات الميكانيكية", url: "" },
-                    { name: "الكهرومغناطيسية", url: "" }
+                    { name: "المتابعة الزمنية لتدفق كيميائي" },
+                    { name: "التحولات النووية" },
+                    { name: "الظواهر الكهربائية" },
+                    { name: "حالة التوازن الكيميائي" },
+                    { name: "الميكانيك" },
+                    { name: "الأسترة" },
+                    { name: "الاهتزازات الميكانيكية" },
+                    { name: "الكهرومغناطيسية" }
                 ] 
             },
             { 
                 name: "علوم الطبيعة والحياة", 
                 chapters: [
-                    { name: "تركيب البروتين", url: "" },
-                    { name: "بنية البروتين ووظيفته", url: "" },
-                    { name: "النشاط الأنزيمي", url: "" },
-                    { name: "المناعة", url: "" },
-                    { name: "الاتصال العصبي", url: "" },
-                    { name: "التكاثر", url: "" },
-                    { name: "التركيب الضوئي والتنفس", url: "" },
-                    { name: "التكتونية والجيولوجيا", url: "" },
-                    { name: "الوراثة", url: "" }
+                    { name: "تركيب البروتين" },
+                    { name: "بنية البروتين ووظيفته" },
+                    { name: "النشاط الأنزيمي" },
+                    { name: "المناعة" },
+                    { name: "الاتصال العصبي" },
+                    { name: "التكاثر" },
+                    { name: "التركيب الضوئي والتنفس" },
+                    { name: "التكتونية والجيولوجيا" },
+                    { name: "الوراثة" }
                 ] 
             },
             { 
                 name: "الفلسفة", 
                 has_exercises: false,
                 chapters: [
-                    { name: "المشكلة والإشكالية", url: "" },
-                    { name: "الإدراك والاحساس", url: "" },
-                    { name: "الذاكرة والخيال", url: "" },
-                    { name: "اللغة والفكر", url: "" },
-                    { name: "الشعور واللاشعور", url: "" },
-                    { name: "المادة الحية والمادة الجامدة", url: "" },
-                    { name: "الحقيقة", url: "" },
-                    { name: "العدالة", url: "" },
-                    { name: "الأخلاق", url: "" }
+                    { name: "المشكلة والإشكالية" },
+                    { name: "الإدراك والاحساس" },
+                    { name: "الذاكرة والخيال" },
+                    { name: "اللغة والفكر" },
+                    { name: "الشعور واللاشعور" },
+                    { name: "المادة الحية والمادة الجامدة" },
+                    { name: "الحقيقة" },
+                    { name: "العدالة" },
+                    { name: "الأخلاق" }
                 ] 
             },
             { 
                 name: "اللغة العربية", 
                 chapters: [
-                    { name: "الأدب في عصر الضعف", url: "" },
-                    { name: "مدرسة الإحياء والبعث", url: "" },
-                    { name: "أدب المهجر والالتزام", url: "" },
-                    { name: "الشعر التعليمي", url: "" },
-                    { name: "فن المقال", url: "" },
-                    { name: "القصة والرواية", url: "" },
-                    { name: "النقد الأدبي", url: "" }
+                    { name: "الأدب في عصر الضعف" },
+                    { name: "مدرسة الإحياء والبعث" },
+                    { name: "أدب المهجر والالتزام" },
+                    { name: "الشعر التعليمي" },
+                    { name: "فن المقال" },
+                    { name: "القصة والرواية" },
+                    { name: "النقد الأدبي" }
                 ] 
             },
             { 
@@ -100,43 +100,43 @@ const TEMPLATES = [
             { 
                 name: "الرياضيات (متقدم)", 
                 chapters: [
-                    { name: "الأعداد والحساب", url: "" },
-                    { name: "الدوال والاشتقاقية", url: "" },
-                    { name: "المتتاليات", url: "" },
-                    { name: "الأعداد المركبة", url: "" },
-                    { name: "الحساب التكاملي", url: "" },
-                    { name: "الاحتمالات", url: "" },
-                    { name: "القواسم والمضاعفات", url: "" },
-                    { name: "المعادلات التفاضلية", url: "" },
-                    { name: "الهندسة التحليلية", url: "" },
-                    { name: "المصفوفات", url: "" }
+                    { name: "الأعداد والحساب" },
+                    { name: "الدوال والاشتقاقية" },
+                    { name: "المتتاليات" },
+                    { name: "الأعداد المركبة" },
+                    { name: "الحساب التكاملي" },
+                    { name: "الاحتمالات" },
+                    { name: "القواسم والمضاعفات" },
+                    { name: "المعادلات التفاضلية" },
+                    { name: "الهندسة التحليلية" },
+                    { name: "المصفوفات" }
                 ] 
             },
             { 
                 name: "العلوم الفيزيائية", 
                 chapters: [
-                    { name: "المتابعة الزمنية", url: "" },
-                    { name: "التحولات النووية", url: "" },
-                    { name: "الكهرباء", url: "" },
-                    { name: "الميكانيك والنيوتن", url: "" },
-                    { name: "الاهتزازات الميكانيكية", url: "" },
-                    { name: "كيمياء توازن", url: "" },
-                    { name: "الفيزياء النووية", url: "" },
-                    { name: "الليزر", url: "" },
-                    { name: "الأمواج", url: "" }
+                    { name: "المتابعة الزمنية" },
+                    { name: "التحولات النووية" },
+                    { name: "الكهرباء" },
+                    { name: "الميكانيك والنيوتن" },
+                    { name: "الاهتزازات الميكانيكية" },
+                    { name: "كيمياء توازن" },
+                    { name: "الفيزياء النووية" },
+                    { name: "الليزر" },
+                    { name: "الأمواج" }
                 ] 
             },
             { 
                 name: "الهندسة التقنية", 
                 chapters: [
-                    { name: "الآليات والمنطق", url: "" },
-                    { name: "مقاومة المواد", url: "" },
-                    { name: "دراسة الأنظمة", url: "" },
-                    { name: "الإنشاء الميكانيكي", url: "" },
-                    { name: "الإنشاء المدني", url: "" },
-                    { name: "التحكم الآلي", url: "" },
-                    { name: "البرمجة", url: "" },
-                    { name: "الدوائر الإلكترونية", url: "" }
+                    { name: "الآليات والمنطق" },
+                    { name: "مقاومة المواد" },
+                    { name: "دراسة الأنظمة" },
+                    { name: "الإنشاء الميكانيكي" },
+                    { name: "الإنشاء المدني" },
+                    { name: "التحكم الآلي" },
+                    { name: "البرمجة" },
+                    { name: "الدوائر الإلكترونية" }
                 ] 
             },
             { 
@@ -162,11 +162,11 @@ const TEMPLATES = [
             { 
                 name: "اللغة الإنجليزية", 
                 chapters: [
-                    { name: "Grammar", url: "" },
-                    { name: "Vocabulary", url: "" },
-                    { name: "Reading Comprehension", url: "" },
-                    { name: "Writing", url: "" },
-                    { name: "Technical English", url: "" }
+                    { name: "Grammar" },
+                    { name: "Vocabulary" },
+                    { name: "Reading Comprehension" },
+                    { name: "Writing" },
+                    { name: "Technical English" }
                 ] 
             }
         ]
@@ -178,50 +178,50 @@ const TEMPLATES = [
             { 
                 name: "التسيير المحاسبي والمالي", 
                 chapters: [
-                    { name: "الاهتلاكات والمخزونات", url: "" },
-                    { name: "إعداد الميزانية والنتائج", url: "" },
-                    { name: "محاسبة التكاليف الكلية", url: "" },
-                    { name: "محاسبة التكاليف المتغيرة", url: "" },
-                    { name: "تحليل الميزانية", url: "" },
-                    { name: "التدفق المالي", url: "" },
-                    { name: "القرار المالي", url: "" },
-                    { name: "الاستثمار", url: "" }
+                    { name: "الاهتلاكات والمخزونات" },
+                    { name: "إعداد الميزانية والنتائج" },
+                    { name: "محاسبة التكاليف الكلية" },
+                    { name: "محاسبة التكاليف المتغيرة" },
+                    { name: "تحليل الميزانية" },
+                    { name: "التدفق المالي" },
+                    { name: "القرار المالي" },
+                    { name: "الاستثمار" }
                 ] 
             },
             { 
                 name: "الاقتصاد والمناجمت", 
                 chapters: [
-                    { name: "النقود والأسعار", url: "" },
-                    { name: "النظام المصرفي", url: "" },
-                    { name: "التجارة الخارجية", url: "" },
-                    { name: "البطالة والتضخم", url: "" },
-                    { name: "القيادة والرقابة", url: "" },
-                    { name: "الاقتصاد الدولي", url: "" },
-                    { name: "النمو الاقتصادي", url: "" },
-                    { name: "التنمية", url: "" }
+                    { name: "النقود والأسعار" },
+                    { name: "النظام المصرفي" },
+                    { name: "التجارة الخارجية" },
+                    { name: "البطالة والتضخم" },
+                    { name: "القيادة والرقابة" },
+                    { name: "الاقتصاد الدولي" },
+                    { name: "النمو الاقتصادي" },
+                    { name: "التنمية" }
                 ] 
             },
             { 
                 name: "قانون", 
                 chapters: [
-                    { name: "عقد البيع", url: "" },
-                    { name: "شركة المساهمة", url: "" },
-                    { name: "عقد العمل", url: "" },
-                    { name: "الضريبة على الدخل", url: "" },
-                    { name: "الملكية الفكرية", url: "" },
-                    { name: "القانون التجاري", url: "" },
-                    { name: "النظام القانوني للمقاولات", url: "" }
+                    { name: "عقد البيع" },
+                    { name: "شركة المساهمة" },
+                    { name: "عقد العمل" },
+                    { name: "الضريبة على الدخل" },
+                    { name: "الملكية الفكرية" },
+                    { name: "القانون التجاري" },
+                    { name: "النظام القانوني للمقاولات" }
                 ] 
             },
             { 
                 name: "الرياضيات (تسيير)", 
                 chapters: [
-                    { name: "المتتاليات", url: "" },
-                    { name: "الدوال العددية", url: "" },
-                    { name: "الإحصاء والاحتمالات", url: "" },
-                    { name: "الرياضيات المالية", url: "" },
-                    { name: "النمذجة الرياضية", url: "" },
-                    { name: "المعادلات", url: "" }
+                    { name: "المتتاليات" },
+                    { name: "الدوال العددية" },
+                    { name: "الإحصاء والاحتمالات" },
+                    { name: "الرياضيات المالية" },
+                    { name: "النمذجة الرياضية" },
+                    { name: "المعادلات" }
                 ] 
             },
             { 
@@ -247,10 +247,10 @@ const TEMPLATES = [
             { 
                 name: "اللغة الإنجليزية", 
                 chapters: [
-                    { name: "Business English", url: "" },
-                    { name: "Communication", url: "" },
-                    { name: "Marketing", url: "" },
-                    { name: "Management", url: "" }
+                    { name: "Business English" },
+                    { name: "Communication" },
+                    { name: "Marketing" },
+                    { name: "Management" }
                 ] 
             }
         ]
@@ -262,7 +262,7 @@ const TEMPLATES = [
             { 
                 name: "الرياضيات", 
                 chapters: [
-                    { name: "المتتاليات", url: "https://youtu.be/Vtl2Xk0IsXw?si=-D6hD4PFlUMUTU6C" },
+                    { name: "المتتاليات", url: "https://youtu.be/Vtl2Xk0IsXw?si=-D6hD4PFlUMUTU6C", resources: [{ type: "video", url: "https://youtu.be/Vtl2Xk0IsXw?si=-D6hD4PFlUMUTU6C", label: "Video Lesson" }, { type: "pdf", url: "https://www.dzexams.com/ar/documents/UjZPSm1aWTNQRkxBYkd3Z1FHMDFSQT09", label: "ملخص المتتاليات" }] },
                     { name: "الموافقات و القسمة الاقليدية", url: "https://youtu.be/xsVrrTX3JWc?si=YK6gidCOq2YhxI6j" },
                     { name: "الدوال", url: "https://www.youtube.com/live/3h5aPEb9mtg?si=IYF1nanbou5fk8hW" }
                 ] 
@@ -334,64 +334,64 @@ const TEMPLATES = [
             { 
                 name: "الرياضيات", 
                 chapters: [
-                    { name: "الدوال والاشتقاقية", url: "" },
-                    { name: "كثيرات الحدود", url: "" },
-                    { name: "المرجح", url: "" },
-                    { name: "الزوايا الموجهة", url: "" },
-                    { name: "المتتاليات", url: "" },
-                    { name: "الاحتمالات", url: "" },
-                    { name: "المعادلات والمتراجحات", url: "" },
-                    { name: "التفاضل", url: "" }
+                    { name: "الدوال والاشتقاقية" },
+                    { name: "كثيرات الحدود" },
+                    { name: "المرجح" },
+                    { name: "الزوايا الموجهة" },
+                    { name: "المتتاليات" },
+                    { name: "الاحتمالات" },
+                    { name: "المعادلات والمتراجحات" },
+                    { name: "التفاضل" }
                 ] 
             },
             { 
                 name: "العلوم الفيزيائية", 
                 chapters: [
-                    { name: "العمل والطاقة الحركية", url: "" },
-                    { name: "الطاقة الكامنة", url: "" },
-                    { name: "الغاز المثالي", url: "" },
-                    { name: "المعايرة الكيميائية", url: "" },
-                    { name: "الناقلية الكهربائية", url: "" },
-                    { name: "الكيمياء العضوية", url: "" },
-                    { name: "التفاعلات الكيميائية", url: "" },
-                    { name: "الحركة", url: "" }
+                    { name: "العمل والطاقة الحركية" },
+                    { name: "الطاقة الكامنة" },
+                    { name: "الغاز المثالي" },
+                    { name: "المعايرة الكيميائية" },
+                    { name: "الناقلية الكهربائية" },
+                    { name: "الكيمياء العضوية" },
+                    { name: "التفاعلات الكيميائية" },
+                    { name: "الحركة" }
                 ] 
             },
             { 
                 name: "علوم الطبيعة والحياة", 
                 chapters: [
-                    { name: "النمو والتجديد الخلوي", url: "" },
-                    { name: "التنسيق الهرموني", url: "" },
-                    { name: "الانقسام والالقاح", url: "" },
-                    { name: "بنية الخلية", url: "" },
-                    { name: "الطفرات الوراثية", url: "" },
-                    { name: "الوراثة", url: "" },
-                    { name: "التنفس", url: "" },
-                    { name: "التغذية", url: "" }
+                    { name: "النمو والتجديد الخلوي" },
+                    { name: "التنسيق الهرموني" },
+                    { name: "الانقسام والالقاح" },
+                    { name: "بنية الخلية" },
+                    { name: "الطفرات الوراثية" },
+                    { name: "الوراثة" },
+                    { name: "التنفس" },
+                    { name: "التغذية" }
                 ] 
             },
             { 
                 name: "اللغة العربية", 
                 chapters: [
-                    { name: "العصر العباسي", url: "" },
-                    { name: "النقد الأدبي القديم", url: "" },
-                    { name: "الأدب الأندلسي", url: "" },
-                    { name: "الموشحات", url: "" },
-                    { name: "الشعر في العصر الحديث", url: "" },
-                    { name: "القصة", url: "" },
-                    { name: "المقال", url: "" }
+                    { name: "العصر العباسي" },
+                    { name: "النقد الأدبي القديم" },
+                    { name: "الأدب الأندلسي" },
+                    { name: "الموشحات" },
+                    { name: "الشعر في العصر الحديث" },
+                    { name: "القصة" },
+                    { name: "المقال" }
                 ] 
             },
             { 
                 name: "العلوم الإسلامية", 
                 has_exercises: false,
                 chapters: [
-                    { name: "السيرة النبوية", url: "" },
-                    { name: "الفتوحات الإسلامية", url: "" },
-                    { name: "الحضارة الإسلامية", url: "" },
-                    { name: "التوحيد", url: "" },
-                    { name: "العبادات", url: "" },
-                    { name: "الأخلاق", url: "" }
+                    { name: "السيرة النبوية" },
+                    { name: "الفتوحات الإسلامية" },
+                    { name: "الحضارة الإسلامية" },
+                    { name: "التوحيد" },
+                    { name: "العبادات" },
+                    { name: "الأخلاق" }
                 ] 
             }
         ]
@@ -403,52 +403,52 @@ const TEMPLATES = [
             { 
                 name: "اللغة العربية", 
                 chapters: [
-                    { name: "العصر العباسي الثاني", url: "" },
-                    { name: "النقد الأدبي القديم", url: "" },
-                    { name: "الأدب الأندلسي", url: "" },
-                    { name: "الموشحات", url: "" },
-                    { name: "الشعر في العصر الحديث", url: "" },
-                    { name: "القصة القصيرة", url: "" },
-                    { name: "المقال الأدبي", url: "" }
+                    { name: "العصر العباسي الثاني" },
+                    { name: "النقد الأدبي القديم" },
+                    { name: "الأدب الأندلسي" },
+                    { name: "الموشحات" },
+                    { name: "الشعر في العصر الحديث" },
+                    { name: "القصة القصيرة" },
+                    { name: "المقال الأدبي" }
                 ] 
             },
             { 
                 name: "الفلسفة", 
                 has_exercises: false,
                 chapters: [
-                    { name: "مدخل إلى الفلسفة", url: "" },
-                    { name: "المنطق الصوري", url: "" },
-                    { name: "المذاهب الفلسفية", url: "" },
-                    { name: "الفلسفة اليونانية", url: "" },
-                    { name: "فلسفة العصر الحديث", url: "" }
+                    { name: "مدخل إلى الفلسفة" },
+                    { name: "المنطق الصوري" },
+                    { name: "المذاهب الفلسفية" },
+                    { name: "الفلسفة اليونانية" },
+                    { name: "فلسفة العصر الحديث" }
                 ] 
             },
             { 
                 name: "اللغة الإنجليزية", 
                 chapters: [
-                    { name: "Science and Tech", url: "" },
-                    { name: "Waste not, Want not", url: "" },
-                    { name: "Environment", url: "" }
+                    { name: "Science and Tech" },
+                    { name: "Waste not, Want not" },
+                    { name: "Environment" }
                 ] 
             },
             { 
                 name: "التاريخ والجغرافيا", 
                 chapters: [
-                    { name: "أوضاع الجزائر في العهد العثماني", url: "" },
-                    { name: "النهضة الأوروبية", url: "" },
-                    { name: "الاستعمار الحديث", url: "" },
-                    { name: "القارة الأفريقية", url: "" },
-                    { name: "العالم الإسلامي", url: "" }
+                    { name: "أوضاع الجزائر في العهد العثماني" },
+                    { name: "النهضة الأوروبية" },
+                    { name: "الاستعمار الحديث" },
+                    { name: "القارة الأفريقية" },
+                    { name: "العالم الإسلامي" }
                 ] 
             },
             { 
                 name: "العلوم الإسلامية", 
                 has_exercises: false,
                 chapters: [
-                    { name: "التوحيد", url: "" },
-                    { name: "العبادات", url: "" },
-                    { name: "السيرة", url: "" },
-                    { name: "الأخلاق", url: "" }
+                    { name: "التوحيد" },
+                    { name: "العبادات" },
+                    { name: "السيرة" },
+                    { name: "الأخلاق" }
                 ] 
             }
         ]
@@ -461,45 +461,45 @@ const TEMPLATES = [
             { 
                 name: "Analyse 1", 
                 chapters: [
-                    { name: "Logique mathématique", url: "" },
-                    { name: "Les ensembles", url: "" },
-                    { name: "Les nombres réels", url: "" },
-                    { name: "Les suites réelles", url: "" }
+                    { name: "Logique mathématique" },
+                    { name: "Les ensembles" },
+                    { name: "Les nombres réels" },
+                    { name: "Les suites réelles" }
                 ] 
             },
             { 
                 name: "Algèbre 1", 
                 chapters: [
-                    { name: "Logique et Raisonnements", url: "" },
-                    { name: "Espaces vectoriels", url: "" },
-                    { name: "Applications linéaires", url: "" },
-                    { name: "Matrices", url: "" },
-                    { name: "Déterminants", url: "" },
-                    { name: "Systèmes d'équations linéaires", url: "" },
-                    { name: "Réduction des endomorphismes", url: "" }
+                    { name: "Logique et Raisonnements" },
+                    { name: "Espaces vectoriels" },
+                    { name: "Applications linéaires" },
+                    { name: "Matrices" },
+                    { name: "Déterminants" },
+                    { name: "Systèmes d'équations linéaires" },
+                    { name: "Réduction des endomorphismes" }
                 ] 
             },
             { 
                 name: "Algorithmique 1", 
                 chapters: [
-                    { name: "Introduction à l'algorithmique", url: "" },
-                    { name: "Les types de données", url: "" },
-                    { name: "Les structures de contrôle", url: "" },
-                    { name: "Les tableaux", url: "" },
-                    { name: "Les procédures et fonctions", url: "" },
-                    { name: "La récursivité", url: "" },
-                    { name: "Complexité algorithmique", url: "" }
+                    { name: "Introduction à l'algorithmique" },
+                    { name: "Les types de données" },
+                    { name: "Les structures de contrôle" },
+                    { name: "Les tableaux" },
+                    { name: "Les procédures et fonctions" },
+                    { name: "La récursivité" },
+                    { name: "Complexité algorithmique" }
                 ] 
             },
             { 
                 name: "Structure Machine 1", 
                 chapters: [
-                    { name: "Systèmes de numération", url: "" },
-                    { name: "Algèbre de Boole", url: "" },
-                    { name: "Circuits combinatoires", url: "" },
-                    { name: "Circuits séquentiels", url: "" },
-                    { name: "Mémoires", url: "" },
-                    { name: "Architecture de base", url: "" }
+                    { name: "Systèmes de numération" },
+                    { name: "Algèbre de Boole" },
+                    { name: "Circuits combinatoires" },
+                    { name: "Circuits séquentiels" },
+                    { name: "Mémoires" },
+                    { name: "Architecture de base" }
                 ] 
             }
         ]
@@ -511,30 +511,30 @@ const TEMPLATES = [
             { 
                 name: "Analyse 2", 
                 chapters: [
-                    { name: "Limites et continuité", url: "" },
-                    { name: "Dérivabilité", url: "" },
-                    { name: "Intégration", url: "" },
-                    { name: "Équations différentielles", url: "" },
-                    { name: "Fonctions de plusieurs variables", url: "" },
-                    { name: "Séries numériques", url: "" }
+                    { name: "Limites et continuité" },
+                    { name: "Dérivabilité" },
+                    { name: "Intégration" },
+                    { name: "Équations différentielles" },
+                    { name: "Fonctions de plusieurs variables" },
+                    { name: "Séries numériques" }
                 ] 
             },
             { 
                 name: "Algèbre 2", 
                 chapters: [
-                    { name: "Réduction des endomorphismes", url: "" },
-                    { name: "Produits scalaires", url: "" },
-                    { name: "Formes quadratiques", url: "" },
-                    { name: "Espaces Euclidiens", url: "" },
-                    { name: "Diagonalisation", url: "" }
+                    { name: "Réduction des endomorphismes" },
+                    { name: "Produits scalaires" },
+                    { name: "Formes quadratiques" },
+                    { name: "Espaces Euclidiens" },
+                    { name: "Diagonalisation" }
                 ] 
             },
             { 
                 name: "Algorithmique 2", 
                 chapters: [
-                    { name: "les structure", url: "" },
-                    { name: "les fonction et procedure", url: "" },
-                    { name: "les piles", url: "" }
+                    { name: "les structure" },
+                    { name: "les fonction et procedure" },
+                    { name: "les piles" }
                 ] 
             }
         ]
@@ -547,57 +547,57 @@ const TEMPLATES = [
             { 
                 name: "Architecture des ordinateurs", 
                 chapters: [
-                    { name: "Introduction", url: "" },
-                    { name: "Logique combinatoire", url: "" },
-                    { name: "Logique séquentielle", url: "" },
-                    { name: "Le processeur", url: "" },
-                    { name: "La mémoire", url: "" },
-                    { name: "Entrées/Sorties", url: "" }
+                    { name: "Introduction" },
+                    { name: "Logique combinatoire" },
+                    { name: "Logique séquentielle" },
+                    { name: "Le processeur" },
+                    { name: "La mémoire" },
+                    { name: "Entrées/Sorties" }
                 ] 
             },
             { 
                 name: "Algorithmique 3", 
                 chapters: [
-                    { name: "Complexité", url: "" },
-                    { name: "Récursivité", url: "" },
-                    { name: "Listes chaînées", url: "" },
-                    { name: "Piles et Files", url: "" },
-                    { name: "Arbres binaires", url: "" }
+                    { name: "Complexité" },
+                    { name: "Récursivité" },
+                    { name: "Listes chaînées" },
+                    { name: "Piles et Files" },
+                    { name: "Arbres binaires" }
                 ] 
             },
             { 
                 name: "Systèmes d'information", 
                 chapters: [
-                    { name: "Introduction", url: "" },
-                    { name: "Modèle conceptuel des données (MCD)", url: "" },
-                    { name: "Modèle logique des données (MLD)", url: "" },
-                    { name: "Normalisation", url: "" }
+                    { name: "Introduction" },
+                    { name: "Modèle conceptuel des données (MCD)" },
+                    { name: "Modèle logique des données (MLD)" },
+                    { name: "Normalisation" }
                 ] 
             },
             { 
                 name: "Théorie des graphes", 
                 chapters: [
-                    { name: "Généralités", url: "" },
-                    { name: "Chemins et circuits", url: "" },
-                    { name: "Arbres et arborescences", url: "" },
-                    { name: "Problèmes de flot", url: "" }
+                    { name: "Généralités" },
+                    { name: "Chemins et circuits" },
+                    { name: "Arbres et arborescences" },
+                    { name: "Problèmes de flot" }
                 ] 
             },
             { 
                 name: "Méthodes numériques", 
                 chapters: [
-                    { name: "Résolution d'équations non linéaires", url: "" },
-                    { name: "Interpolation", url: "" },
-                    { name: "Intégration numérique", url: "" },
-                    { name: "Systèmes linéaires", url: "" }
+                    { name: "Résolution d'équations non linéaires" },
+                    { name: "Interpolation" },
+                    { name: "Intégration numérique" },
+                    { name: "Systèmes linéaires" }
                 ] 
             },
             { 
                 name: "Logique Mathématique", 
                 chapters: [
-                    { name: "Calcul des propositions", url: "" },
-                    { name: "Calcul des prédicats", url: "" },
-                    { name: "Systèmes formels", url: "" }
+                    { name: "Calcul des propositions" },
+                    { name: "Calcul des prédicats" },
+                    { name: "Systèmes formels" }
                 ] 
             }
         ]
@@ -609,56 +609,56 @@ const TEMPLATES = [
             { 
                 name: "Théorie des langages", 
                 chapters: [
-                    { name: "Alphabets et mots", url: "" },
-                    { name: "Grammaires", url: "" },
-                    { name: "Automates à états finis", url: "" },
-                    { name: "Expressions régulières", url: "" }
+                    { name: "Alphabets et mots" },
+                    { name: "Grammaires" },
+                    { name: "Automates à états finis" },
+                    { name: "Expressions régulières" }
                 ] 
             },
             { 
                 name: "Système d'exploitation 1", 
                 chapters: [
-                    { name: "Introduction", url: "" },
-                    { name: "Gestion des processus", url: "" },
-                    { name: "Ordonنancement", url: "" },
-                    { name: "Gestion de la mémoire", url: "" }
+                    { name: "Introduction" },
+                    { name: "Gestion des processus" },
+                    { name: "Ordonنancement" },
+                    { name: "Gestion de la mémoire" }
                 ] 
             },
             { 
                 name: "Bases de données", 
                 chapters: [
-                    { name: "Introduction", url: "" },
-                    { name: "Modèle relationnel", url: "" },
-                    { name: "Algèbre relationnelle", url: "" },
-                    { name: "Langage SQL", url: "" }
+                    { name: "Introduction" },
+                    { name: "Modèle relationnel" },
+                    { name: "Algèbre relationnelle" },
+                    { name: "Langage SQL" }
                 ] 
             },
             { 
                 name: "Réseaux", 
                 chapters: [
-                    { name: "Modèle OSI et TCP/IP", url: "" },
-                    { name: "Couche physique", url: "" },
-                    { name: "Couche liaison", url: "" },
-                    { name: "Couche réseau", url: "" }
+                    { name: "Modèle OSI et TCP/IP" },
+                    { name: "Couche physique" },
+                    { name: "Couche liaison" },
+                    { name: "Couche réseau" }
                 ] 
             },
             { 
                 name: "POO (Java/C++)", 
                 chapters: [
-                    { name: "Classes et objets", url: "" },
-                    { name: "Héritage", url: "" },
-                    { name: "Polymorphisme", url: "" },
-                    { name: "Interfaces", url: "" },
-                    { name: "Exceptions", url: "" }
+                    { name: "Classes et objets" },
+                    { name: "Héritage" },
+                    { name: "Polymorphisme" },
+                    { name: "Interfaces" },
+                    { name: "Exceptions" }
                 ] 
             },
             { 
                 name: "Développement Web", 
                 chapters: [
-                    { name: "HTML5", url: "" },
-                    { name: "CSS3", url: "" },
-                    { name: "JavaScript", url: "" },
-                    { name: "PHP / Backend Basics", url: "" }
+                    { name: "HTML5" },
+                    { name: "CSS3" },
+                    { name: "JavaScript" },
+                    { name: "PHP / Backend Basics" }
                 ] 
             }
         ]
@@ -670,37 +670,37 @@ const TEMPLATES = [
             { 
                 name: "Analyse 3", 
                 chapters: [
-                    { name: "Séries numériques", url: "" },
-                    { name: "Séries entières", url: "" },
-                    { name: "Fonctions de plusieurs variables", url: "" },
-                    { name: "Intégrales multiples", url: "" }
+                    { name: "Séries numériques" },
+                    { name: "Séries entières" },
+                    { name: "Fonctions de plusieurs variables" },
+                    { name: "Intégrales multiples" }
                 ] 
             },
             { 
                 name: "Algèbre 3", 
                 chapters: [
-                    { name: "Groupes", url: "" },
-                    { name: "Anneaux", url: "" },
-                    { name: "Corps", url: "" },
-                    { name: "Arithmétique", url: "" }
+                    { name: "Groupes" },
+                    { name: "Anneaux" },
+                    { name: "Corps" },
+                    { name: "Arithmétique" }
                 ] 
             },
             { 
                 name: "Physique 2", 
                 chapters: [
-                    { name: "Mécanique analytique", url: "" },
-                    { name: "Électromagnétisme", url: "" },
-                    { name: "Optique ondulatoire", url: "" },
-                    { name: "Physique quantique", url: "" }
+                    { name: "Mécanique analytique" },
+                    { name: "Électromagnétisme" },
+                    { name: "Optique ondulatoire" },
+                    { name: "Physique quantique" }
                 ] 
             },
             { 
                 name: "Chimie 2", 
                 chapters: [
-                    { name: "Cinétique chimique", url: "" },
-                    { name: "Équilibre chimique", url: "" },
-                    { name: "Chimie organique", url: "" },
-                    { name: "Thermochimie", url: "" }
+                    { name: "Cinétique chimique" },
+                    { name: "Équilibre chimique" },
+                    { name: "Chimie organique" },
+                    { name: "Thermochimie" }
                 ] 
             }
         ]
@@ -713,41 +713,41 @@ const TEMPLATES = [
             { 
                 name: "Analyse Fonctionnelle", 
                 chapters: [
-                    { name: "Espaces de Banach", url: "" },
-                    { name: "Espaces de Hilbert", url: "" },
-                    { name: "Opérateurs linéaires", url: "" },
-                    { name: "Théorie spectrale", url: "" }
+                    { name: "Espaces de Banach" },
+                    { name: "Espaces de Hilbert" },
+                    { name: "Opérateurs linéaires" },
+                    { name: "Théorie spectrale" }
                 ] 
             },
             { 
                 name: "Probabilités", 
                 chapters: [
-                    { name: "Espaces probabilisés", url: "" },
-                    { name: "Variables aléatoires", url: "" },
-                    { name: "Convergence", url: "" },
-                    { name: "Théorèmes limites", url: "" },
-                    { name: "Martingales", url: "" },
-                    { name: "Processus stochastiques", url: "" }
+                    { name: "Espaces probabilisés" },
+                    { name: "Variables aléatoires" },
+                    { name: "Convergence" },
+                    { name: "Théorèmes limites" },
+                    { name: "Martingales" },
+                    { name: "Processus stochastiques" }
                 ] 
             },
             { 
                 name: "Statistiques", 
                 chapters: [
-                    { name: "Estimation", url: "" },
-                    { name: "Tests d'hypothèses", url: "" },
-                    { name: "Régression", url: "" },
-                    { name: "Analyse de variance", url: "" },
-                    { name: "Statistiques bayésiennes", url: "" }
+                    { name: "Estimation" },
+                    { name: "Tests d'hypothèses" },
+                    { name: "Régression" },
+                    { name: "Analyse de variance" },
+                    { name: "Statistiques bayésiennes" }
                 ] 
             },
             { 
                 name: "Topologie", 
                 chapters: [
-                    { name: "Espaces topologiques", url: "" },
-                    { name: "Continuité", url: "" },
-                    { name: "Compacité", url: "" },
-                    { name: "Connexité", url: "" },
-                    { name: "Complétude", url: "" }
+                    { name: "Espaces topologiques" },
+                    { name: "Continuité" },
+                    { name: "Compacité" },
+                    { name: "Connexité" },
+                    { name: "Complétude" }
                 ] 
             }
         ]

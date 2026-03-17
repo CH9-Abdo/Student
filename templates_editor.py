@@ -698,43 +698,95 @@ class EditorPanel(QScrollArea):
         if self._templates is None:
             return
         ch = self._templates[tmpl_idx]["subjects"][subj_idx]["chapters"][ch_idx]
+        is_dict = isinstance(ch, dict)
+        
+        # Ensure it's a dict for resource management
+        if not is_dict:
+            # Convert string chapter to dict on the fly if needed
+            self._templates[tmpl_idx]["subjects"][subj_idx]["chapters"][ch_idx] = {"name": ch, "url": "", "resources": []}
+            ch = self._templates[tmpl_idx]["subjects"][subj_idx]["chapters"][ch_idx]
+            is_dict = True
 
         header = QLabel("📄 Chapter")
         header.setStyleSheet(f"color: {COLORS['accent3']}; font-size: 11px; font-weight: 700; letter-spacing: 1px;")
         self._layout.addWidget(header)
 
-        grp = QGroupBox("Chapter Details")
-        form = QFormLayout(grp)
-        form.setSpacing(10)
+        # Name Group
+        grp_name = QGroupBox("General")
+        form_name = QFormLayout(grp_name)
+        self.name_edit = QLineEdit(ch["name"])
+        self.name_edit.setLayoutDirection(Qt.RightToLeft)
+        form_name.addRow("Name:", self.name_edit)
+        self._layout.addWidget(grp_name)
 
-        is_dict = isinstance(ch, dict)
-
-        name_edit = QLineEdit(ch["name"] if is_dict else ch)
-        name_edit.setLayoutDirection(Qt.RightToLeft)
-        form.addRow("Name:", name_edit)
-
-        res_count = 0
-        if is_dict and "resources" in ch:
-            res_count = len(ch["resources"])
-        elif is_dict and "url" in ch and ch["url"]:
-            res_count = 1
+        # Resources Group
+        grp_res = QGroupBox("Resources")
+        layout_res = QVBoxLayout(grp_res)
         
-        form.addRow("Resources:", QLabel(f"📦 {res_count} links (Edit via tree context menu)"))
+        self.res_list = QTreeWidget()
+        self.res_list.setHeaderLabels(["Type", "Label", "URL"])
+        self.res_list.setColumnWidth(0, 70)
+        self.res_list.setColumnWidth(1, 120)
+        self.res_list.setMinimumHeight(200)
+        self.res_list.setStyleSheet(f"border: 1px solid {COLORS['border']};")
+        layout_res.addWidget(self.res_list)
+        
+        # Local copy of resources for editing
+        self.current_ch_resources = copy.deepcopy(ch.get("resources", []))
+        if not self.current_ch_resources and ch.get("url"):
+            self.current_ch_resources.append({"type": "video", "url": ch["url"], "label": "Video Lesson"})
 
-        save_btn = QPushButton("💾  Save Name Only")
+        def _refresh_list():
+            self.res_list.clear()
+            for r in self.current_ch_resources:
+                item = QTreeWidgetItem([r.get("type",""), r.get("label",""), r.get("url","")])
+                self.res_list.addTopLevelItem(item)
+        
+        _refresh_list()
+
+        btn_layout = QHBoxLayout()
+        add_res_btn = QPushButton("➕ Add")
+        
+        def _add():
+            dlg = ResourceDialog(self)
+            if dlg.exec_() == QDialog.Accepted:
+                self.current_ch_resources.append(dlg.get_data())
+                _refresh_list()
+        
+        add_res_btn.clicked.connect(_add)
+        
+        del_res_btn = QPushButton("🗑 Remove")
+        def _del():
+            curr = self.res_list.currentItem()
+            if curr:
+                idx = self.res_list.indexOfTopLevelItem(curr)
+                self.current_ch_resources.pop(idx)
+                _refresh_list()
+        del_res_btn.clicked.connect(_del)
+        
+        btn_layout.addWidget(add_res_btn)
+        btn_layout.addWidget(del_res_btn)
+        layout_res.addLayout(btn_layout)
+        self._layout.addWidget(grp_res)
+
+        # Final Save Button
+        save_btn = QPushButton("💾  Save Chapter Changes")
         save_btn.setObjectName("btnAccent")
+        save_btn.setMinimumHeight(40)
 
-        def _save():
+        def _save_all():
             subj_chapters = self._templates[tmpl_idx]["subjects"][subj_idx]["chapters"]
-            if is_dict:
-                subj_chapters[ch_idx]["name"] = name_edit.text().strip()
-            else:
-                subj_chapters[ch_idx] = name_edit.text().strip()
+            subj_chapters[ch_idx]["name"] = self.name_edit.text().strip()
+            subj_chapters[ch_idx]["resources"] = self.current_ch_resources
+            # Sync back url for compat
+            yt = next((r["url"] for r in self.current_ch_resources if r["type"] == "video"), "")
+            subj_chapters[ch_idx]["url"] = yt
+            
             self.request_refresh.emit()
+            QMessageBox.information(self, "Success", "Chapter updated successfully!")
 
-        save_btn.clicked.connect(_save)
-        form.addRow("", save_btn)
-        self._layout.addWidget(grp)
+        save_btn.clicked.connect(_save_all)
+        self._layout.addWidget(save_btn)
 
 
 # ─────────────────────────────────────────────
