@@ -70,6 +70,10 @@ Database.prototype.pushToCloud = async function(table, data) {
         return this.queueForSync(table, data);
     }
 
+    if (table === 'chapters' && data.resources) {
+        console.log(`[Sync] Pushing resources to Supabase for chapter ${data.id}:`, data.resources);
+    }
+
     try {
         const isLocalId = (typeof data.id === 'number' && data.id > 1700000000000) || !data.id;
         let result;
@@ -189,6 +193,17 @@ Database.prototype.syncFromCloud = async function() {
         this.data.semesters = rSem.data || [];
         this.data.subjects = rSub.data || [];
         this.data.chapters = rChap.data || [];
+        
+        // Log a sample chapter's resources to confirm download
+        if (this.data.chapters.length > 0) {
+            const sampleWithRes = this.data.chapters.find(c => c.resources && c.resources.length > 0);
+            if (sampleWithRes) {
+                console.log(`[Sync] Sample chapter with resources downloaded: ${sampleWithRes.name}`, sampleWithRes.resources);
+            } else {
+                console.log(`[Sync] ${this.data.chapters.length} chapters downloaded, but none had resources.`);
+            }
+        }
+
         this.data.study_sessions = rSess.data || [];
         if (rProf.data) this.data.user_profile = { ...this.data.user_profile, ...rProf.data };
 

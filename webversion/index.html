@@ -460,6 +460,19 @@
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowfullscreen style="border-radius:12px;"></iframe>
                     </div>
+
+                    <!-- Resource Quick Access Card -->
+                    <div id="pomodoro-resource-card" class="card" style="display:none;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <h4 class="h2">📚 Study Resources</h4>
+                            <div id="resource-type-tabs" style="display:flex; gap:5px;">
+                                <!-- Tabs for PDF, EX, EXAM will be injected here -->
+                            </div>
+                        </div>
+                        <div id="resource-display-area" style="min-height:100px; display:flex; flex-direction:column; justify-content:center; align-items:center; border:1px dashed var(--border); border-radius:12px; padding:20px; background:var(--bg-alt);">
+                            <!-- Active resource content will be here -->
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -749,6 +762,43 @@
                 </div>
 
                 <div id="sw-chapters-list" class="scroll-area"></div>
+            </div>
+        </div>
+
+        <!-- Resource Manager Modal -->
+        <div id="resource-manager-modal" class="modal hidden">
+            <div class="modal-header">
+                <h2 class="h2">Resource Manager</h2>
+                <button class="btn-icon" id="close-rm-modal" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="mute" style="margin-bottom:12px; font-size:13px;">Manage links for this chapter (PDFs, Videos, Exercises, etc.)</p>
+                
+                <div class="add-resource-form" style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px; padding:12px; background:var(--bg-alt); border-radius:8px;">
+                    <div style="display:flex; gap:8px;">
+                        <select id="rm-type-input" style="flex:1;">
+                            <option value="video">🎬 Video</option>
+                            <option value="pdf">📄 PDF</option>
+                            <option value="exercise">✍️ Exercise</option>
+                            <option value="exam">🏆 Exam</option>
+                            <option value="other">🔗 Other</option>
+                        </select>
+                        <input type="text" id="rm-label-input" placeholder="Label (e.g. Summary PDF)" style="flex:2;">
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <input type="url" id="rm-url-input" placeholder="https://..." style="flex:1;">
+                        <button id="rm-add-btn" class="primary-btn" style="width:auto; padding:0 15px;">Add</button>
+                    </div>
+                </div>
+
+                <div id="rm-resources-list" class="scroll-area" style="max-height:250px;">
+                    <!-- List items will be injected here -->
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="primary-btn" id="rm-save-btn">Done</button>
             </div>
         </div>
 

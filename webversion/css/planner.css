@@ -193,6 +193,26 @@
 .planner-empty p { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
 .planner-empty span { font-size: 14px; }
 
+/* ── RESOURCE MANAGER ── */
+.add-resource-form select, .add-resource-form input {
+    margin-bottom: 0 !important;
+}
+#rm-resources-list .list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+}
+#rm-resources-list .list-item:hover {
+    border-color: var(--primary);
+    transform: translateX(4px);
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
     .planner-topbar { flex-direction: column; align-items: stretch; }

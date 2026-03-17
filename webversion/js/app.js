@@ -641,6 +641,24 @@ class StudentProApp {
             }
         });
 
+        // Resource Manager
+        get('rm-add-btn')?.addEventListener('click', () => {
+            this.addResource();
+        });
+
+        get('rm-save-btn')?.addEventListener('click', async () => {
+            if (this.activeChapterId) {
+                await db.updateChapterResources(this.activeChapterId, this.currentResources);
+                this.refreshSubjectWindowData();
+                this.refreshPlanner();
+            }
+            this.closeModal('resource-manager-modal');
+        });
+
+        get('close-rm-modal')?.addEventListener('click', () => {
+            this.closeModal('resource-manager-modal');
+        });
+
         // Pomodoro
         get('timer-start')?.addEventListener('click', () => {
             this.toggleTimer();

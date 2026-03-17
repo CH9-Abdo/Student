@@ -112,7 +112,7 @@ Database.prototype.updateSubjectName = async function(subjectId, newName) {
 };
 
 // --- CHAPTERS ---
-Database.prototype.addChapter = async function(subjectId, name, youtubeUrl = null) {
+Database.prototype.addChapter = async function(subjectId, name, youtubeUrl = null, resources = []) {
     console.log(`[DB] addChapter: subjectId=${subjectId}, name="${name}", youtubeUrl="${youtubeUrl}"`);
     const localId = Date.now();
     const newChap = {
@@ -120,6 +120,7 @@ Database.prototype.addChapter = async function(subjectId, name, youtubeUrl = nul
         subject_id: subjectId,
         name,
         youtube_url: youtubeUrl,
+        resources: resources || [],
         video_completed: false,
         exercises_completed: false,
         is_completed: false,
@@ -139,8 +140,41 @@ Database.prototype.updateChapterYouTube = async function(chapterId, youtubeUrl) 
     if (idx === -1) return false;
     
     this.data.chapters[idx].youtube_url = youtubeUrl;
+    
+    // Also sync to resources if not already there
+    if (youtubeUrl) {
+        if (!this.data.chapters[idx].resources) this.data.chapters[idx].resources = [];
+        const hasVid = this.data.chapters[idx].resources.some(r => r.type === 'video');
+        if (!hasVid) {
+            this.data.chapters[idx].resources.push({ type: 'video', url: youtubeUrl, label: 'Video Lesson' });
+        } else {
+            const vidIdx = this.data.chapters[idx].resources.findIndex(r => r.type === 'video');
+            this.data.chapters[idx].resources[vidIdx].url = youtubeUrl;
+        }
+    }
+
     this.save();
     
+    await this.pushToCloud('chapters', this.data.chapters[idx]);
+    return true;
+};
+
+Database.prototype.updateChapterResources = async function(chapterId, resources) {
+    console.log(`[DB] updateChapterResources: id=${chapterId}`, resources);
+    const idx = this.data.chapters.findIndex(c => c.id === chapterId);
+    if (idx === -1) {
+        console.error(`[DB] updateChapterResources: Chapter ${chapterId} not found!`);
+        return false;
+    }
+    
+    this.data.chapters[idx].resources = resources;
+    
+    // Keep youtube_url in sync for backward compatibility
+    const vid = resources.find(r => r.type === 'video');
+    this.data.chapters[idx].youtube_url = vid ? vid.url : null;
+
+    console.log(`[DB] Local data updated for chapter ${chapterId}. Total resources: ${resources.length}`);
+    this.save();
     await this.pushToCloud('chapters', this.data.chapters[idx]);
     return true;
 };
@@ -213,7 +247,15 @@ Database.prototype.applyTemplate = async function(template) {
             if (typeof chap === 'string') {
                 await this.addChapter(subId, chap);
             } else {
-                await this.addChapter(subId, chap.name, chap.url || null);
+                const resources = chap.resources || [];
+                let ytUrl = chap.url || null;
+                // If url exists but not in resources, add it
+                if (ytUrl && !resources.some(r => r.type === 'video')) {
+                    resources.push({ type: 'video', url: ytUrl, label: 'Video Lesson' });
+                } else if (!ytUrl && resources.some(r => r.type === 'video')) {
+                    ytUrl = resources.find(r => r.type === 'video').url;
+                }
+                await this.addChapter(subId, chap.name, ytUrl, resources);
             }
         }
     }

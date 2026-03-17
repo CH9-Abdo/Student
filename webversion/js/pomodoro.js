@@ -421,8 +421,113 @@ StudentProApp.prototype.refreshPomodoroSubjects = function() {
             this.activeSubjectId = parseInt(e.target.value);
             this.updateMiniChallenge();
             this.updateYouTubeEmbed();
+            this.updatePomodoroResources();
         }
     };
+};
+
+StudentProApp.prototype.updatePomodoroResources = function() {
+    const resCard = get('pomodoro-resource-card');
+    const tabs = get('resource-type-tabs');
+    const area = get('resource-display-area');
+
+    if (!resCard || !tabs || !area) return;
+
+    const chapters = db.data.chapters.filter(c => c.subject_id === this.activeSubjectId);
+    let allResources = [];
+    chapters.forEach(c => {
+        if (c.resources) {
+            c.resources.forEach(r => {
+                allResources.push({ ...r, chapterName: c.name });
+            });
+        }
+    });
+
+    // Filter out videos since they are in the YouTube card
+    const nonVideoResources = allResources.filter(r => r.type !== 'video');
+
+    if (nonVideoResources.length > 0) {
+        resCard.style.display = 'block';
+        tabs.innerHTML = '';
+        
+        // Add "All" button
+        const allBtn = document.createElement('button');
+        allBtn.className = 'small-btn primary-btn';
+        allBtn.innerHTML = `📚 ALL`;
+        allBtn.onclick = () => {
+            tabs.querySelectorAll('button').forEach(b => b.className = 'small-btn secondary-btn');
+            allBtn.className = 'small-btn primary-btn';
+            this.renderResourceListByType('all', nonVideoResources);
+        };
+        tabs.appendChild(allBtn);
+
+        // Group by type for tabs
+        const types = [...new Set(nonVideoResources.map(r => r.type))];
+        
+        types.forEach((type) => {
+            const btn = document.createElement('button');
+            btn.className = 'small-btn secondary-btn';
+            let icon = '🔗';
+            if (type === 'pdf') icon = '📄';
+            else if (type === 'exercise') icon = '✍️';
+            else if (type === 'exam') icon = '🏆';
+            
+            btn.innerHTML = `${icon} ${type.toUpperCase()}`;
+            btn.onclick = () => {
+                // Update active tab styling
+                tabs.querySelectorAll('button').forEach(b => b.className = 'small-btn secondary-btn');
+                btn.className = 'small-btn primary-btn';
+                this.renderResourceListByType(type, nonVideoResources);
+            };
+            tabs.appendChild(btn);
+        });
+
+        // Initial render: Show all by default
+        this.renderResourceListByType('all', nonVideoResources);
+    } else {
+        resCard.style.display = 'none';
+    }
+};
+
+StudentProApp.prototype.renderResourceListByType = function(type, allRes) {
+    const area = get('resource-display-area');
+    if (!area) return;
+
+    const filtered = type === 'all' ? allRes : allRes.filter(r => r.type === type);
+    area.innerHTML = '';
+
+    filtered.forEach(res => {
+        const item = document.createElement('a');
+        item.href = res.url;
+        item.target = '_blank';
+        item.className = 'list-item';
+        item.style.width = '100%';
+        item.style.textDecoration = 'none';
+        item.style.color = 'inherit';
+        item.style.display = 'flex';
+        item.style.justifyContent = 'space-between';
+        item.style.alignItems = 'center';
+        item.style.padding = '12px';
+        item.style.marginBottom = '8px';
+        item.style.background = 'var(--card)';
+        item.style.borderRadius = '8px';
+        item.style.border = '1px solid var(--border)';
+
+        let icon = '🔗';
+        if (res.type === 'pdf') icon = '📄';
+        else if (res.type === 'exercise') icon = '✍️';
+        else if (res.type === 'exam') icon = '🏆';
+        else if (res.type === 'video') icon = '🎬';
+
+        item.innerHTML = `
+            <div style="display:flex; flex-direction:column;">
+                <span style="font-weight:600; font-size:14px;">${icon} ${res.label}</span>
+                <span class="mute" style="font-size:11px;">Chapter: ${res.chapterName}</span>
+            </div>
+            <i class="fas fa-external-link-alt" style="font-size:12px; opacity:0.5;"></i>
+        `;
+        area.appendChild(item);
+    });
 };
 
 StudentProApp.prototype.refreshPomodoroUI = function() {

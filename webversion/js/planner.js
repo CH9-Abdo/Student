@@ -205,18 +205,37 @@ StudentProApp.prototype.refreshSubjectWindowData = function() {
         const item = document.createElement('div');
         item.className = 'list-item';
         
-        let ytContent = '';
-        if (c.youtube_url && c.youtube_url.trim()) {
-            ytContent = `<a href="${c.youtube_url}" target="_blank" class="btn-icon" title="Watch on YouTube">
-                            <i class="fab fa-youtube" style="color:#ff0000;"></i>
-                         </a>`;
+        let resourceIcons = '';
+        const resources = c.resources || [];
+        
+        // If we have a youtube_url but no video resource, add it temporarily for rendering
+        const displayResources = [...resources];
+        if (c.youtube_url && !displayResources.some(r => r.type === 'video')) {
+            displayResources.push({ type: 'video', url: c.youtube_url, label: 'Video' });
+        }
+
+        if (displayResources.length > 0) {
+            displayResources.forEach(res => {
+                let iconClass = 'fas fa-link';
+                let color = '#888';
+                let title = res.label || res.type;
+
+                if (res.type === 'video') { iconClass = 'fab fa-youtube'; color = '#ff0000'; }
+                else if (res.type === 'pdf') { iconClass = 'fas fa-file-pdf'; color = '#e74c3c'; }
+                else if (res.type === 'exercise') { iconClass = 'fas fa-pen-nib'; color = '#27ae60'; }
+                else if (res.type === 'exam') { iconClass = 'fas fa-graduation-cap'; color = '#f1c40f'; }
+
+                resourceIcons += `<a href="${res.url}" target="_blank" class="btn-icon" title="${title}">
+                                    <i class="${iconClass}" style="color:${color};"></i>
+                                 </a>`;
+            });
         } else {
-            // Search URL: encode subject name and chapter name
+            // Search URL fallback if no resources
             const searchQuery = encodeURIComponent(`${sub.name} ${c.name}`);
             const searchUrl = `https://www.youtube.com/results?search_query=${searchQuery}`;
-            ytContent = `<a href="${searchUrl}" target="_blank" class="btn-icon" title="Search on YouTube" style="opacity:0.4;">
-                            <i class="fas fa-search"></i>
-                         </a>`;
+            resourceIcons = `<a href="${searchUrl}" target="_blank" class="btn-icon" title="Search on YouTube" style="opacity:0.4;">
+                                <i class="fas fa-search"></i>
+                             </a>`;
         }
 
         item.innerHTML = `
@@ -224,23 +243,83 @@ StudentProApp.prototype.refreshSubjectWindowData = function() {
             <div style="display:flex; gap:6px; align-items:center;">
                 <button class="small-btn ${c.video_completed ? 'primary-btn' : 'secondary-btn'}" onclick="app.toggleCap(${c.id}, 'video')">Course</button>
                 ${hasEx ? `<button class="small-btn ${c.exercises_completed ? 'primary-btn' : 'secondary-btn'}" onclick="app.toggleCap(${c.id}, 'exercises')">Ex</button>` : ''}
-                ${ytContent}
-                <button class="btn-icon" onclick="app.editChapterYouTube(${c.id})" title="Edit YouTube"><i class="fas fa-edit"></i></button>
+                ${resourceIcons}
+                <button class="btn-icon" onclick="app.editChapterResources(${c.id})" title="Edit Resources"><i class="fas fa-edit"></i></button>
             </div>
         `;
         list.appendChild(item);
     });
 };
 
-StudentProApp.prototype.editChapterYouTube = async function(chapterId) {
+StudentProApp.prototype.editChapterResources = function(chapterId) {
+    console.log(`[App] Opening Resource Manager for chapter ${chapterId}`);
+    this.activeChapterId = chapterId;
     const c = db.data.chapters.find(x => x.id === chapterId);
     if (!c) return;
-    const newUrl = prompt("Enter YouTube URL:", c.youtube_url || "");
-    if (newUrl !== null) {
-        await db.updateChapterYouTube(chapterId, newUrl.trim() || null);
-        this.refreshSubjectWindowData();
-        this.refreshPlanner();
+    
+    this.currentResources = JSON.parse(JSON.stringify(c.resources || []));
+    
+    // Migrate youtube_url if missing in resources
+    if (c.youtube_url && !this.currentResources.some(r => r.type === 'video')) {
+        this.currentResources.push({ type: 'video', url: c.youtube_url, label: 'Video Lesson' });
     }
+
+    this.refreshResourceManager();
+    this.showModal('resource-manager-modal');
+};
+
+StudentProApp.prototype.refreshResourceManager = function() {
+    const list = get('rm-resources-list');
+    if (!list) return;
+    list.innerHTML = '';
+
+    this.currentResources.forEach((res, idx) => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        
+        let icon = '🎬';
+        if (res.type === 'pdf') icon = '📄';
+        else if (res.type === 'exercise') icon = '✍️';
+        else if (res.type === 'exam') icon = '🏆';
+        else if (res.type === 'other') icon = '🔗';
+
+        item.innerHTML = `
+            <div style="display:flex; flex-direction:column; flex:1;">
+                <span style="font-size:14px; font-weight:600;">${icon} ${res.label || res.type}</span>
+                <span class="mute" style="font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:200px;">${res.url}</span>
+            </div>
+            <button class="btn-icon" onclick="app.removeResource(${idx})" style="color:var(--danger);">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        `;
+        list.appendChild(item);
+    });
+};
+
+StudentProApp.prototype.removeResource = function(idx) {
+    this.currentResources.splice(idx, 1);
+    this.refreshResourceManager();
+};
+
+StudentProApp.prototype.addResource = function() {
+    const type = get('rm-type-input').value;
+    const label = get('rm-label-input').value.trim();
+    const url = get('rm-url-input').value.trim();
+
+    if (!url) {
+        showToast("Please enter a URL", 'warning');
+        return;
+    }
+
+    this.currentResources.push({
+        type: type,
+        label: label || type.charAt(0).toUpperCase() + type.slice(1),
+        url: url
+    });
+
+    get('rm-label-input').value = '';
+    get('rm-url-input').value = '';
+    this.refreshResourceManager();
 };
 
 StudentProApp.prototype.toggleCap = async function(id, type) {

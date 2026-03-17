@@ -75,20 +75,20 @@ const TEMPLATES = [
                 name: "العلوم الإسلامية", 
                 has_exercises: false,
                 chapters: [
-                    { name: "العقيدة الاسلامية و اثرها على الفرد و المجتمع", url: "https://youtu.be/mFi5lHJwtF0?si=9elCFRXFXwWb5bCj" },
-                    { name: "الدرس الثاني", url: "https://youtu.be/LckJvHpIT1E?si=iTPmaUQALSiLDnGB" },
-                    { name: "الدرس3: الإسلام والرسالات السماوية", url: "https://youtu.be/dnIWslER0ug?si=zKS2_oJmnwbRYExH" },
-                    { name: "الدرس4: العقل في القرآن الكريم", url: "https://youtu.be/PzHHZnvulFM?si=TdC6oSzeKYOd_LfY" },
-                    { name: "الدرس5: مقاصد الشريعة الإسلامية", url: "https://youtu.be/J2UAaOks53U?si=cpnYWEy6FbinbJfE" },
-                    { name: "الدرس6: منهج الإسلام في محاربة الإنحراف والجريمة", url: "https://youtu.be/47GwIqlKLnA?si=bpagrnyw294KN2tJ" },
-                    { name: "الدرس7: المساواة أمام أحكام الشريعة الإسلامية في العقوبات", url: "https://youtu.be/l_TgizsPZ5s?si=ZOZLalgWfwspveat" },
-                    { name: "الدرس8: الصحة النفسية والجسمية في القرآن الكريم", url: "https://youtu.be/SDMvppi4SnA?si=Ou2jKMTTpbYryJFH" },
-                    { name: "الدرس9: من مصادر التشريع الإسلامي (الإجماع/القياس/المصلحة المرسلة)", url: "https://youtu.be/Ox4St2jDT7w?si=a8glL2mGM31cagKa" },
-                    { name: "الدرس10: القيم في القرآن الكريم", url: "https://youtu.be/4tDYVaFhsqw?si=SzLGB0YZ8NzXWg-v" },
-                    { name: "الدرس11", url: "https://youtu.be/eVSuCjkxVZs?si=2578bqeInCgsgjX4" },
-                    { name: "الدرس12", url: "https://youtu.be/2LaLJl6HEL8?si=bAvQUSDXra7RiFGl" },
-                    { name: "الدرس13", url: "https://youtu.be/5sx1ake43wo?si=jts1QcLcuD3KRYYy" },
-                    { name: "الدرس15: الحرية الشخصية و مدى ارتباطها بحقوق الآخرين", url: "https://youtu.be/6U76b7PKN0I?si=x_JmOcPbmb42J873" }
+                    { name: "العقيدة الاسلامية و اثرها على الفرد و المجتمع", resources: [{ type: "video", url: "https://youtu.be/mFi5lHJwtF0?si=9elCFRXFXwWb5bCj", label: "فيديو الدرس" }] },
+                    { name: "الدرس الثاني", resources: [{ type: "video", url: "https://youtu.be/LckJvHpIT1E?si=iTPmaUQALSiLDnGB", label: "فيديو الدرس" }] },
+                    { name: "الدرس3: الإسلام والرسالات السماوية", resources: [{ type: "video", url: "https://youtu.be/dnIWslER0ug?si=zKS2_oJmnwbRYExH", label: "فيديو الدرس" }] },
+                    { name: "الدرس4: العقل في القرآن الكريم", resources: [{ type: "video", url: "https://youtu.be/PzHHZnvulFM?si=TdC6oSzeKYOd_LfY", label: "فيديو الدرس" }] },
+                    { name: "الدرس5: مقاصد الشريعة الإسلامية", resources: [{ type: "video", url: "https://youtu.be/J2UAaOks53U?si=cpnYWEy6FbinbJfE", label: "فيديو الدرس" }] },
+                    { name: "الدرس6: منهج الإسلام في محاربة الإنحراف والجريمة", resources: [{ type: "video", url: "https://youtu.be/47GwIqlKLnA?si=bpagrnyw294KN2tJ", label: "فيديو الدرس" }] },
+                    { name: "الدرس7: المساواة أمام أحكام الشريعة الإسلامية في العقوبات", resources: [{ type: "video", url: "https://youtu.be/l_TgizsPZ5s?si=ZOZLalgWfwspveat", label: "فيديو الدرس" }] },
+                    { name: "الدرس8: الصحة النفسية والجسمية في القرآن الكريم", resources: [{ type: "video", url: "https://youtu.be/SDMvppi4SnA?si=Ou2jKMTTpbYryJFH", label: "فيديو الدرس" }] },
+                    { name: "الدرس9: من مصادر التشريع الإسلامي (الإجماع/القياس/المصلحة المرسلة)", resources: [{ type: "video", url: "https://youtu.be/Ox4St2jDT7w?si=a8glL2mGM31cagKa", label: "فيديو الدرس" }] },
+                    { name: "الدرس10: القيم في القرآن الكريم", resources: [{ type: "video", url: "https://youtu.be/4tDYVaFhsqw?si=SzLGB0YZ8NzXWg-v", label: "فيديو الدرس" }] },
+                    { name: "الدرس11", resources: [{ type: "video", url: "https://youtu.be/eVSuCjkxVZs?si=2578bqeInCgsgjX4", label: "فيديو الدرس" }] },
+                    { name: "الدرس12", resources: [{ type: "video", url: "https://youtu.be/2LaLJl6HEL8?si=bAvQUSDXra7RiFGl", label: "فيديو الدرس" }] },
+                    { name: "الدرس13", resources: [{ type: "video", url: "https://youtu.be/5sx1ake43wo?si=jts1QcLcuD3KRYYy", label: "فيديو الدرس" }] },
+                    { name: "الدرس15: الحرية الشخصية و مدى ارتباطها بحقوق الآخرين", resources: [{ type: "video", url: "https://youtu.be/6U76b7PKN0I?si=x_JmOcPbmb42J873", label: "فيديو الدرس" }] }
                 ] 
             }
         ]
@@ -140,35 +140,23 @@ const TEMPLATES = [
                 ] 
             },
             { 
-                name: "الفلسفة", 
-                has_exercises: false,
-                chapters: [
-                    { name: "السؤال العلمي والفلسفي", url: "" },
-                    { name: "المشكلة والإشكالية", url: "" },
-                    { name: "الحقيقة", url: "" },
-                    { name: "الأخلاق", url: "" },
-                    { name: "المنطق", url: "" },
-                    { name: "التمييز", url: "" }
-                ] 
-            },
-            { 
                 name: "العلوم الإسلامية", 
                 has_exercises: false,
                 chapters: [
-                    { name: "العقيدة الاسلامية و اثرها على الفرد و المجتمع", url: "https://youtu.be/mFi5lHJwtF0?si=9elCFRXFXwWb5bCj" },
-                    { name: "الدرس الثاني", url: "https://youtu.be/LckJvHpIT1E?si=iTPmaUQALSiLDnGB" },
-                    { name: "الدرس3: الإسلام والرسالات السماوية", url: "https://youtu.be/dnIWslER0ug?si=zKS2_oJmnwbRYExH" },
-                    { name: "الدرس4: العقل في القرآن الكريم", url: "https://youtu.be/PzHHZnvulFM?si=TdC6oSzeKYOd_LfY" },
-                    { name: "الدرس5: مقاصد الشريعة الإسلامية", url: "https://youtu.be/J2UAaOks53U?si=cpnYWEy6FbinbJfE" },
-                    { name: "الدرس6: منهج الإسلام في محاربة الإنحراف والجريمة", url: "https://youtu.be/47GwIqlKLnA?si=bpagrnyw294KN2tJ" },
-                    { name: "الدرس7: المساواة أمام أحكام الشريعة الإسلامية في العقوبات", url: "https://youtu.be/l_TgizsPZ5s?si=ZOZLalgWfwspveat" },
-                    { name: "الدرس8: الصحة النفسية والجسمية في القرآن الكريم", url: "https://youtu.be/SDMvppi4SnA?si=Ou2jKMTTpbYryJFH" },
-                    { name: "الدرس9: من مصادر التشريع الإسلامي (الإجماع/القياس/المصلحة المرسلة)", url: "https://youtu.be/Ox4St2jDT7w?si=a8glL2mGM31cagKa" },
-                    { name: "الدرس10: القيم في القرآن الكريم", url: "https://youtu.be/4tDYVaFhsqw?si=SzLGB0YZ8NzXWg-v" },
-                    { name: "الدرس11", url: "https://youtu.be/eVSuCjkxVZs?si=2578bqeInCgsgjX4" },
-                    { name: "الدرس12", url: "https://youtu.be/2LaLJl6HEL8?si=bAvQUSDXra7RiFGl" },
-                    { name: "الدرس13", url: "https://youtu.be/5sx1ake43wo?si=jts1QcLcuD3KRYYy" },
-                    { name: "الدرس15: الحرية الشخصية و مدى ارتباطها بحقوق الآخرين", url: "https://youtu.be/6U76b7PKN0I?si=x_JmOcPbmb42J873" }
+                    { name: "العقيدة الاسلامية و اثرها على الفرد و المجتمع", resources: [{ type: "video", url: "https://youtu.be/mFi5lHJwtF0?si=9elCFRXFXwWb5bCj", label: "فيديو الدرس" }] },
+                    { name: "الدرس الثاني", resources: [{ type: "video", url: "https://youtu.be/LckJvHpIT1E?si=iTPmaUQALSiLDnGB", label: "فيديو الدرس" }] },
+                    { name: "الدرس3: الإسلام والرسالات السماوية", resources: [{ type: "video", url: "https://youtu.be/dnIWslER0ug?si=zKS2_oJmnwbRYExH", label: "فيديو الدرس" }] },
+                    { name: "الدرس4: العقل في القرآن الكريم", resources: [{ type: "video", url: "https://youtu.be/PzHHZnvulFM?si=TdC6oSzeKYOd_LfY", label: "فيديو الدرس" }] },
+                    { name: "الدرس5: مقاصد الشريعة الإسلامية", resources: [{ type: "video", url: "https://youtu.be/J2UAaOks53U?si=cpnYWEy6FbinbJfE", label: "فيديو الدرس" }] },
+                    { name: "الدرس6: منهج الإسلام في محاربة الإنحراف والجريمة", resources: [{ type: "video", url: "https://youtu.be/47GwIqlKLnA?si=bpagrnyw294KN2tJ", label: "فيديو الدرس" }] },
+                    { name: "الدرس7: المساواة أمام أحكام الشريعة الإسلامية في العقوبات", resources: [{ type: "video", url: "https://youtu.be/l_TgizsPZ5s?si=ZOZLalgWfwspveat", label: "فيديو الدرس" }] },
+                    { name: "الدرس8: الصحة النفسية والجسمية في القرآن الكريم", resources: [{ type: "video", url: "https://youtu.be/SDMvppi4SnA?si=Ou2jKMTTpbYryJFH", label: "فيديو الدرس" }] },
+                    { name: "الدرس9: من مصادر التشريع الإسلامي (الإجماع/القياس/المصلحة المرسلة)", resources: [{ type: "video", url: "https://youtu.be/Ox4St2jDT7w?si=a8glL2mGM31cagKa", label: "فيديو الدرس" }] },
+                    { name: "الدرس10: القيم في القرآن الكريم", resources: [{ type: "video", url: "https://youtu.be/4tDYVaFhsqw?si=SzLGB0YZ8NzXWg-v", label: "فيديو الدرس" }] },
+                    { name: "الدرس11", resources: [{ type: "video", url: "https://youtu.be/eVSuCjkxVZs?si=2578bqeInCgsgjX4", label: "فيديو الدرس" }] },
+                    { name: "الدرس12", resources: [{ type: "video", url: "https://youtu.be/2LaLJl6HEL8?si=bAvQUSDXra7RiFGl", label: "فيديو الدرس" }] },
+                    { name: "الدرس13", resources: [{ type: "video", url: "https://youtu.be/5sx1ake43wo?si=jts1QcLcuD3KRYYy", label: "فيديو الدرس" }] },
+                    { name: "الدرس15: الحرية الشخصية و مدى ارتباطها بحقوق الآخرين", resources: [{ type: "video", url: "https://youtu.be/6U76b7PKN0I?si=x_JmOcPbmb42J873", label: "فيديو الدرس" }] }
                 ] 
             },
             { 
@@ -240,20 +228,20 @@ const TEMPLATES = [
                 name: "العلوم الإسلامية", 
                 has_exercises: false,
                 chapters: [
-                    { name: "العقيدة الاسلامية و اثرها على الفرد و المجتمع", url: "https://youtu.be/mFi5lHJwtF0?si=9elCFRXFXwWb5bCj" },
-                    { name: "الدرس الثاني", url: "https://youtu.be/LckJvHpIT1E?si=iTPmaUQALSiLDnGB" },
-                    { name: "الدرس3: الإسلام والرسالات السماوية", url: "https://youtu.be/dnIWslER0ug?si=zKS2_oJmnwbRYExH" },
-                    { name: "الدرس4: العقل في القرآن الكريم", url: "https://youtu.be/PzHHZnvulFM?si=TdC6oSzeKYOd_LfY" },
-                    { name: "الدرس5: مقاصد الشريعة الإسلامية", url: "https://youtu.be/J2UAaOks53U?si=cpnYWEy6FbinbJfE" },
-                    { name: "الدرس6: منهج الإسلام في محاربة الإنحراف والجريمة", url: "https://youtu.be/47GwIqlKLnA?si=bpagrnyw294KN2tJ" },
-                    { name: "الدرس7: المساواة أمام أحكام الشريعة الإسلامية في العقوبات", url: "https://youtu.be/l_TgizsPZ5s?si=ZOZLalgWfwspveat" },
-                    { name: "الدرس8: الصحة النفسية والجسمية في القرآن الكريم", url: "https://youtu.be/SDMvppi4SnA?si=Ou2jKMTTpbYryJFH" },
-                    { name: "الدرس9: من مصادر التشريع الإسلامي (الإجماع/القياس/المصلحة المرسلة)", url: "https://youtu.be/Ox4St2jDT7w?si=a8glL2mGM31cagKa" },
-                    { name: "الدرس10: القيم في القرآن الكريم", url: "https://youtu.be/4tDYVaFhsqw?si=SzLGB0YZ8NzXWg-v" },
-                    { name: "الدرس11", url: "https://youtu.be/eVSuCjkxVZs?si=2578bqeInCgsgjX4" },
-                    { name: "الدرس12", url: "https://youtu.be/2LaLJl6HEL8?si=bAvQUSDXra7RiFGl" },
-                    { name: "الدرس13", url: "https://youtu.be/5sx1ake43wo?si=jts1QcLcuD3KRYYy" },
-                    { name: "الدرس15: الحرية الشخصية و مدى ارتباطها بحقوق الآخرين", url: "https://youtu.be/6U76b7PKN0I?si=x_JmOcPbmb42J873" }
+                    { name: "العقيدة الاسلامية و اثرها على الفرد و المجتمع", resources: [{ type: "video", url: "https://youtu.be/mFi5lHJwtF0?si=9elCFRXFXwWb5bCj", label: "فيديو الدرس" }] },
+                    { name: "الدرس الثاني", resources: [{ type: "video", url: "https://youtu.be/LckJvHpIT1E?si=iTPmaUQALSiLDnGB", label: "فيديو الدرس" }] },
+                    { name: "الدرس3: الإسلام والرسالات السماوية", resources: [{ type: "video", url: "https://youtu.be/dnIWslER0ug?si=zKS2_oJmnwbRYExH", label: "فيديو الدرس" }] },
+                    { name: "الدرس4: العقل في القرآن الكريم", resources: [{ type: "video", url: "https://youtu.be/PzHHZnvulFM?si=TdC6oSzeKYOd_LfY", label: "فيديو الدرس" }] },
+                    { name: "الدرس5: مقاصد الشريعة الإسلامية", resources: [{ type: "video", url: "https://youtu.be/J2UAaOks53U?si=cpnYWEy6FbinbJfE", label: "فيديو الدرس" }] },
+                    { name: "الدرس6: منهج الإسلام في محاربة الإنحراف والجريمة", resources: [{ type: "video", url: "https://youtu.be/47GwIqlKLnA?si=bpagrnyw294KN2tJ", label: "فيديو الدرس" }] },
+                    { name: "الدرس7: المساواة أمام أحكام الشريعة الإسلامية في العقوبات", resources: [{ type: "video", url: "https://youtu.be/l_TgizsPZ5s?si=ZOZLalgWfwspveat", label: "فيديو الدرس" }] },
+                    { name: "الدرس8: الصحة النفسية والجسمية في القرآن الكريم", resources: [{ type: "video", url: "https://youtu.be/SDMvppi4SnA?si=Ou2jKMTTpbYryJFH", label: "فيديو الدرس" }] },
+                    { name: "الدرس9: من مصادر التشريع الإسلامي (الإجماع/القياس/المصلحة المرسلة)", resources: [{ type: "video", url: "https://youtu.be/Ox4St2jDT7w?si=a8glL2mGM31cagKa", label: "فيديو الدرس" }] },
+                    { name: "الدرس10: القيم في القرآن الكريم", resources: [{ type: "video", url: "https://youtu.be/4tDYVaFhsqw?si=SzLGB0YZ8NzXWg-v", label: "فيديو الدرس" }] },
+                    { name: "الدرس11", resources: [{ type: "video", url: "https://youtu.be/eVSuCjkxVZs?si=2578bqeInCgsgjX4", label: "فيديو الدرس" }] },
+                    { name: "الدرس12", resources: [{ type: "video", url: "https://youtu.be/2LaLJl6HEL8?si=bAvQUSDXra7RiFGl", label: "فيديو الدرس" }] },
+                    { name: "الدرس13", resources: [{ type: "video", url: "https://youtu.be/5sx1ake43wo?si=jts1QcLcuD3KRYYy", label: "فيديو الدرس" }] },
+                    { name: "الدرس15: الحرية الشخصية و مدى ارتباطها بحقوق الآخرين", resources: [{ type: "video", url: "https://youtu.be/6U76b7PKN0I?si=x_JmOcPbmb42J873", label: "فيديو الدرس" }] }
                 ] 
             },
             { 
@@ -272,22 +260,6 @@ const TEMPLATES = [
         name: "BAC Lettres et Philosophie (شعبة الأدب والفلسفة)",
         subjects: [
             { 
-                name: "الفلسفة", 
-                has_exercises: false,
-                chapters: [
-                    { name: "الإدراك والإحساس", url: "" },
-                    { name: "الذاكرة والخيال", url: "" },
-                    { name: "اللغة والفكر", url: "" },
-                    { name: "الشعور واللاشعور", url: "" },
-                    { name: "الأسرة والمجتمع", url: "" },
-                    { name: "الحقيقة والعدالة", url: "" },
-                    { name: "الأخلاق البيولوجية", url: "" },
-                    { name: "الحرية والمسؤولية", url: "" },
-                    { name: "الوجود والعدم", url: "" },
-                    { name: "النظرية والممارسة", url: "" }
-                ] 
-            },
-            { 
                 name: "الرياضيات", 
                 chapters: [
                     { name: "المتتاليات", url: "https://youtu.be/Vtl2Xk0IsXw?si=-D6hD4PFlUMUTU6C" },
@@ -297,57 +269,59 @@ const TEMPLATES = [
             },
             { 
                 name: "اللغة العربية", 
+                has_exercises: false,
                 chapters: [
-                    { name: "عصر الضعف", url: "" },
-                    { name: "عصر النهضة", url: "" },
-                    { name: "أدب المهجر", url: "" },
-                    { name: "الالتزام في الأدب العربي", url: "" },
-                    { name: "فن المقال والقصة", url: "" },
-                    { name: "الشعر العربي المعاصر", url: "" },
-                    { name: "النقد الأدبي", url: "" },
-                    { name: "البلاغة", url: "" }
                 ] 
             },
             { 
                 name: "التاريخ والجغرافيا", 
+                has_exercises: false,
                 chapters: [
-                    { name: "الحرب الباردة", url: "" },
-                    { name: "الثورة الجزائرية", url: "" },
-                    { name: "استعادة السيادة", url: "" },
-                    { name: "القوى الاقتصادية الكبرى", url: "" },
-                    { name: "دول الجنوب", url: "" },
-                    { name: "العولمة", url: "" },
-                    { name: "الظواهر المناخية", url: "" },
-                    { name: "السكان", url: "" }
+                    { name: "بروز الصراع و تشكل العالم", url: "https://youtu.be/xLNEKURH6h8?si=vrY_BPztVy_phJ35" },
+                    { name: "التعايش السلمي", url: "https://youtu.be/raE5rpA2QOI?si=2r8-sFL1xbT5_HlX" },
+                    { name: "مساعي الانفراج الدولي", url: "https://youtu.be/cMyuv-YuWs0?si=-40FO6H1Y8QWrv4n" },
+                    { name: "الثروة الجزائرية", url: "https://youtu.be/CSIKQCsohNw?si=ghLyO4xHnCXyUUhR" }
                 ] 
             },
             { 
                 name: "اللغة الإنجليزية", 
+                has_exercises: false,
                 chapters: [
-                    { name: "Literature", url: "" },
-                    { name: "Essay Writing", url: "" },
-                    { name: "Critical Analysis", url: "" },
-                    { name: "Communication", url: "" }
+                    { name: "it's high time", url: "https://youtu.be/CebUP7opVdw?si=1oCP8HtdLfAmUs-2" },
+                    { name: "so...that/such...that", url: "https://youtu.be/WgWcZ3AwRSc?si=6M-McTdjNsVHbgm4" },
+                    { name: "how to ask a question كيف اسئل سؤالا", url: "https://youtu.be/0ZYGiuKC1ko?si=Jp0h78j11KKJDHUW" },
+                    { name: "كيفية كتابة فقرة", url: "https://youtu.be/UgEDNxxZVbw?si=WJICxNdLoe-_bfHa" }
                 ] 
             },
             { 
                 name: "العلوم الإسلامية", 
                 has_exercises: false,
                 chapters: [
-                    { name: "العقيدة الاسلامية و اثرها على الفرد و المجتمع", url: "https://youtu.be/mFi5lHJwtF0?si=9elCFRXFXwWb5bCj" },
-                    { name: "الدرس الثاني", url: "https://youtu.be/LckJvHpIT1E?si=iTPmaUQALSiLDnGB" },
-                    { name: "الدرس3: الإسلام والرسالات السماوية", url: "https://youtu.be/dnIWslER0ug?si=zKS2_oJmnwbRYExH" },
-                    { name: "الدرس4: العقل في القرآن الكريم", url: "https://youtu.be/PzHHZnvulFM?si=TdC6oSzeKYOd_LfY" },
-                    { name: "الدرس5: مقاصد الشريعة الإسلامية", url: "https://youtu.be/J2UAaOks53U?si=cpnYWEy6FbinbJfE" },
-                    { name: "الدرس6: منهج الإسلام في محاربة الإنحراف والجريمة", url: "https://youtu.be/47GwIqlKLnA?si=bpagrnyw294KN2tJ" },
-                    { name: "الدرس7: المساواة أمام أحكام الشريعة الإسلامية في العقوبات", url: "https://youtu.be/l_TgizsPZ5s?si=ZOZLalgWfwspveat" },
-                    { name: "الدرس8: الصحة النفسية والجسمية في القرآن الكريم", url: "https://youtu.be/SDMvppi4SnA?si=Ou2jKMTTpbYryJFH" },
-                    { name: "الدرس9: من مصادر التشريع الإسلامي (الإجماع/القياس/المصلحة المرسلة)", url: "https://youtu.be/Ox4St2jDT7w?si=a8glL2mGM31cagKa" },
-                    { name: "الدرس10: القيم في القرآن الكريم", url: "https://youtu.be/4tDYVaFhsqw?si=SzLGB0YZ8NzXWg-v" },
-                    { name: "الدرس11", url: "https://youtu.be/eVSuCjkxVZs?si=2578bqeInCgsgjX4" },
-                    { name: "الدرس12", url: "https://youtu.be/2LaLJl6HEL8?si=bAvQUSDXra7RiFGl" },
-                    { name: "الدرس13", url: "https://youtu.be/5sx1ake43wo?si=jts1QcLcuD3KRYYy" },
-                    { name: "الدرس15: الحرية الشخصية و مدى ارتباطها بحقوق الآخرين", url: "https://youtu.be/6U76b7PKN0I?si=x_JmOcPbmb42J873" }
+                    { name: "العقيدة الاسلامية و اثرها على الفرد و المجتمع", resources: [{ type: "video", url: "https://youtu.be/mFi5lHJwtF0?si=9elCFRXFXwWb5bCj", label: "فيديو الدرس" }] },
+                    { name: "الدرس الثاني", resources: [{ type: "video", url: "https://youtu.be/LckJvHpIT1E?si=iTPmaUQALSiLDnGB", label: "فيديو الدرس" }] },
+                    { name: "الدرس3: الإسلام والرسالات السماوية", resources: [{ type: "video", url: "https://youtu.be/dnIWslER0ug?si=zKS2_oJmnwbRYExH", label: "فيديو الدرس" }] },
+                    { name: "الدرس4: العقل في القرآن الكريم", resources: [{ type: "video", url: "https://youtu.be/PzHHZnvulFM?si=TdC6oSzeKYOd_LfY", label: "فيديو الدرس" }] },
+                    { name: "الدرس5: مقاصد الشريعة الإسلامية", resources: [{ type: "video", url: "https://youtu.be/J2UAaOks53U?si=cpnYWEy6FbinbJfE", label: "فيديو الدرس" }] },
+                    { name: "الدرس6: منهج الإسلام في محاربة الإنحراف والجريمة", resources: [{ type: "video", url: "https://youtu.be/47GwIqlKLnA?si=bpagrnyw294KN2tJ", label: "فيديو الدرس" }] },
+                    { name: "الدرس7: المساواة أمام أحكام الشريعة الإسلامية في العقوبات", resources: [{ type: "video", url: "https://youtu.be/l_TgizsPZ5s?si=ZOZLalgWfwspveat", label: "فيديو الدرس" }] },
+                    { name: "الدرس8: الصحة النفسية والجسمية في القرآن الكريم", resources: [{ type: "video", url: "https://youtu.be/SDMvppi4SnA?si=Ou2jKMTTpbYryJFH", label: "فيديو الدرس" }] },
+                    { name: "الدرس9: من مصادر التشريع الإسلامي (الإجماع/القياس/المصلحة المرسلة)", resources: [{ type: "video", url: "https://youtu.be/Ox4St2jDT7w?si=a8glL2mGM31cagKa", label: "فيديو الدرس" }] },
+                    { name: "الدرس10: القيم في القرآن الكريم", resources: [{ type: "video", url: "https://youtu.be/4tDYVaFhsqw?si=SzLGB0YZ8NzXWg-v", label: "فيديو الدرس" }] },
+                    { name: "الدرس11", resources: [{ type: "video", url: "https://youtu.be/eVSuCjkxVZs?si=2578bqeInCgsgjX4", label: "فيديو الدرس" }] },
+                    { name: "الدرس12", resources: [{ type: "video", url: "https://youtu.be/2LaLJl6HEL8?si=bAvQUSDXra7RiFGl", label: "فيديو الدرس" }] },
+                    { name: "الدرس13", resources: [{ type: "video", url: "https://youtu.be/5sx1ake43wo?si=jts1QcLcuD3KRYYy", label: "فيديو الدرس" }] },
+                    { name: "الدرس15: الحرية الشخصية و مدى ارتباطها بحقوق الآخرين", resources: [{ type: "video", url: "https://youtu.be/6U76b7PKN0I?si=x_JmOcPbmb42J873", label: "فيديو الدرس" }] }
+                ] 
+            },
+            { 
+                name: "Francais", 
+                has_exercises: false,
+                chapters: [
+                    { name: "Le compte rendu", url: "https://youtu.be/uCNE7mmwVz0?si=Rhh8jqdbUqBnMejD" },
+                    { name: "Le discours directc et indrect", url: "https://youtu.be/rTDnH8ndrPw?si=uBxUWjcb7lQHYV2g" },
+                    { name: "la voix passive et active", url: "https://youtu.be/UrmKeoPjS9M?si=O0i-Evieei1WiHEO" },
+                    { name: "La visee communicatie", url: "https://youtu.be/xeV2hGgMv5I?si=dge6bFe6ZS6LSosG" },
+                    { name: "les types d'auteurs", url: "https://youtu.be/Zics2WkMOSg?si=l6hXq75ICbiDoY5a" }
                 ] 
             }
         ]
