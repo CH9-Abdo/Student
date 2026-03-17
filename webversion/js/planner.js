@@ -206,12 +206,17 @@ StudentProApp.prototype.refreshSubjectWindowData = function() {
         item.className = 'list-item';
         
         let ytContent = '';
-        if (c.youtube_url) {
+        if (c.youtube_url && c.youtube_url.trim()) {
             ytContent = `<a href="${c.youtube_url}" target="_blank" class="btn-icon" title="Watch on YouTube">
                             <i class="fab fa-youtube" style="color:#ff0000;"></i>
                          </a>`;
         } else {
-            ytContent = `<span class="btn-icon" style="opacity:0.25;"><i class="fab fa-youtube"></i></span>`;
+            // Search URL: encode subject name and chapter name
+            const searchQuery = encodeURIComponent(`${sub.name} ${c.name}`);
+            const searchUrl = `https://www.youtube.com/results?search_query=${searchQuery}`;
+            ytContent = `<a href="${searchUrl}" target="_blank" class="btn-icon" title="Search on YouTube" style="opacity:0.4;">
+                            <i class="fas fa-search"></i>
+                         </a>`;
         }
 
         item.innerHTML = `
