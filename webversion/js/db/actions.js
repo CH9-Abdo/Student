@@ -205,9 +205,17 @@ Database.prototype.applyTemplate = async function(template) {
     const semId = await this.addSemester(template.name);
     if (!semId) return false;
     for (let sub of template.subjects) {
-        const subId = await this.addSubject(semId, sub.name, null);
+        const hasEx = sub.has_exercises !== false; // Default to true unless false
+        const subId = await this.addSubject(semId, sub.name, null, hasEx);
         if (!subId) continue;
-        for (let chap of sub.chapters) await this.addChapter(subId, chap);
+        
+        for (let chap of sub.chapters) {
+            if (typeof chap === 'string') {
+                await this.addChapter(subId, chap);
+            } else {
+                await this.addChapter(subId, chap.name, chap.url || null);
+            }
+        }
     }
     return true;
 };

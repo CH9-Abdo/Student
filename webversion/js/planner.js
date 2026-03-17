@@ -204,15 +204,23 @@ StudentProApp.prototype.refreshSubjectWindowData = function() {
     db.data.chapters.filter(c => c.subject_id === this.activeSubjectId).forEach(c => {
         const item = document.createElement('div');
         item.className = 'list-item';
-        const ytIcon = c.youtube_url
-            ? '<i class="fab fa-youtube" style="color:#ff0000;"></i>'
-            : '<i class="fab fa-youtube" style="opacity:0.25;"></i>';
+        
+        let ytContent = '';
+        if (c.youtube_url) {
+            ytContent = `<a href="${c.youtube_url}" target="_blank" class="btn-icon" title="Watch on YouTube">
+                            <i class="fab fa-youtube" style="color:#ff0000;"></i>
+                         </a>`;
+        } else {
+            ytContent = `<span class="btn-icon" style="opacity:0.25;"><i class="fab fa-youtube"></i></span>`;
+        }
+
         item.innerHTML = `
             <span style="font-weight:500;">${c.name}</span>
             <div style="display:flex; gap:6px; align-items:center;">
                 <button class="small-btn ${c.video_completed ? 'primary-btn' : 'secondary-btn'}" onclick="app.toggleCap(${c.id}, 'video')">Course</button>
                 ${hasEx ? `<button class="small-btn ${c.exercises_completed ? 'primary-btn' : 'secondary-btn'}" onclick="app.toggleCap(${c.id}, 'exercises')">Ex</button>` : ''}
-                <button class="btn-icon" onclick="app.editChapterYouTube(${c.id})" title="Edit YouTube">${ytIcon}</button>
+                ${ytContent}
+                <button class="btn-icon" onclick="app.editChapterYouTube(${c.id})" title="Edit YouTube"><i class="fas fa-edit"></i></button>
             </div>
         `;
         list.appendChild(item);
@@ -241,9 +249,16 @@ StudentProApp.prototype.toggleCap = async function(id, type) {
 StudentProApp.prototype.applyTemplateToSemester = async function(semId, template) {
     console.log(`[App] Applying template ${template.name} to semester ${semId}`);
     for (let sub of template.subjects) {
-        const subId = await db.addSubject(semId, sub.name, null, sub.has_exercises !== false);
+        const hasEx = sub.has_exercises !== false;
+        const subId = await db.addSubject(semId, sub.name, null, hasEx);
         if (subId) {
-            for (let ch of sub.chapters) await db.addChapter(subId, ch);
+            for (let ch of sub.chapters) {
+                if (typeof ch === 'string') {
+                    await db.addChapter(subId, ch);
+                } else {
+                    await db.addChapter(subId, ch.name, ch.url || null);
+                }
+            }
         }
     }
 };
