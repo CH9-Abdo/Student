@@ -23,6 +23,13 @@ StudentProApp.prototype.refreshLeaderboard = async function() {
     podium.innerHTML = `<div class="lb-loading">${T.lb_loading || 'Loading...'}</div>`;
     listBody.innerHTML = `<div class="lb-loading">${T.lb_loading || 'Loading...'}</div>`;
 
+    if (!navigator.onLine) {
+        const msg = `<i class="fas fa-wifi-slash"></i> ${T.no_internet || 'No internet connection'}`;
+        podium.innerHTML = `<div class="lb-loading">${msg}</div>`;
+        listBody.innerHTML = `<div class="lb-loading">${msg}</div>`;
+        return;
+    }
+
     try {
         const data = await db.getLeaderboard(scope);
         listBody.innerHTML = '';
@@ -36,11 +43,13 @@ StudentProApp.prototype.refreshLeaderboard = async function() {
         const top3 = data.slice(0, 3);
         const rest = data.slice(3);
 
+        const myId = auth.user ? auth.user.id : 'offline-user';
+
         const renderPod = (u, rank) => {
             if (!u) {
                 return `<div class="lb-pod"><div class="lb-loading">${T.lb_loading || 'Loading...'}</div></div>`;
             }
-            const isMe = auth.user && u.user_id === auth.user.id;
+            const isMe = u.user_id === myId;
             const name = u.display_name || (T.student || 'Student');
             const levelLabel = T.level_label || T.level || 'Level';
             const sessions = Number(u.total_sessions ?? u.sessions ?? 0) || 0;
@@ -89,7 +98,7 @@ StudentProApp.prototype.refreshLeaderboard = async function() {
 
         const levelLabel = T.level_label || T.level || 'Level';
         const renderRow = (u, idx) => {
-            const isMe = auth.user && u.user_id === auth.user.id;
+            const isMe = u.user_id === myId;
             const rank = idx + 4;
             const name = u.display_name || (T.student || 'Student');
             const sessions = Number(u.total_sessions ?? u.sessions ?? 0) || 0;

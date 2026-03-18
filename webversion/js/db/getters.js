@@ -161,7 +161,7 @@ Database.prototype.getAdvancedRecommendation = function(now = new Date()) {
 };
 
 Database.prototype.getLeaderboard = async function(scope = 'weekly') { 
-    if (!navigator.onLine || !auth.user || auth.user.id === 'offline-user') return [];
+    if (!navigator.onLine) return [];
     try {
         const viewByScope = {
             daily: 'daily_leaderboard',
@@ -170,9 +170,12 @@ Database.prototype.getLeaderboard = async function(scope = 'weekly') {
             all_time: 'all_time_leaderboard'
         };
         const viewName = viewByScope[scope] || viewByScope.weekly;
-        const { data } = await auth.client.from(viewName).select("*"); 
+        
+        // Fetch public leaderboard data
+        const { data, error } = await auth.client.from(viewName).select("*"); 
+        if (error) throw error;
+
         const rankings = (data || []).map(r => {
-            // Normalize common column name variants from different leaderboard views.
             const normalized = { ...r };
             const sessionsVal =
                 normalized.total_sessions ??
@@ -193,8 +196,9 @@ Database.prototype.getLeaderboard = async function(scope = 'weekly') {
             return normalized;
         });
 
-        // Inject my current local data into the rankings to show instant progress
-        const meIdx = rankings.findIndex(u => u.user_id === auth.user.id);
+        // Determine "Me" ID
+        const myId = auth.user ? auth.user.id : 'offline-user';
+        const meIdx = rankings.findIndex(u => u.user_id === myId);
         
         const now = new Date();
         const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -217,26 +221,21 @@ Database.prototype.getLeaderboard = async function(scope = 'weekly') {
             }).length
             : (this.data?.user_profile?.total_sessions || sessions.length);
 
-        console.log(`[DB] Leaderboard Local Calc (${scope}): ${mySessionsInWindow} sessions`);
-
         if (meIdx !== -1) {
-            // Update my existing record in the list
             rankings[meIdx].total_sessions = mySessionsInWindow;
             rankings[meIdx].xp = this.data.user_profile.xp;
             rankings[meIdx].level = this.data.user_profile.level;
             rankings[meIdx].display_name = this.data.user_profile.display_name;
         } else {
-            // Add me if I'm not in the cloud leaderboard yet
             rankings.push({
-                user_id: auth.user.id,
-                display_name: this.data.user_profile.display_name || "Me",
+                user_id: myId,
+                display_name: this.data.user_profile.display_name || "Guest",
                 xp: this.data.user_profile.xp,
                 level: this.data.user_profile.level,
                 total_sessions: mySessionsInWindow
             });
         }
 
-        // For period leaderboards, sessions are the main ranking; XP breaks ties.
         return rankings.sort((a, b) =>
             (Number(b.total_sessions || 0) - Number(a.total_sessions || 0)) ||
             (Number(b.xp || 0) - Number(a.xp || 0))
