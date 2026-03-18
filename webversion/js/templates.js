@@ -257,12 +257,12 @@ const TEMPLATES = [
     },
     {
         year: "bac",
-        name: "BAC Lettres et Philosophie (شعبة الأدب والفلسفة)",
+        name: "BAC Lettres الشعب الأدبية",
         subjects: [
             { 
                 name: "الرياضيات", 
                 chapters: [
-                    { name: "المتتاليات", url: "https://youtu.be/Vtl2Xk0IsXw?si=-D6hD4PFlUMUTU6C", resources: [{ type: "video", url: "https://youtu.be/Vtl2Xk0IsXw?si=-D6hD4PFlUMUTU6C", label: "Video Lesson" }, { type: "pdf", url: "https://www.dzexams.com/ar/documents/UjZPSm1aWTNQRkxBYkd3Z1FHMDFSQT09", label: "ملخص المتتاليات" }] },
+                    { name: "المتتاليات", url: "https://youtu.be/Vtl2Xk0IsXw?si=-D6hD4PFlUMUTU6C", resources: [{ type: "video", url: "https://youtu.be/Vtl2Xk0IsXw?si=-D6hD4PFlUMUTU6C", label: "Video Lesson" }, { type: "pdf", url: "https://www.dzexams.com/ar/documents/UjZPSm1aWTNQRkxBYkd3Z1FHMDFSQT09", label: "ملخص المتتاليات" }, { type: "exercise", url: "https://www.dzexams.com/ar/sujets/SjNMUDFkZ1J1ZlNMYnJCdmpzbmFOQT09", label: "فرض الفصل الاول" }] },
                     { name: "الموافقات و القسمة الاقليدية", url: "https://youtu.be/xsVrrTX3JWc?si=YK6gidCOq2YhxI6j" },
                     { name: "الدوال", url: "https://www.youtube.com/live/3h5aPEb9mtg?si=IYF1nanbou5fk8hW" }
                 ] 
@@ -456,13 +456,12 @@ const TEMPLATES = [
     // ==================== L1 ====================
     {
         year: "l1",
-        name: "L1 Informatique S1(سنة أولى إعلام آلي)",
+        name: "L1 Informatique S1 الفصل الأول",
         subjects: [
             { 
                 name: "Analyse 1", 
                 chapters: [
                     { name: "Logique mathématique" },
-                    { name: "Les ensembles" },
                     { name: "Les nombres réels" },
                     { name: "Les suites réelles" }
                 ] 
@@ -471,12 +470,8 @@ const TEMPLATES = [
                 name: "Algèbre 1", 
                 chapters: [
                     { name: "Logique et Raisonnements" },
-                    { name: "Espaces vectoriels" },
-                    { name: "Applications linéaires" },
-                    { name: "Matrices" },
-                    { name: "Déterminants" },
-                    { name: "Systèmes d'équations linéaires" },
-                    { name: "Réduction des endomorphismes" }
+                    { name: "Ensemble et applications" },
+                    { name: "Relation Binaire" }
                 ] 
             },
             { 
@@ -485,10 +480,8 @@ const TEMPLATES = [
                     { name: "Introduction à l'algorithmique" },
                     { name: "Les types de données" },
                     { name: "Les structures de contrôle" },
-                    { name: "Les tableaux" },
-                    { name: "Les procédures et fonctions" },
-                    { name: "La récursivité" },
-                    { name: "Complexité algorithmique" }
+                    { name: "Les boucles" },
+                    { name: "Les tableaux" }
                 ] 
             },
             { 
@@ -506,7 +499,7 @@ const TEMPLATES = [
     },
     {
         year: "l1",
-        name: "L1 Informatique S2(سنة ثانية إعلام آلي)",
+        name: "L1 Informatique S2 االفصل الثاني",
         subjects: [
             { 
                 name: "Analyse 2", 
@@ -522,11 +515,10 @@ const TEMPLATES = [
             { 
                 name: "Algèbre 2", 
                 chapters: [
-                    { name: "Réduction des endomorphismes" },
-                    { name: "Produits scalaires" },
-                    { name: "Formes quadratiques" },
-                    { name: "Espaces Euclidiens" },
-                    { name: "Diagonalisation" }
+                    { name: "Espace victorial" },
+                    { name: "Application Linear" },
+                    { name: "Matrices" },
+                    { name: "Resolution de systmme d'equations" }
                 ] 
             },
             { 
@@ -547,12 +539,7 @@ const TEMPLATES = [
             { 
                 name: "Architecture des ordinateurs", 
                 chapters: [
-                    { name: "Introduction" },
-                    { name: "Logique combinatoire" },
-                    { name: "Logique séquentielle" },
-                    { name: "Le processeur" },
-                    { name: "La mémoire" },
-                    { name: "Entrées/Sorties" }
+                    { name: "Assembly Language" }
                 ] 
             },
             { 
@@ -577,27 +564,18 @@ const TEMPLATES = [
             { 
                 name: "Théorie des graphes", 
                 chapters: [
-                    { name: "Généralités" },
+                    { name: "Généralités 'concepts fondamentaux de la theorie des graphes'" },
                     { name: "Chemins et circuits" },
-                    { name: "Arbres et arborescences" },
-                    { name: "Problèmes de flot" }
-                ] 
-            },
-            { 
-                name: "Méthodes numériques", 
-                chapters: [
-                    { name: "Résolution d'équations non linéaires" },
-                    { name: "Interpolation" },
-                    { name: "Intégration numérique" },
-                    { name: "Systèmes linéaires" }
+                    { name: "Connexite dans un graphe" },
+                    { name: "Arbres et Arborescences" }
                 ] 
             },
             { 
                 name: "Logique Mathématique", 
                 chapters: [
-                    { name: "Calcul des propositions" },
-                    { name: "Calcul des prédicats" },
-                    { name: "Systèmes formels" }
+                    { name: "Syntaxe" },
+                    { name: "Sémantique" },
+                    { name: "Résolution" }
                 ] 
             }
         ]

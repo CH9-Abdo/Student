@@ -73,13 +73,9 @@ class AuthManager {
                 this.user = this.cachedCredentials;
                 this.onAuthSuccess(this.user);
                 return;
-            } else if (window.ENABLE_OFFLINE_MODE) {
-                this.log("Offline mode: Auto-entering guest mode (ENABLE_OFFLINE_MODE is true)");
-                this.workOffline();
-                return;
             } else {
-                this.log("Offline mode: No cached credentials");
-                this.showLogin();
+                this.log("Offline mode: Auto-entering guest mode");
+                this.workOffline();
                 return;
             }
         }
@@ -93,40 +89,14 @@ class AuthManager {
                 this.cachedCredentials = session.user;
                 localStorage.setItem('studentpro_cached_user', JSON.stringify(session.user));
 
-                // Seamless Reset: Auto-update if we have a pending password from earlier
-                const hash = window.location.hash;
-                const pendingPass = localStorage.getItem('pending_new_password');
-                
-                if (hash && hash.includes("type=recovery") && pendingPass) {
-                    this.log("Seamless password recovery detected.");
-                    try {
-                        await this.updatePassword(pendingPass);
-                        localStorage.removeItem('pending_new_password');
-                        alert("Password updated automatically! Welcome back.");
-                    } catch (e) {
-                        this.log("Auto-update failed: " + e.message);
-                        // Fallback: Show manual update modal if auto-update fails
-                        if (window.app && window.app.showModal) window.app.showModal('update-password-modal');
-                    }
-                } else if (hash && hash.includes("type=recovery")) {
-                    // Manual recovery if no pending password found
-                    if (window.app && window.app.showModal) window.app.showModal('update-password-modal');
-                }
-
                 this.onAuthSuccess(this.user);
             } else {
-                this.log("No session. Showing login.");
-                this.showLogin();
+                this.log("No session. Entering offline mode by default.");
+                this.workOffline();
             }
         } catch (err) {
             this.log(`Session error: ${err.message}`);
-            // Try offline fallback
-            if (this.cachedCredentials || window.ENABLE_OFFLINE_MODE) {
-                this.log("Using offline fallback after error");
-                this.workOffline();
-            } else {
-                this.showLogin();
-            }
+            this.workOffline();
         }
     }
 
@@ -146,6 +116,10 @@ class AuthManager {
         localStorage.setItem('studentpro_cached_user', JSON.stringify(data.user));
         this.cacheCredentials(email);
         this.log("Sign in successful.");
+        
+        // Hide login screen after success
+        document.getElementById('login-screen').classList.add('hidden');
+        
         this.onAuthSuccess(this.user);
         return data;
     }
@@ -154,6 +128,15 @@ class AuthManager {
         this.log("Creating new account...");
         const { data, error } = await this.client.auth.signUp({ email, password });
         if (error) throw error;
+        
+        // If signup is successful and auto-logs in
+        if (data.session) {
+            this.user = data.user;
+            this.cachedCredentials = data.user;
+            localStorage.setItem('studentpro_cached_user', JSON.stringify(data.user));
+            document.getElementById('login-screen').classList.add('hidden');
+            this.onAuthSuccess(this.user);
+        }
         return data;
     }
 
@@ -198,7 +181,12 @@ class AuthManager {
 
     async signOut() {
         this.log("Signing out...");
-        await this.client.auth.signOut();
+        // Check if actually logged into Supabase
+        if (navigator.onLine && this.user && this.user.id !== 'offline-user') {
+            try {
+                await this.client.auth.signOut();
+            } catch (e) { this.log("Sign out error: " + e.message); }
+        }
         this.user = null;
         this.cachedCredentials = null;
         localStorage.removeItem('studentpro_cached_user');
@@ -206,9 +194,18 @@ class AuthManager {
         window.location.reload();
     }
 
-    showLogin() {
-        document.getElementById('login-screen').classList.remove('hidden');
-        document.getElementById('app').classList.add('hidden');
+    showLogin(mode = 'login') {
+        const screen = document.getElementById('login-screen');
+        if (!screen) return;
+        
+        screen.classList.remove('hidden');
+        
+        // Toggle tabs based on mode
+        if (mode === 'signup') {
+            document.getElementById('tab-signup')?.click();
+        } else {
+            document.getElementById('tab-login')?.click();
+        }
 
         // Help Android Autofill / password managers by prefilling the last used email.
         const cachedEmail = localStorage.getItem('studentpro_cached_email');
@@ -219,8 +216,12 @@ class AuthManager {
     }
 
     onAuthSuccess(user) {
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('app').classList.remove('hidden');
+        // Only hide if login screen was visible
+        const loginScreen = document.getElementById('login-screen');
+        if (loginScreen) loginScreen.classList.add('hidden');
+        
+        const appShell = document.getElementById('app');
+        if (appShell) appShell.classList.remove('hidden');
         
         // Wait for main App to be ready
         let attempts = 0;

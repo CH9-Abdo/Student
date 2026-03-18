@@ -3,12 +3,16 @@
    ============================================================ */
 
 #login-screen {
-    min-height: 100vh;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg);
-    position: relative;
+    background: rgba(11, 15, 30, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 2000;
     overflow: hidden;
 }
 

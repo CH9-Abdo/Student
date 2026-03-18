@@ -104,8 +104,10 @@ html[dir="rtl"] #sidebar {
 }
 
 .logo-icon {
-    font-size: 26px;
-    filter: drop-shadow(0 2px 4px rgba(91,95,199,0.3));
+    height: 32px;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(91,95,199,0.2));
 }
 
 .logo-text {

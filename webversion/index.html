@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>StudentPro — Study Sync</title>
+    <title data-i18n="app_title">الشنين — Study Sync</title>
     <link rel="manifest" href="manifest.json">
 
     <!-- Modular Styles -->
@@ -40,8 +40,8 @@
     ========================================== -->
     <header id="mobile-header" class="hidden-desktop">
         <div style="display:flex; align-items:center; gap:8px;">
-            <span class="logo-icon" style="font-size:22px;">🎓</span>
-            <h1 class="logo-text" style="font-size:18px;">StudentPro</h1>
+            <img src="assets/img/logo.png" class="logo-icon" alt="الشنين Logo">
+            <h1 class="logo-text" style="font-size:18px;" data-i18n="app_name">الشنين</h1>
         </div>
         <button id="mobile-logout-btn" class="btn-icon" title="Logout">
             <i class="fas fa-sign-out-alt"></i>
@@ -53,8 +53,11 @@
     ========================================== -->
     <div id="login-screen" class="hidden">
         <form id="login-form" class="login-card card" novalidate>
-            <span class="logo-icon">🎓</span>
-            <h2 id="login-title">StudentPro Sync</h2>
+            <button type="button" id="close-login-btn" class="btn-icon" style="position:absolute; top:15px; right:15px;" title="Close">
+                <i class="fas fa-times"></i>
+            </button>
+            <img src="assets/img/logo.png" class="logo-icon" style="height:60px; margin-bottom:12px;" alt="الشنين Logo">
+            <h2 id="login-title">الشنين Sync</h2>
             <p id="login-desc" class="mute">Connect to your cloud database</p>
 
             <!-- Language Selector -->
@@ -88,9 +91,8 @@
                 </div>
             </div>
 
-            <!-- BUG FIX: do-signup-btn had class "auth-tab" (wrong) — now uses correct ID styling -->
             <button type="submit" id="do-login-btn" class="primary-btn">Login</button>
-            <button type="button" id="do-signup-btn">Create New Account</button>
+            <button type="button" id="do-signup-btn" class="hidden">Create New Account</button>
             <button type="button" id="work-offline-btn" class="secondary-btn">Work Offline</button>
 
             <p id="login-error" class="error-text hidden"></p>
@@ -105,8 +107,8 @@
         <!-- Sidebar -->
         <aside id="sidebar">
             <div class="logo-container">
-                <span class="logo-icon">🎓</span>
-                <h1 class="logo-text">StudentPro</h1>
+                <img src="assets/img/logo.png" class="logo-icon" alt="الشنين Logo">
+                <h1 class="logo-text" data-i18n="app_name">الشنين</h1>
             </div>
 
             <div id="user-info-sidebar">
@@ -586,16 +588,51 @@
                     <h2 class="h1">Settings</h2>
                 </div>
                 <div class="settings-container">
-                    <!-- Account Profile -->
+                    <!-- Consolidated Account Card -->
+                    <div class="card" id="account-settings-card">
+                        <h3 class="h2" style="margin-bottom:14px;" data-i18n="account_title">☁️ Account</h3>
+                        
+                        <!-- Offline State -->
+                        <div id="settings-offline-state" class="hidden">
+                            <p class="mute" style="font-weight:600; margin-bottom:6px;" data-i18n="account_offline_label">You're working offline</p>
+                            <p class="mute" style="margin-bottom:14px;" data-i18n="account_offline_desc">Your data is saved locally on this device.</p>
+                            <p class="mute" style="margin-bottom:14px;" data-i18n="account_connect_prompt">Connect a cloud account to back up and sync your data across devices.</p>
+                            <div style="display:flex; gap:10px;">
+                                <button id="settings-signup-btn" class="primary-btn small-btn" data-i18n="account_create_btn">Create Account</button>
+                                <button id="settings-signin-btn" class="secondary-btn small-btn" data-i18n="account_signin_btn">Sign In</button>
+                            </div>
+                        </div>
+
+                        <!-- Logged-in State -->
+                        <div id="settings-logged-in-state" class="hidden">
+                            <div class="setting-item">
+                                <label data-i18n="account_sync_desc">Signed in as</label>
+                                <span id="acc-email" class="mute" style="font-size:13px;">—</span>
+                            </div>
+                            <div class="setting-item">
+                                <label id="sync-mode-label">Sync Mode</label>
+                                <select id="sync-mode-select" style="margin-bottom:0;">
+                                    <option value="Automatic">Automatic</option>
+                                    <option value="Manual">Manual</option>
+                                </select>
+                            </div>
+                            <div class="sync-buttons" style="margin-top:16px;">
+                                <button id="settings-sync-btn" class="primary-btn small-btn" data-i18n="account_sync_now_btn">
+                                    <i class="fas fa-sync-alt"></i> Sync Now
+                                </button>
+                                <button id="settings-signout-btn" class="danger-btn small-btn" data-i18n="account_signout_btn">
+                                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- General Settings -->
                     <div class="card">
-                        <h3 class="h2" style="margin-bottom:14px;">👤 Account Profile</h3>
+                        <h3 class="h2" style="margin-bottom:14px;">⚙️ General</h3>
                         <div class="setting-item">
                             <label>Name</label>
                             <span id="acc-display-name" style="font-weight:600;">—</span>
-                        </div>
-                        <div class="setting-item">
-                            <label>Email</label>
-                            <span id="acc-email" class="mute" style="font-size:13px;">—</span>
                         </div>
                         <div class="setting-item">
                             <label>Progress</label>
@@ -603,11 +640,6 @@
                                 Level 1 Student
                             </span>
                         </div>
-                    </div>
-
-                    <!-- General Settings -->
-                    <div class="card">
-                        <h3 class="h2" style="margin-bottom:14px;">⚙️ General</h3>
                         <div class="setting-item">
                             <label>Language</label>
                             <select id="lang-select" style="margin-bottom:0;">
@@ -622,26 +654,6 @@
                                 <option value="Light">☀️ Light</option>
                                 <option value="Dark">🌙 Dark</option>
                             </select>
-                        </div>
-                    </div>
-
-                    <!-- Cloud Sync -->
-                    <div class="card">
-                        <h3 class="h2" id="cloud-sync-title" style="margin-bottom:14px;">☁️ Cloud Sync</h3>
-                        <div class="setting-item">
-                            <label id="sync-mode-label">Sync Mode</label>
-                            <select id="sync-mode-select" style="margin-bottom:0;">
-                                <option value="Automatic">Automatic</option>
-                                <option value="Manual">Manual</option>
-                            </select>
-                        </div>
-                        <div class="sync-buttons">
-                            <button id="web-upload-btn" class="secondary-btn small-btn">
-                                <i class="fas fa-cloud-upload-alt"></i> Upload
-                            </button>
-                            <button id="web-download-btn" class="secondary-btn small-btn">
-                                <i class="fas fa-cloud-download-alt"></i> Download
-                            </button>
                         </div>
                     </div>
 
@@ -666,40 +678,59 @@
     ========================================== -->
     <div id="modal-container" class="hidden">
 
-        <!-- Welcome / Onboarding Modal -->
-        <div id="welcome-modal" class="modal hidden" style="text-align:center;">
-            <span class="logo-icon" style="font-size:48px; display:block; margin-bottom:8px;">🎓</span>
-            <h2 class="h2" id="welcome-title" style="margin-bottom:6px;">Welcome to StudentPro!</h2>
-            <p id="welcome-desc" class="mute" style="margin-bottom:20px;">Set your name and choose a template to begin.</p>
+        <!-- Welcome / Onboarding Modal Template (Loaded via JS) -->
+        <template id="welcome-template">
+            <div id="welcome-modal" class="modal hidden" style="text-align:center;">
+                <img src="assets/img/logo.png" class="logo-icon" style="height:64px; margin: 0 auto 12px auto; display:block;" alt="الشنين Logo">
+                <h2 class="h2" id="welcome-title" style="margin-bottom:6px;" data-i18n="welcome_title">Welcome to الشنين!</h2>
+                <p id="welcome-desc" class="mute" style="margin-bottom:6px;">Set your name and choose a template to begin.</p>
+                <p id="welcome-subtitle" class="mute" style="margin-bottom:20px; font-size:14px;" data-i18n="welcome_subtitle">No account needed — start right away!</p>
 
-            <div style="margin-bottom:16px;">
-                <input type="text" id="user-display-name"
-                    placeholder="What should we call you?"
-                    style="text-align:center; font-size:15px; font-weight:600;">
-            </div>
+                <div style="margin-bottom:16px; text-align:left;">
+                    <label class="mute" style="display:block; margin-bottom:6px; font-size:13px;">🌐 Language / اللغة / Langue:</label>
+                    <select id="welcome-lang-select">
+                        <option value="English">English</option>
+                        <option value="Arabic">العربية</option>
+                        <option value="French">Français</option>
+                    </select>
+                </div>
 
-            <div style="margin-bottom:14px;">
-                <label class="mute" style="display:block; margin-bottom:6px; text-align:left; font-size:13px;">Select Your Year:</label>
-                <select id="year-selector">
-                    <option value="">— Select Year —</option>
-                    <option value="bac">BAC (Final Year)</option>
-                    <option value="2as">2AS (2nd Year Secondary)</option>
-                    <option value="l1">L1 (1st Year University)</option>
-                    <option value="l2">L2 (2nd Year University)</option>
-                    <option value="l3">L3 (3rd Year University)</option>
-                </select>
-            </div>
+                <div style="margin-bottom:16px; text-align:left;">
+                    <label class="mute" style="display:block; margin-bottom:6px; font-size:13px;" data-i18n="welcome_name_label">👤 Your Name:</label>
+                    <input type="text" id="user-display-name"
+                        data-i18n-placeholder="welcome_name_placeholder"
+                        placeholder="What should we call you?"
+                        style="font-size:15px; font-weight:600;">
+                </div>
 
-            <div id="specialization-container" class="hidden" style="margin-bottom:14px;">
-                <label class="mute" style="display:block; margin-bottom:6px; text-align:left; font-size:13px;">Choose Specialization:</label>
-                <select id="spec-selector"></select>
-            </div>
+                <div style="margin-bottom:14px;">
+                    <label class="mute" style="display:block; margin-bottom:6px; text-align:left; font-size:13px;" data-i18n="welcome_year_label">Select Your Year:</label>
+                    <select id="year-selector">
+                        <option value="">— Select Year —</option>
+                        <option value="bac">BAC (Final Year)</option>
+                        <option value="2as">2AS (2nd Year Secondary)</option>
+                        <option value="l1">L1 (1st Year University)</option>
+                        <option value="l2">L2 (2nd Year University)</option>
+                        <option value="l3">L3 (3rd Year University)</option>
+                    </select>
+                </div>
 
-            <div class="modal-actions" style="justify-content:center;">
-                <button class="secondary-btn" id="skip-onboarding-btn">Create Custom</button>
-                <button class="primary-btn" id="start-onboarding-btn" disabled>Let's get started 🚀</button>
+                <div id="specialization-container" class="hidden" style="margin-bottom:14px;">
+                    <label class="mute" style="display:block; margin-bottom:6px; text-align:left; font-size:13px;" data-i18n="welcome_spec_label">Choose Specialization:</label>
+                    <select id="spec-selector"></select>
+                </div>
+
+                <div class="modal-actions" style="justify-content:center;">
+                    <button class="secondary-btn" id="skip-onboarding-btn" data-i18n="welcome_create_custom">Create Custom</button>
+                    <button class="primary-btn" id="start-onboarding-btn" disabled data-i18n="welcome_start_btn">Let's get started 🚀</button>
+                </div>
+                <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px; text-align:center;">
+                    <p class="mute" style="font-size:13px;">
+                        <span data-i18n="welcome_signin_link_text">☁️ Already have an account?</span> <a href="#" id="welcome-login-link" style="color:var(--primary); font-weight:600; text-decoration:none;" data-i18n="welcome_signin_link_btn">Sign in</a>
+                    </p>
+                </div>
             </div>
-        </div>
+        </template>
 
         <!-- Add Semester Modal -->
         <div id="add-semester-modal" class="modal hidden">

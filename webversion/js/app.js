@@ -28,6 +28,8 @@ class StudentProApp {
     init() {
         console.log("[App] Initializing application...");
         this.initCapacitor();
+        this.injectTemplates();
+        
         this.loadLanguagePreference();
         console.log(`[App] Current Language: ${this.selectedLang}`);
         this.applyLoginScreenLanguage();
@@ -62,6 +64,42 @@ class StudentProApp {
         if (typeof this.initPomodoro === 'function') this.initPomodoro();
         this.refreshDate();
         this.initCharts();
+        
+        // Final auth check
+        if (auth && auth.user) {
+            this.onLogin(auth.user);
+        }
+    }
+
+    injectTemplates() {
+        console.log("[App] Injecting local templates...");
+        const welcomeTemplate = document.getElementById('welcome-template');
+        const modalContainer = document.getElementById('modal-container');
+        if (welcomeTemplate && modalContainer) {
+            const clone = welcomeTemplate.content.cloneNode(true);
+            modalContainer.appendChild(clone);
+            
+            // Handle Welcome Language Selector
+            const welcomeLangSelect = document.getElementById('welcome-lang-select');
+            if (welcomeLangSelect) {
+                welcomeLangSelect.value = this.selectedLang;
+                welcomeLangSelect.addEventListener('change', (e) => {
+                    this.selectedLang = e.target.value;
+                    localStorage.setItem('studentpro_lang', this.selectedLang);
+                    this.updateLanguage(); // Instant translate modal content
+                });
+            }
+
+            // Link for existing account from welcome modal
+            const loginLink = document.getElementById('welcome-login-link');
+            if (loginLink) {
+                loginLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.closeModal('welcome-modal');
+                    auth.showLogin('login');
+                });
+            }
+        }
     }
 
     async initCapacitor() {
@@ -289,7 +327,19 @@ class StudentProApp {
         const lbTitle = document.querySelector('#leaderboard .h1');
         if (lbTitle) lbTitle.textContent = T.leaderboard || 'Leaderboard';
 
-        // ── 10. RTL / LTR ────────────────────────────────────
+        // ── 10. DATA-I18N ATTRIBUTES ────────────────────────────
+        // Handle data-i18n for text content
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (T[key]) el.textContent = T[key];
+        });
+        // Handle data-i18n-placeholder for input/textarea placeholders
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (T[key]) el.placeholder = T[key];
+        });
+
+        // ── 11. RTL / LTR ────────────────────────────────────
         const isRTL = this.selectedLang === 'Arabic';
         document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
         document.body.classList.toggle('rtl', isRTL);
@@ -337,27 +387,26 @@ class StudentProApp {
         this.applyTheme((db.data && db.data.settings && db.data.settings.theme) || 'Light');
         this.refreshAll();
 
-        if (!navigator.onLine || user.id === 'offline-user') {
-            this.loadSettings();
-            this.refreshAll();
-            return;
+        if (navigator.onLine && user.id !== 'offline-user') {
+            try {
+                await db.syncPendingChanges();
+                await db.syncFromCloud();
+                this.refreshLastSync();
+            } catch (e) { console.error("[App] Sync background process failed:", e); }
         }
-
-        try {
-            await db.syncPendingChanges();
-            await db.syncFromCloud();
-            this.refreshLastSync();
-        } catch (e) { console.error("[App] Sync background process failed:", e); }
 
         this.loadSettings();
         this.refreshAll();
 
         setTimeout(() => {
-            const needsOnboarding = (!db.data.user_profile || !db.data.user_profile.display_name || db.data.user_profile.display_name === 'Student') && db.data.semesters.length === 0;
+            const hasDisplayName = db.data.user_profile && db.data.user_profile.display_name && db.data.user_profile.display_name !== 'Student';
+            const hasSemesters = db.data.semesters && db.data.semesters.length > 0;
+            const needsOnboarding = !hasDisplayName && !hasSemesters;
+            
             if (needsOnboarding) {
                 this.showModal('welcome-modal');
             }
-        }, 1500);
+        }, 800);
     }
 
     setupEventListeners() {
@@ -424,12 +473,49 @@ class StudentProApp {
             await auth.workOffline();
         });
 
+        get('close-login-btn')?.addEventListener('click', () => {
+            get('login-screen').classList.add('hidden');
+        });
+
+        get('settings-signup-btn')?.addEventListener('click', () => {
+            auth.showLogin('signup');
+        });
+
+        get('settings-signin-btn')?.addEventListener('click', () => {
+            auth.showLogin('login');
+        });
+
+        get('settings-sync-btn')?.addEventListener('click', async () => {
+            try {
+                showToast((TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"]).syncing || "Syncing...", 'info', 2000);
+                await db.syncPendingChanges();
+                await db.syncFromCloud();
+                this.refreshAll();
+                showToast((TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"]).toast_sync_ok || "Synced! ☁️", 'success');
+            } catch (e) {
+                showToast("Sync failed", 'error');
+            }
+        });
+
+        get('settings-signout-btn')?.addEventListener('click', () => {
+            if (confirm("Sign out and return to offline mode?")) {
+                auth.signOut();
+            }
+        });
+
         get('logout-btn')?.addEventListener('click', () => {
-            auth.signOut();
+            if (confirm("Sign out?")) {
+                auth.signOut();
+            }
         });
 
         get('mobile-logout-btn')?.addEventListener('click', () => {
-            auth.signOut();
+            if (auth.user && auth.user.id !== 'offline-user') {
+                if (confirm("Sign out?")) auth.signOut();
+            } else {
+                this.switchTab('settings');
+                auth.showLogin('login');
+            }
         });
 
         // Navigation
@@ -825,6 +911,12 @@ class StudentProApp {
             const year = yearSelector?.value;
             const spec = specSelector?.value;
 
+            // Save language and basic settings
+            if (db && db.data) {
+                db.data.settings.lang = this.selectedLang;
+                db.save();
+            }
+
             await db.updateProfile({ display_name: name });
 
             if (onboardingBtn) {
@@ -881,11 +973,30 @@ class StudentProApp {
         if (nameDisp) nameDisp.textContent = db.data?.user_profile?.display_name || "Student";
 
         const emailDisp = get('acc-email');
-        if (emailDisp && auth.user) emailDisp.textContent = auth.user.email;
+        if (emailDisp && auth.user) {
+            emailDisp.textContent = auth.user.id === 'offline-user' ? 'Working Offline' : auth.user.email;
+        }
+
+        // Account Card States
+        const isOffline = !auth.user || auth.user.id === 'offline-user';
+        const offlineCard = get('settings-offline-state');
+        const onlineCard = get('settings-logged-in-state');
+        if (offlineCard) offlineCard.classList.toggle('hidden', !isOffline);
+        if (onlineCard) onlineCard.classList.toggle('hidden', isOffline);
+
+        // Mobile Header Icon
+        const mobileLogoutBtn = get('mobile-logout-btn');
+        if (mobileLogoutBtn) {
+            const icon = mobileLogoutBtn.querySelector('i');
+            if (icon) {
+                icon.className = isOffline ? 'fas fa-cloud-upload-alt' : 'fas fa-sign-out-alt';
+            }
+            mobileLogoutBtn.title = isOffline ? 'Connect Cloud' : 'Logout';
+        }
 
         const sidebarEmail = get('sidebar-user-email');
         if (sidebarEmail) {
-            sidebarEmail.textContent = auth.user ? `👤 ${auth.user.email}` : "👤 Guest Mode";
+            sidebarEmail.textContent = (auth.user && auth.user.id !== 'offline-user') ? `👤 ${auth.user.email}` : "👤 Guest Mode";
         }
 
         const accStats = get('acc-stats');
