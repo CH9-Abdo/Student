@@ -75,6 +75,55 @@
 .pstat-val { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 800; color: var(--text); }
 .pstat-lbl { font-size: 11px; color: var(--text-mute); font-weight: 500; }
 
+.planner-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.planner-filter-label {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+}
+
+.planner-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.planner-filter-btn {
+    min-height: 36px;
+    border: 1.5px solid var(--border);
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--text-mute);
+    padding: 8px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.planner-filter-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.planner-filter-btn.active {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(91,95,199,0.2);
+}
+
 /* ── ADD SUBJECT BAR ── */
 .add-subject-bar { margin-bottom: 22px; }
 .add-subject-toggle {
@@ -460,6 +509,7 @@
     .planner-topbar-actions { align-self: stretch; }
     .planner-add-sem-btn { flex: 1; justify-content: center; margin-top: 0; }
     .planner-del-sem-btn { flex: 1; justify-content: center; }
+    .planner-filter-bar { align-items: stretch; }
     .subject-cards-grid { grid-template-columns: 1fr; }
     .planner-stats-strip { gap: 8px; }
     .pstat { min-width: 80px; padding: 12px; }
@@ -473,6 +523,8 @@
     .planner-stats-strip { display: grid; grid-template-columns: 1fr 1fr; }
     .add-subject-form { flex-direction: column; }
     .add-subject-form input, .add-subject-form select { min-width: 0; }
+    .planner-filter-row { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+    .planner-filter-btn { width: 100%; justify-content: center; }
     .subj-next-row,
     .subj-inline-footer { flex-direction: column; align-items: stretch; }
     .planner-check-btn { flex: 1; justify-content: center; }

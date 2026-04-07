@@ -241,6 +241,13 @@
     letter-spacing: 0.5px;
 }
 
+.pomodoro-card-caption {
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-mute);
+}
+
 /* Subject Selector inside Pomodoro */
 .modern-select {
     appearance: none;

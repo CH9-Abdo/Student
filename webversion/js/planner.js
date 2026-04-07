@@ -29,6 +29,41 @@ StudentProApp.prototype.ensurePlannerUiState = function() {
     if (!(this.plannerExpandedSubjects instanceof Set)) {
         this.plannerExpandedSubjects = new Set();
     }
+    if (!this.plannerActiveFilter) {
+        this.plannerActiveFilter = 'all';
+    }
+};
+
+StudentProApp.prototype.setPlannerFilter = function(filter) {
+    this.ensurePlannerUiState();
+    const allowed = new Set(['all', 'course_left', 'exercises_left', 'done']);
+    this.plannerActiveFilter = allowed.has(filter) ? filter : 'all';
+    this.refreshSubjects();
+};
+
+StudentProApp.prototype.updatePlannerFilterUi = function() {
+    this.ensurePlannerUiState();
+    document.querySelectorAll('.planner-filter-btn[data-filter]').forEach(btn => {
+        const isActive = btn.dataset.filter === this.plannerActiveFilter;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+};
+
+StudentProApp.prototype.isPlannerChapterVisibleForFilter = function(chapter, subject) {
+    this.ensurePlannerUiState();
+    const hasExercises = subject.has_exercises !== false;
+    switch (this.plannerActiveFilter) {
+        case 'course_left':
+            return !chapter.video_completed;
+        case 'exercises_left':
+            return hasExercises && !chapter.exercises_completed;
+        case 'done':
+            return chapter.video_completed && (!hasExercises || chapter.exercises_completed);
+        case 'all':
+        default:
+            return true;
+    }
 };
 
 StudentProApp.prototype.refreshSubjects = function() {
@@ -39,6 +74,7 @@ StudentProApp.prototype.refreshSubjects = function() {
     if (!grid) return;
 
     this.ensurePlannerUiState();
+    this.updatePlannerFilterUi();
     grid.innerHTML = '';
 
     if (!this.activeSemesterId) {
@@ -78,6 +114,7 @@ StudentProApp.prototype.refreshSubjects = function() {
     subjects.forEach((s, idx) => {
         const accentColor = ACCENT_COLORS[idx % ACCENT_COLORS.length];
         const chapters    = db.data.chapters.filter(c => c.subject_id === s.id);
+        const filteredChapters = chapters.filter(c => this.isPlannerChapterVisibleForFilter(c, s));
         const videosDone  = chapters.filter(c => c.video_completed).length;
         const exDone      = chapters.filter(c => c.exercises_completed).length;
         const hasEx       = s.has_exercises !== false;
@@ -131,7 +168,7 @@ StudentProApp.prototype.refreshSubjects = function() {
             }
         }
 
-        const chapterRows = chapters.map(c => {
+        const chapterRows = filteredChapters.map(c => {
             const resourceCount = Array.isArray(c.resources) ? c.resources.length : 0;
             const resourceText = resourceCount > 0 ? `📎 ${resourceCount}` : '';
             return `
@@ -165,6 +202,12 @@ StudentProApp.prototype.refreshSubjects = function() {
                 </div>
             `;
         }).join('');
+
+        const inlineEmptyMessage = chapters.length === 0
+            ? (T.no_chapters_yet || 'No chapters yet')
+            : (this.plannerActiveFilter === 'all'
+                ? (T.no_chapters_yet || 'No chapters yet')
+                : (T.planner_no_filter_matches || 'No chapters match this filter.'));
 
         const card = document.createElement('div');
         card.className = 'subj-card';
@@ -228,9 +271,9 @@ StudentProApp.prototype.refreshSubjects = function() {
                 </div>
 
                 <div class="subj-inline-list">
-                    ${chapters.length > 0
+                    ${filteredChapters.length > 0
                         ? chapterRows
-                        : `<div class="subj-inline-empty">${T.no_chapters_yet || 'No chapters yet'}</div>`
+                        : `<div class="subj-inline-empty">${inlineEmptyMessage}</div>`
                     }
                 </div>
 

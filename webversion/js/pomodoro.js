@@ -550,19 +550,62 @@ StudentProApp.prototype.applyRecommendedPomodoroSubject = function() {
     return this.setPomodoroSubject(recommendedSubjectId);
 };
 
+StudentProApp.prototype._getPomodoroChapterVideoUrl = function(chapter) {
+    if (!chapter) return null;
+    if (chapter.youtube_url) return chapter.youtube_url;
+
+    const videoResource = Array.isArray(chapter.resources)
+        ? chapter.resources.find(r => r.type === 'video' && r.url)
+        : null;
+    return videoResource?.url || null;
+};
+
+StudentProApp.prototype._getPomodoroFocusChapter = function(subjectId = this.activeSubjectId) {
+    if (!subjectId) return null;
+
+    const subject = db.data.subjects.find(s => s.id === subjectId);
+    if (!subject) return null;
+
+    const hasExercises = subject.has_exercises !== false;
+    const chapters = db.data.chapters.filter(c => c.subject_id === subjectId);
+
+    for (const chapter of chapters) {
+        if (!chapter.video_completed) return chapter;
+    }
+
+    if (hasExercises) {
+        for (const chapter of chapters) {
+            if (!chapter.exercises_completed) return chapter;
+        }
+    }
+
+    return chapters.find(c => this._getPomodoroChapterVideoUrl(c) || (Array.isArray(c.resources) && c.resources.length > 0))
+        || chapters[0]
+        || null;
+};
+
 StudentProApp.prototype.updatePomodoroResources = function() {
     const resCard = get('pomodoro-resource-card');
     const tabs = get('resource-type-tabs');
     const area = get('resource-display-area');
+    const focusLabel = get('pomodoro-resource-focus-label');
+    const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
 
     if (!resCard || !tabs || !area) return;
 
     const chapters = db.data.chapters.filter(c => c.subject_id === this.activeSubjectId);
+    const focusChapter = this._getPomodoroFocusChapter(this.activeSubjectId);
+    const focusChapterId = focusChapter?.id || null;
     let allResources = [];
     chapters.forEach(c => {
         if (c.resources) {
             c.resources.forEach(r => {
-                allResources.push({ ...r, chapterName: c.name });
+                allResources.push({
+                    ...r,
+                    chapterId: c.id,
+                    chapterName: c.name,
+                    isFocusChapter: c.id === focusChapterId
+                });
             });
         }
     });
@@ -572,12 +615,17 @@ StudentProApp.prototype.updatePomodoroResources = function() {
 
     if (nonVideoResources.length > 0) {
         resCard.style.display = 'block';
+        if (focusLabel) {
+            focusLabel.textContent = focusChapter
+                ? `${T.highlighted_chapter || 'Highlighted chapter'}: ${focusChapter.name}`
+                : '';
+        }
         tabs.innerHTML = '';
         
         // Add "All" button
         const allBtn = document.createElement('button');
         allBtn.className = 'small-btn primary-btn';
-        allBtn.innerHTML = `📚 ALL`;
+        allBtn.innerHTML = `📚 ${T.all_filter || 'All'}`;
         allBtn.onclick = () => {
             tabs.querySelectorAll('button').forEach(b => b.className = 'small-btn secondary-btn');
             allBtn.className = 'small-btn primary-btn';
@@ -610,14 +658,17 @@ StudentProApp.prototype.updatePomodoroResources = function() {
         this.renderResourceListByType('all', nonVideoResources);
     } else {
         resCard.style.display = 'none';
+        if (focusLabel) focusLabel.textContent = '';
     }
 };
 
 StudentProApp.prototype.renderResourceListByType = function(type, allRes) {
     const area = get('resource-display-area');
+    const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
     if (!area) return;
 
-    const filtered = type === 'all' ? allRes : allRes.filter(r => r.type === type);
+    const filtered = (type === 'all' ? allRes : allRes.filter(r => r.type === type))
+        .sort((a, b) => Number(b.isFocusChapter) - Number(a.isFocusChapter));
     area.innerHTML = '';
 
     filtered.forEach(res => {
@@ -646,7 +697,7 @@ StudentProApp.prototype.renderResourceListByType = function(type, allRes) {
         item.innerHTML = `
             <div style="display:flex; flex-direction:column;">
                 <span style="font-weight:600; font-size:14px;">${icon} ${res.label}</span>
-                <span class="mute" style="font-size:11px;">Chapter: ${res.chapterName}</span>
+                <span class="mute" style="font-size:11px;">${T.chapter_label || 'Chapter'}: ${res.chapterName}</span>
             </div>
             <i class="fas fa-external-link-alt" style="font-size:12px; opacity:0.5;"></i>
         `;
@@ -896,14 +947,19 @@ StudentProApp.prototype.updateYouTubeEmbed = function() {
     const videoCard = get('youtube-video-card');
     const iframe = get('youtube-iframe');
     const openBtn = get('open-youtube-btn');
+    const focusLabel = get('pomodoro-video-focus-label');
+    const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
 
     if (!videoCard || !iframe) return;
 
-    const chapters = db.data.chapters.filter(c => c.subject_id === this.activeSubjectId && c.youtube_url);
+    const focusChapter = this._getPomodoroFocusChapter(this.activeSubjectId);
+    const ytUrl = this._getPomodoroChapterVideoUrl(focusChapter);
 
-    if (chapters.length > 0) {
-        const ytUrl = chapters[0].youtube_url;
+    if (ytUrl) {
         videoCard.style.display = 'block';
+        if (focusLabel && focusChapter) {
+            focusLabel.textContent = `${T.highlighted_chapter || 'Highlighted chapter'}: ${focusChapter.name}`;
+        }
 
         let embedUrl = ytUrl;
         try {
@@ -923,6 +979,7 @@ StudentProApp.prototype.updateYouTubeEmbed = function() {
     } else {
         videoCard.style.display = 'none';
         iframe.src = '';
+        if (focusLabel) focusLabel.textContent = '';
     }
 };
 

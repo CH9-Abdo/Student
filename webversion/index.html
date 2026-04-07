@@ -318,6 +318,16 @@
                 <!-- Planner stats strip -->
                 <div id="planner-stats-strip" class="planner-stats-strip"></div>
 
+                <div id="planner-filter-bar" class="planner-filter-bar">
+                    <span id="planner-filter-label" class="planner-filter-label">Filter</span>
+                    <div class="planner-filter-row">
+                        <button type="button" id="planner-filter-all" class="planner-filter-btn active" data-filter="all">All</button>
+                        <button type="button" id="planner-filter-course" class="planner-filter-btn" data-filter="course_left">Course left</button>
+                        <button type="button" id="planner-filter-exercises" class="planner-filter-btn" data-filter="exercises_left">Exercises left</button>
+                        <button type="button" id="planner-filter-done" class="planner-filter-btn" data-filter="done">Done</button>
+                    </div>
+                </div>
+
                 <!-- Add Subject Inline Form (collapsed by default) -->
                 <div class="add-subject-bar">
                     <button class="add-subject-toggle" id="add-subject-toggle-btn">
@@ -508,7 +518,10 @@
                     <!-- YouTube Embed Card -->
                     <div id="youtube-video-card" class="card" style="display:none;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                            <h4 class="h2">📹 Lecture Video</h4>
+                            <div>
+                                <h4 class="h2">📹 Lecture Video</h4>
+                                <div id="pomodoro-video-focus-label" class="pomodoro-card-caption"></div>
+                            </div>
                             <button id="open-youtube-btn" class="secondary-btn small-btn">
                                 <i class="fab fa-youtube" style="color:red;"></i> Open
                             </button>
@@ -521,7 +534,10 @@
                     <!-- Resource Quick Access Card -->
                     <div id="pomodoro-resource-card" class="card" style="display:none;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                            <h4 class="h2">📚 Study Resources</h4>
+                            <div>
+                                <h4 class="h2">📚 Study Resources</h4>
+                                <div id="pomodoro-resource-focus-label" class="pomodoro-card-caption"></div>
+                            </div>
                             <div id="resource-type-tabs" style="display:flex; gap:5px;">
                                 <!-- Tabs for PDF, EX, EXAM will be injected here -->
                             </div>

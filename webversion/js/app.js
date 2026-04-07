@@ -239,6 +239,11 @@ class StudentProApp {
 
         const plannerEmptySpan = document.querySelector('#planner-empty span');
         if (plannerEmptySpan) plannerEmptySpan.textContent = T.add_subject_hint || (T.add_subject || 'Add Subject');
+        t('planner-filter-label', 'filter_by');
+        t('planner-filter-all', 'all_filter');
+        t('planner-filter-course', 'course_left');
+        t('planner-filter-exercises', 'exercises_left');
+        t('planner-filter-done', 'done_filter');
 
         const typeInput = get('subject-type-input');
         if (typeInput && typeInput.options.length >= 2) {
@@ -567,6 +572,14 @@ class StudentProApp {
         document.querySelectorAll('.mobile-nav-btn[data-tab], .mobile-menu-item[data-tab]').forEach(btn => {
             btn.addEventListener('click', () => {
                 this.switchTab(btn.dataset.tab);
+            });
+        });
+
+        document.querySelectorAll('.planner-filter-btn[data-filter]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (typeof this.setPlannerFilter === 'function') {
+                    this.setPlannerFilter(btn.dataset.filter);
+                }
             });
         });
 
