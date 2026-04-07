@@ -4,7 +4,7 @@
 // --- SEMESTERS ---
 Database.prototype.addSemester = async function(name) {
     console.log(`[DB] addSemester: name="${name}"`);
-    const localId = Date.now();
+    const localId = this.generateLocalId('semester');
     const newSem = { 
         id: localId, 
         name, 
@@ -51,7 +51,7 @@ Database.prototype.deleteSemester = async function(semesterId) {
 Database.prototype.addSubject = async function(semesterId, name, examDate, hasExercises = true) {
     console.log(`[DB] addSubject: semesterId=${semesterId}, name="${name}"`);
     const examDateValue = examDate && examDate.trim() ? examDate : null;
-    const localId = Date.now();
+    const localId = this.generateLocalId('subject');
     const newSub = {
         id: localId,
         name,
@@ -114,7 +114,7 @@ Database.prototype.updateSubjectName = async function(subjectId, newName) {
 // --- CHAPTERS ---
 Database.prototype.addChapter = async function(subjectId, name, youtubeUrl = null, resources = []) {
     console.log(`[DB] addChapter: subjectId=${subjectId}, name="${name}", youtubeUrl="${youtubeUrl}"`);
-    const localId = Date.now();
+    const localId = this.generateLocalId('chapter');
     const newChap = {
         id: localId,
         subject_id: subjectId,
@@ -218,7 +218,7 @@ Database.prototype.updateProfile = async function(updates) {
 
 Database.prototype.logSession = async function(subjectId, duration) {
     console.log(`[DB] logSession: subjectId=${subjectId}, duration=${duration}`);
-    const localId = Date.now();
+    const localId = this.generateLocalId('study_session');
     const newSession = {
         id: localId,
         subject_id: subjectId,

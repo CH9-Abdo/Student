@@ -417,13 +417,51 @@ StudentProApp.prototype.refreshPomodoroSubjects = function() {
     }
 
     selector.onchange = (e) => {
-        if (e.target.value) {
-            this.activeSubjectId = parseInt(e.target.value);
-            this.updateMiniChallenge();
-            this.updateYouTubeEmbed();
-            this.updatePomodoroResources();
-        }
+        this.setPomodoroSubject(e.target.value || null);
     };
+};
+
+StudentProApp.prototype.setPomodoroSubject = function(subjectId) {
+    const selector = get('active-subject-selector');
+
+    if (!subjectId) {
+        this.activeSubjectId = null;
+        if (selector) selector.value = '';
+        this.updateMiniChallenge();
+        this.updateYouTubeEmbed();
+        this.updatePomodoroResources();
+        return false;
+    }
+
+    const parsedId = Number(subjectId);
+    if (!Number.isFinite(parsedId) || !db.data.subjects.some(s => s.id === parsedId)) {
+        return false;
+    }
+
+    this.activeSubjectId = parsedId;
+    if (selector) selector.value = String(parsedId);
+    this.updateMiniChallenge();
+    this.updateYouTubeEmbed();
+    this.updatePomodoroResources();
+    return true;
+};
+
+StudentProApp.prototype.applyRecommendedPomodoroSubject = function() {
+    const runningState = this._loadPomodoroState?.();
+    const lockedSubjectId = this.timerRunning
+        ? (this._pomodoroSubjectId ?? this.activeSubjectId ?? null)
+        : (runningState?.running ? (runningState.subjectId ?? this.activeSubjectId ?? null) : null);
+
+    if (lockedSubjectId) {
+        return this.setPomodoroSubject(lockedSubjectId);
+    }
+
+    const rec = typeof db.getAdvancedRecommendation === 'function'
+        ? db.getAdvancedRecommendation()
+        : null;
+    const recommendedSubjectId = rec?.subjectId ?? db.data.subjects?.[0]?.id ?? null;
+
+    return this.setPomodoroSubject(recommendedSubjectId);
 };
 
 StudentProApp.prototype.updatePomodoroResources = function() {

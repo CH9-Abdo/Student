@@ -25,6 +25,12 @@ StudentProApp.prototype.refreshPlanner = function() {
     this.refreshSubjects();
 };
 
+StudentProApp.prototype.ensurePlannerUiState = function() {
+    if (!(this.plannerExpandedSubjects instanceof Set)) {
+        this.plannerExpandedSubjects = new Set();
+    }
+};
+
 StudentProApp.prototype.refreshSubjects = function() {
     const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
     const grid    = get('subject-cards-grid');
@@ -32,6 +38,7 @@ StudentProApp.prototype.refreshSubjects = function() {
     const strip   = get('planner-stats-strip');
     if (!grid) return;
 
+    this.ensurePlannerUiState();
     grid.innerHTML = '';
 
     if (!this.activeSemesterId) {
@@ -77,6 +84,7 @@ StudentProApp.prototype.refreshSubjects = function() {
         const total       = hasEx ? chapters.length * 2 : chapters.length;
         const done        = hasEx ? videosDone + exDone : videosDone;
         const perc        = total > 0 ? Math.round((done / total) * 100) : 0;
+        const isExpanded  = this.plannerExpandedSubjects.has(s.id);
 
         // SVG ring: circumference ≈ 2π×18 ≈ 113
         const CIRC = 113;
@@ -101,9 +109,62 @@ StudentProApp.prototype.refreshSubjects = function() {
             ? `<span class="subj-stat-chip ${exAllDone ? 'done' : ''}">✍️ ${exDone}/${chapters.length}</span>`
             : '';
 
-        // Action buttons
-        const vBtnDone = chapters.length > 0 && chapters.every(c => c.video_completed);
-        const eBtnDone = hasEx && chapters.length > 0 && chapters.every(c => c.exercises_completed);
+        let nextTaskHtml = `<div class="subj-next-row"><span class="subj-next-label">${T.up_next || 'Up Next'}</span><span class="subj-next-pill done">${T.all_done || 'All done!'}</span></div>`;
+        for (const chapter of chapters) {
+            if (!chapter.video_completed) {
+                nextTaskHtml = `
+                    <div class="subj-next-row">
+                        <span class="subj-next-label">${T.up_next || 'Up Next'}</span>
+                        <span class="subj-next-pill">📖 ${(T.course || 'Course')}: ${chapter.name}</span>
+                    </div>
+                `;
+                break;
+            }
+            if (hasEx && !chapter.exercises_completed) {
+                nextTaskHtml = `
+                    <div class="subj-next-row">
+                        <span class="subj-next-label">${T.up_next || 'Up Next'}</span>
+                        <span class="subj-next-pill">✍️ ${(T.exercises || 'Exercises')}: ${chapter.name}</span>
+                    </div>
+                `;
+                break;
+            }
+        }
+
+        const chapterRows = chapters.map(c => {
+            const resourceCount = Array.isArray(c.resources) ? c.resources.length : 0;
+            const resourceText = resourceCount > 0 ? `📎 ${resourceCount}` : '';
+            return `
+                <div class="planner-chapter-row">
+                    <div class="planner-chapter-main">
+                        <div class="planner-chapter-name">${c.name}</div>
+                        <div class="planner-chapter-meta">
+                            ${resourceText ? `<span class="planner-chapter-meta-pill">${resourceText}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="planner-chapter-actions">
+                        <button class="planner-check-btn ${c.video_completed ? 'done' : ''}"
+                            onclick="event.stopPropagation();app.togglePlannerChapterStatus(${c.id}, 'video')"
+                            title="${T.course || 'Course'}">
+                            <i class="fas ${c.video_completed ? 'fa-check-circle' : 'fa-circle'}"></i>
+                            <span>${T.course || 'Course'}</span>
+                        </button>
+                        ${hasEx ? `
+                        <button class="planner-check-btn ${c.exercises_completed ? 'done' : ''}"
+                            onclick="event.stopPropagation();app.togglePlannerChapterStatus(${c.id}, 'exercises')"
+                            title="${T.exercises || 'Exercises'}">
+                            <i class="fas ${c.exercises_completed ? 'fa-check-circle' : 'fa-circle'}"></i>
+                            <span>${T.exercises || 'Exercises'}</span>
+                        </button>` : ''}
+                        <button class="planner-resource-btn"
+                            onclick="event.stopPropagation();app.editChapterResources(${c.id})"
+                            title="${T.chapter_manager || 'Chapter Manager'}">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
 
         const card = document.createElement('div');
         card.className = 'subj-card';
@@ -130,6 +191,8 @@ StudentProApp.prototype.refreshSubjects = function() {
                 </div>
             </div>
 
+            ${nextTaskHtml}
+
             <div class="subj-chapter-stats">
                 ${chapters.length === 0
                     ? `<span class="subj-stat-chip">${T.no_chapters_yet || 'No chapters yet'}</span>`
@@ -138,20 +201,51 @@ StudentProApp.prototype.refreshSubjects = function() {
             </div>
 
             <div class="subj-card-actions">
-                ${chapters.length > 0 ? `
-                <button class="subj-action-btn ${vBtnDone ? 'all-done' : ''}"
-                    onclick="event.stopPropagation();app.toggleSubjectProgress(${s.id},'video')">
-                    ${vBtnDone ? (T.course_done || '✓ Course Done') : '📖 ' + (T.toggle_course || 'Toggle Course')}
+                <button class="subj-expand-btn"
+                    onclick="event.stopPropagation();app.togglePlannerSubjectExpand(${s.id})"
+                    aria-expanded="${isExpanded ? 'true' : 'false'}"
+                    title="${T.chapters || 'Chapters'}">
+                    <i class="fas ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}"></i>
+                    <span>${T.chapters || 'Chapters'}</span>
                 </button>
-                ${hasEx ? `
-                <button class="subj-action-btn ${eBtnDone ? 'all-done' : ''}"
-                    onclick="event.stopPropagation();app.toggleSubjectProgress(${s.id},'exercises')">
-                    ${eBtnDone ? (T.exercises_done || '✓ Exercises Done') : '✍️ ' + (T.toggle_exercises || 'Toggle Exercises')}
-                </button>` : ''}
-                ` : ''}
-                <button class="subj-open-btn" onclick="event.stopPropagation();app.openSubjectWindow(${s.id})" title="${T.add_chapter || 'Manage chapters'}">
+                <button class="subj-manage-btn" onclick="event.stopPropagation();app.openSubjectWindow(${s.id})" title="${T.chapter_manager || 'Chapter Manager'}">
                     <i class="fas fa-list-ul"></i>
+                    <span>${T.chapter_manager || 'Chapter Manager'}</span>
                 </button>
+            </div>
+
+            <div class="subj-inline-panel ${isExpanded ? 'expanded' : ''}">
+                <div class="subj-quick-add">
+                    <input
+                        id="planner-chapter-input-${s.id}"
+                        type="text"
+                        placeholder="${T.add_chapter_placeholder || 'Add Chapter…'}"
+                        onkeydown="app.handlePlannerQuickAddKey(event, ${s.id})">
+                    <button class="primary-btn small-btn"
+                        onclick="event.stopPropagation();app.addPlannerChapter(${s.id})">
+                        <i class="fas fa-plus"></i> ${T.add || 'Add'}
+                    </button>
+                </div>
+
+                <div class="subj-inline-list">
+                    ${chapters.length > 0
+                        ? chapterRows
+                        : `<div class="subj-inline-empty">${T.no_chapters_yet || 'No chapters yet'}</div>`
+                    }
+                </div>
+
+                ${chapters.length > 0 ? `
+                <div class="subj-inline-footer">
+                    <button class="subj-inline-footer-btn"
+                        onclick="event.stopPropagation();app.toggleSubjectProgress(${s.id},'video')">
+                        📖 ${T.toggle_course || 'Toggle Course'}
+                    </button>
+                    ${hasEx ? `
+                    <button class="subj-inline-footer-btn"
+                        onclick="event.stopPropagation();app.toggleSubjectProgress(${s.id},'exercises')">
+                        ✍️ ${T.toggle_exercises || 'Toggle Exercises'}
+                    </button>` : ''}
+                </div>` : ''}
             </div>
         `;
 
@@ -161,11 +255,41 @@ StudentProApp.prototype.refreshSubjects = function() {
     this.refreshPomodoroSubjects();
 };
 
+StudentProApp.prototype.togglePlannerSubjectExpand = function(subId) {
+    this.ensurePlannerUiState();
+    if (this.plannerExpandedSubjects.has(subId)) this.plannerExpandedSubjects.delete(subId);
+    else this.plannerExpandedSubjects.add(subId);
+    this.refreshSubjects();
+};
+
+StudentProApp.prototype.handlePlannerQuickAddKey = function(event, subId) {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    this.addPlannerChapter(subId);
+};
+
+StudentProApp.prototype.addPlannerChapter = async function(subId) {
+    const input = get(`planner-chapter-input-${subId}`);
+    const name = input?.value?.trim();
+    if (!name) {
+        input?.focus();
+        return;
+    }
+
+    await db.addChapter(subId, name);
+    if (input) input.value = '';
+    this.ensurePlannerUiState();
+    this.plannerExpandedSubjects.add(subId);
+    this.refreshPlanner();
+};
+
 StudentProApp.prototype.deleteSubjectCard = async function(subId) {
     const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
     if (!confirm("Delete this subject and all its chapters?")) return;
     await db.deleteSubject(subId);
     if (this.activeSubjectId === subId) this.activeSubjectId = null;
+    this.ensurePlannerUiState();
+    this.plannerExpandedSubjects.delete(subId);
     this.refreshSubjects();
     showToast(T.toast_subject_deleted || "Subject deleted.", 'info');
 };
@@ -200,8 +324,9 @@ StudentProApp.prototype.refreshSubjectWindowData = function() {
     const sub = db.data.subjects.find(s => s.id === this.activeSubjectId);
     if (!sub) return;
     const hasEx = sub.has_exercises !== false;
+    const chapters = db.data.chapters.filter(c => c.subject_id === this.activeSubjectId);
 
-    db.data.chapters.filter(c => c.subject_id === this.activeSubjectId).forEach(c => {
+    chapters.forEach(c => {
         const item = document.createElement('div');
         item.className = 'list-item';
         
@@ -325,9 +450,16 @@ StudentProApp.prototype.addResource = function() {
 StudentProApp.prototype.toggleCap = async function(id, type) {
     const c = db.data.chapters.find(x => x.id === id);
     if (!c) return;
+    console.log(
+        `[Planner] Chapter toggle: id=${id}, subject_id=${c.subject_id}, chapter="${c.name}", field=${type}, next=${!(type === 'video' ? c.video_completed : c.exercises_completed)}`
+    );
     await db.toggleChapterStatus(id, type, !(type === 'video' ? c.video_completed : c.exercises_completed));
     this.refreshSubjectWindowData();
     this.refreshPlanner();
+};
+
+StudentProApp.prototype.togglePlannerChapterStatus = async function(id, type) {
+    await this.toggleCap(id, type);
 };
 
 StudentProApp.prototype.applyTemplateToSemester = async function(semId, template) {

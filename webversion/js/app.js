@@ -163,6 +163,30 @@ class StudentProApp {
             const span = btn.querySelector('.nav-text');
             if (span && key && T[key]) span.textContent = T[key];
         });
+        const mobileDashboardLabel = get('mobile-nav-dashboard-label');
+        if (mobileDashboardLabel && T.dashboard) mobileDashboardLabel.textContent = T.dashboard;
+
+        const mobilePomodoroLabel = get('mobile-nav-pomodoro-label');
+        if (mobilePomodoroLabel && T.pomodoro) mobilePomodoroLabel.textContent = T.pomodoro;
+
+        const mobileMenuLabel = get('mobile-nav-menu-label');
+        if (mobileMenuLabel) mobileMenuLabel.textContent = T.menu || 'Menu';
+
+        const mobileMenuTitle = get('mobile-menu-title');
+        if (mobileMenuTitle) mobileMenuTitle.textContent = T.menu || 'Menu';
+
+        const mobileMenuEyebrow = get('mobile-menu-eyebrow');
+        if (mobileMenuEyebrow) mobileMenuEyebrow.textContent = T.quick_access || 'Quick access';
+
+        document.querySelectorAll('.mobile-menu-item[data-tab]').forEach(btn => {
+            const key = navMap[btn.dataset.tab];
+            const span = btn.querySelector('.mobile-menu-item-label');
+            if (span && key && T[key]) span.textContent = T[key];
+        });
+
+        const mobileLogoutLabel = get('mobile-menu-logout-label');
+        if (mobileLogoutLabel && T.logout) mobileLogoutLabel.textContent = T.logout;
+
         const logoutSpan = get('logout-btn')?.querySelector('.nav-text');
         if (logoutSpan && T.logout) logoutSpan.textContent = T.logout;
 
@@ -525,6 +549,38 @@ class StudentProApp {
             });
         });
 
+        document.querySelectorAll('.mobile-nav-btn[data-tab], .mobile-menu-item[data-tab]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.switchTab(btn.dataset.tab);
+            });
+        });
+
+        get('mobile-menu-trigger')?.addEventListener('click', () => {
+            if (get('mobile-menu-sheet')?.classList.contains('hidden')) {
+                this.openMobileMenu();
+            } else {
+                this.closeMobileMenu();
+            }
+        });
+
+        get('mobile-menu-close')?.addEventListener('click', () => this.closeMobileMenu());
+        get('mobile-menu-backdrop')?.addEventListener('click', () => this.closeMobileMenu());
+
+        get('mobile-menu-logout')?.addEventListener('click', () => {
+            this.closeMobileMenu();
+            if (confirm("Sign out?")) {
+                auth.signOut();
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) this.closeMobileMenu();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') this.closeMobileMenu();
+        });
+
         // Leaderboard scope switching (daily/weekly/monthly/all-time)
         document.querySelectorAll('.lb-seg[data-period]').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -535,6 +591,9 @@ class StudentProApp {
 
         get('start-challenge-btn')?.addEventListener('click', () => {
             this.switchTab('pomodoro');
+            if (typeof this.applyRecommendedPomodoroSubject === 'function') {
+                this.applyRecommendedPomodoroSubject();
+            }
         });
 
         // Planner
@@ -950,13 +1009,44 @@ class StudentProApp {
         console.log(`[App] Switching to tab: ${tabId}`);
         this.currentTab = tabId;
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         const target = get(tabId);
         if (target) target.classList.add('active');
-        document.querySelector(`.nav-btn[data-tab="${tabId}"]`)?.classList.add('active');
+        this.closeMobileMenu(false);
+        this.updateNavigationState(tabId);
 
         if (tabId === 'leaderboard') this.refreshLeaderboard();
         this.refreshAll();
+    }
+
+    updateNavigationState(tabId = this.currentTab) {
+        document.querySelectorAll('.nav-btn, .mobile-nav-btn, .mobile-menu-item').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        document.querySelectorAll(`.nav-btn[data-tab="${tabId}"], .mobile-nav-btn[data-tab="${tabId}"], .mobile-menu-item[data-tab="${tabId}"]`).forEach(btn => {
+            btn.classList.add('active');
+        });
+
+        const mobileMenuTrigger = get('mobile-menu-trigger');
+        if (mobileMenuTrigger && !['dashboard', 'pomodoro'].includes(tabId)) {
+            mobileMenuTrigger.classList.add('active');
+        }
+    }
+
+    openMobileMenu() {
+        if (window.innerWidth > 768) return;
+        get('mobile-menu-backdrop')?.classList.remove('hidden');
+        get('mobile-menu-sheet')?.classList.remove('hidden');
+        get('mobile-menu-trigger')?.setAttribute('aria-expanded', 'true');
+        this.updateNavigationState(this.currentTab);
+        get('mobile-menu-trigger')?.classList.add('active');
+    }
+
+    closeMobileMenu(restoreNavState = true) {
+        get('mobile-menu-backdrop')?.classList.add('hidden');
+        get('mobile-menu-sheet')?.classList.add('hidden');
+        get('mobile-menu-trigger')?.setAttribute('aria-expanded', 'false');
+        if (restoreNavState) this.updateNavigationState(this.currentTab);
     }
 
     refreshAll() {

@@ -8,6 +8,7 @@ class Database {
         this.data = this.load();
         this.lastSync = localStorage.getItem('last_sync_v7') || "Never";
         this.offlineQueue = this.loadOfflineQueue();
+        this.repairDuplicateIds();
     }
 
     getXpPerLevel() {
@@ -33,6 +34,107 @@ class Database {
     save() {
         // console.log('[DB] Saving local data...'); // Too noisy for every save
         localStorage.setItem(DB_KEY, JSON.stringify(this.data));
+    }
+
+    generateLocalId(entity = 'record') {
+        const nowBased = Date.now() * 1000;
+        const lastId = Number(localStorage.getItem('studentpro_last_local_id') || '0');
+        const nextId = Math.max(nowBased, lastId + 1);
+        localStorage.setItem('studentpro_last_local_id', String(nextId));
+        return nextId;
+    }
+
+    repairDuplicateIds() {
+        let repaired = 0;
+
+        const repairTable = (table, entity, matcher, describe) => {
+            const seen = new Map();
+            (this.data[table] || []).forEach(record => {
+                if (!record || record.id == null) return;
+
+                if (!seen.has(record.id)) {
+                    seen.set(record.id, record);
+                    return;
+                }
+
+                const oldId = record.id;
+                const newId = this.generateLocalId(entity);
+                record.id = newId;
+                repaired += 1;
+
+                console.warn(
+                    `[DB] Duplicate ${table.slice(0, -1)} id detected and repaired: old=${oldId}, new=${newId}, ${describe(record)}`
+                );
+
+                this.offlineQueue.forEach(item => {
+                    if (
+                        item?.table === table &&
+                        item.data?.id === oldId &&
+                        matcher(item.data, record)
+                    ) {
+                        item.data.id = newId;
+                    }
+                });
+            });
+        };
+
+        repairTable(
+            'semesters',
+            'semester-repair',
+            (queueData, record) => queueData?.name === record.name,
+            record => `semester="${record.name}"`
+        );
+
+        repairTable(
+            'subjects',
+            'subject-repair',
+            (queueData, record) => queueData?.semester_id === record.semester_id && queueData?.name === record.name,
+            record => `semester_id=${record.semester_id}, subject="${record.name}"`
+        );
+
+        repairTable(
+            'chapters',
+            'chapter-repair',
+            (queueData, record) => queueData?.subject_id === record.subject_id && queueData?.name === record.name,
+            record => `subject_id=${record.subject_id}, chapter="${record.name}"`
+        );
+
+        repairTable(
+            'study_sessions',
+            'study-session-repair',
+            (queueData, record) => queueData?.subject_id === record.subject_id && queueData?.timestamp === record.timestamp,
+            record => `subject_id=${record.subject_id}, timestamp="${record.timestamp || record.created_at || 'unknown'}"`
+        );
+
+        if (repaired > 0) {
+            console.warn(`[DB] Repaired ${repaired} duplicate local id(s).`);
+            this.saveOfflineQueue?.();
+            this.save();
+        }
+    }
+
+    warnIfDuplicateIdsRemain() {
+        const collectDuplicates = items => {
+            const counts = new Map();
+            (items || []).forEach(item => {
+                if (!item || item.id == null) return;
+                counts.set(item.id, (counts.get(item.id) || 0) + 1);
+            });
+            return [...counts.entries()].filter(([, count]) => count > 1).map(([id, count]) => ({ id, count }));
+        };
+
+        const duplicates = {
+            semesters: collectDuplicates(this.data.semesters),
+            subjects: collectDuplicates(this.data.subjects),
+            chapters: collectDuplicates(this.data.chapters),
+            study_sessions: collectDuplicates(this.data.study_sessions)
+        };
+
+        Object.entries(duplicates).forEach(([table, dupeIds]) => {
+            if (dupeIds.length > 0) {
+                console.warn(`[DB] Duplicate ids still present in ${table}:`, dupeIds);
+            }
+        });
     }
 
     // Track deletions while offline

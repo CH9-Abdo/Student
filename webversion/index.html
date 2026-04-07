@@ -26,6 +26,18 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
+                const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+                if (isLocalDev) {
+                    navigator.serviceWorker.getRegistrations()
+                        .then(registrations => Promise.all(registrations.map(reg => reg.unregister())))
+                        .then(() => caches.keys())
+                        .then(keys => Promise.all(keys.map(key => caches.delete(key))))
+                        .then(() => console.log('[SW] Local dev mode: service workers and caches cleared'))
+                        .catch(err => console.log('[SW] Local dev cleanup failed:', err));
+                    return;
+                }
+
                 navigator.serviceWorker.register('./sw.js')
                     .then(reg => console.log('SW Registered!', reg))
                     .catch(err => console.log('SW Registration failed:', err));
@@ -671,6 +683,63 @@
             </section>
 
         </main>
+
+        <nav id="mobile-bottom-nav" aria-label="Mobile navigation">
+            <button type="button" class="mobile-nav-btn" data-tab="pomodoro">
+                <i class="fas fa-clock"></i>
+                <span class="mobile-nav-text" id="mobile-nav-pomodoro-label">Pomodoro</span>
+            </button>
+
+            <button type="button" class="mobile-nav-btn mobile-nav-btn-main active" data-tab="dashboard">
+                <span class="mobile-nav-icon-wrap">
+                    <i class="fas fa-th-large"></i>
+                </span>
+                <span class="mobile-nav-text" id="mobile-nav-dashboard-label">Dashboard</span>
+            </button>
+
+            <button type="button" id="mobile-menu-trigger" class="mobile-nav-btn" aria-haspopup="dialog" aria-controls="mobile-menu-sheet" aria-expanded="false">
+                <i class="fas fa-bars"></i>
+                <span class="mobile-nav-text" id="mobile-nav-menu-label">Menu</span>
+            </button>
+        </nav>
+
+        <div id="mobile-menu-backdrop" class="hidden" aria-hidden="true"></div>
+
+        <section id="mobile-menu-sheet" class="hidden" role="dialog" aria-modal="true" aria-labelledby="mobile-menu-title">
+            <div class="mobile-menu-sheet-header">
+                <div>
+                    <p class="mobile-menu-eyebrow" id="mobile-menu-eyebrow">Quick access</p>
+                    <h2 id="mobile-menu-title">Menu</h2>
+                </div>
+                <button type="button" id="mobile-menu-close" class="btn-icon" title="Close menu">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="mobile-menu-grid">
+                <button type="button" class="mobile-menu-item" data-tab="planner">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span class="mobile-menu-item-label">Study Planner</span>
+                </button>
+                <button type="button" class="mobile-menu-item" data-tab="analytics">
+                    <i class="fas fa-chart-pie"></i>
+                    <span class="mobile-menu-item-label">Analytics</span>
+                </button>
+                <button type="button" class="mobile-menu-item" data-tab="leaderboard">
+                    <i class="fas fa-trophy"></i>
+                    <span class="mobile-menu-item-label">Leaderboard</span>
+                </button>
+                <button type="button" class="mobile-menu-item" data-tab="settings">
+                    <i class="fas fa-cog"></i>
+                    <span class="mobile-menu-item-label">Settings</span>
+                </button>
+            </div>
+
+            <button type="button" id="mobile-menu-logout" class="mobile-menu-logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span id="mobile-menu-logout-label">Logout</span>
+            </button>
+        </section>
     </div>
 
     <!-- ==========================================
