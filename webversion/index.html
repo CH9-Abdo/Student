@@ -403,12 +403,35 @@
                                 </div>
                             </div>
 
+                            <div class="pomodoro-phase-line" id="pomodoro-phase-line">Focus 25m -> Break 5m -> Repeat</div>
+
+                            <div class="pomodoro-preset-block">
+                                <div class="pomodoro-preset-label" id="pomodoro-preset-label">Quick Focus</div>
+                                <div class="pomodoro-preset-row">
+                                    <button type="button" class="pomodoro-preset-btn" data-focus-minutes="25">25m</button>
+                                    <button type="button" class="pomodoro-preset-btn" data-focus-minutes="50">50m</button>
+                                    <button type="button" class="pomodoro-preset-btn" data-focus-minutes="90">90m</button>
+                                </div>
+                            </div>
+
                             <div class="timer-controls-row">
                                 <button id="timer-start" class="primary-btn play-btn">
                                     <i class="fas fa-play"></i> Start Focus
                                 </button>
                                 <button id="timer-reset" class="secondary-btn icon-only-btn" title="Reset">
                                     <i class="fas fa-redo"></i>
+                                </button>
+                            </div>
+
+                            <div id="pomodoro-break-actions" class="pomodoro-break-actions hidden">
+                                <button id="skip-break-btn" class="secondary-btn small-btn">
+                                    <i class="fas fa-forward"></i> Skip Break
+                                </button>
+                                <button id="add-break-minute-btn" class="secondary-btn small-btn">
+                                    <i class="fas fa-plus"></i> +1 min
+                                </button>
+                                <button id="start-next-focus-btn" class="primary-btn small-btn">
+                                    <i class="fas fa-play"></i> Start Next Focus
                                 </button>
                             </div>
                         </div>
@@ -422,6 +445,26 @@
                                     <option value="">Select Subject</option>
                                 </select>
                                 <p id="smart-suggestion" class="mute">Smart Suggestion</p>
+                                <div id="pomodoro-subject-summary" class="pomodoro-subject-summary empty">
+                                    <div class="pomodoro-summary-top">
+                                        <span class="pomodoro-summary-title" id="pomodoro-summary-title">Selected Subject</span>
+                                        <span class="pomodoro-summary-progress" id="pomodoro-summary-progress">0%</span>
+                                    </div>
+                                    <div class="pomodoro-summary-name" id="pomodoro-summary-name">No subject selected</div>
+                                    <div class="pomodoro-summary-stats" id="pomodoro-summary-stats"></div>
+                                </div>
+                            </div>
+
+                            <div class="card control-card pomodoro-next-task-card">
+                                <div class="pomodoro-next-task-head">
+                                    <h4 id="pomodoro-next-task-title">Up Next</h4>
+                                    <span class="pomodoro-next-task-badge" id="pomodoro-next-task-badge">Suggested</span>
+                                </div>
+                                <div class="pomodoro-next-task-body" id="pomodoro-next-task-body">Pick a subject to see your next task.</div>
+                                <div class="pomodoro-next-task-reason mute" id="pomodoro-next-task-reason"></div>
+                                <button id="pomodoro-use-suggestion-btn" class="secondary-btn small-btn hidden">
+                                    <i class="fas fa-bolt"></i> Use Suggestion
+                                </button>
                             </div>
 
                             <!-- Lo-Fi Music -->

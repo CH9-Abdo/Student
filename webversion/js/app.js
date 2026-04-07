@@ -279,9 +279,24 @@ class StudentProApp {
         if (subjectSel?.options.length > 0) subjectSel.options[0].textContent = T.select_subject || 'Select Subject';
 
         const timerStartBtn = get('timer-start');
-        if (timerStartBtn && !timerStartBtn.classList.contains('running')) {
-            timerStartBtn.innerHTML = `<i class="fas fa-play"></i> ${T.start_focus || 'Start Focus'}`;
+        if (timerStartBtn && typeof this._setPomodoroPrimaryButton === 'function' && !timerStartBtn.classList.contains('running')) {
+            this._setPomodoroPrimaryButton('start');
         }
+
+        t('pomodoro-preset-label', 'quick_focus');
+        t('pomodoro-summary-title', 'selected_subject_label');
+
+        const skipBreakBtn = get('skip-break-btn');
+        if (skipBreakBtn) skipBreakBtn.innerHTML = `<i class="fas fa-forward"></i> ${T.skip_break || 'Skip Break'}`;
+
+        const addBreakMinuteBtn = get('add-break-minute-btn');
+        if (addBreakMinuteBtn) addBreakMinuteBtn.innerHTML = `<i class="fas fa-plus"></i> ${T.add_minute || '+1 min'}`;
+
+        const startNextFocusBtn = get('start-next-focus-btn');
+        if (startNextFocusBtn) startNextFocusBtn.innerHTML = `<i class="fas fa-play"></i> ${T.start_next_focus || 'Start Next Focus'}`;
+
+        const useSuggestionBtn = get('pomodoro-use-suggestion-btn');
+        if (useSuggestionBtn) useSuggestionBtn.innerHTML = `<i class="fas fa-bolt"></i> ${T.use_suggestion || 'Use Suggestion'}`;
 
         // ── 7. SETTINGS ─────────────────────────────────────
         t('lang-select-label',      'language');
@@ -813,6 +828,34 @@ class StudentProApp {
             this.resetTimer();
         });
 
+        document.querySelectorAll('.pomodoro-preset-btn[data-focus-minutes]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.setPomodoroFocusPreset(btn.dataset.focusMinutes);
+            });
+        });
+
+        get('skip-break-btn')?.addEventListener('click', () => {
+            this.skipBreak();
+        });
+
+        get('add-break-minute-btn')?.addEventListener('click', () => {
+            this.extendBreak(1);
+        });
+
+        get('start-next-focus-btn')?.addEventListener('click', () => {
+            this.startNextFocus();
+        });
+
+        get('pomodoro-use-suggestion-btn')?.addEventListener('click', () => {
+            const suggestion = typeof this.getPomodoroTaskSuggestion === 'function'
+                ? this.getPomodoroTaskSuggestion()
+                : null;
+            if (suggestion?.subjectId) {
+                this.setPomodoroSubject(suggestion.subjectId);
+                this.refreshPomodoroUI();
+            }
+        });
+
         get('lofi-toggle')?.addEventListener('change', (e) => {
             const player = get('bg-music-player');
             const track = get('lofi-music-select')?.value;
@@ -1016,6 +1059,22 @@ class StudentProApp {
 
         if (tabId === 'leaderboard') this.refreshLeaderboard();
         this.refreshAll();
+        this.scrollActiveTabToTop(target);
+    }
+
+    scrollActiveTabToTop(target = null) {
+        const content = get('content');
+        if (content) {
+            content.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        }
+
+        if (target && typeof target.scrollTo === 'function') {
+            target.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        }
+
+        try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch {}
+        try { document.documentElement.scrollTop = 0; } catch {}
+        try { document.body.scrollTop = 0; } catch {}
     }
 
     updateNavigationState(tabId = this.currentTab) {
