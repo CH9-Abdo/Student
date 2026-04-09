@@ -181,7 +181,7 @@
                 <div class="db-banner">
                     <div class="db-banner-text">
                         <p class="db-date" id="current-date">Loading…</p>
-                        <h2 class="db-title">Welcome back, <em id="dash-username">Student</em></h2>
+                        <h2 class="db-title"><span id="db-welcome-text">Welcome back,</span> <em id="dash-username">Student</em></h2>
                         <p class="db-subtitle" id="mini-challenge-text">Keep pushing — every session counts.</p>
                     </div>
                     <button id="start-challenge-btn" class="db-cta-btn">
@@ -250,7 +250,7 @@
                     <!-- Daily goal tile -->
                     <div class="db-kpi-tile db-kpi-goal">
                         <div class="db-goal-header">
-                            <p class="db-kpi-label">Daily Goal</p>
+                            <p class="db-kpi-label" id="db-daily-goal-label">Daily Goal</p>
                             <span id="daily-goal-val" class="db-goal-count">0/3</span>
                         </div>
                         <div class="db-goal-dots" id="daily-dots">
@@ -730,8 +730,8 @@
 
                     <!-- Danger Zone -->
                     <div class="card danger-zone">
-                        <h3 class="h2" style="margin-bottom:14px; color:var(--danger);">⚠️ Danger Zone</h3>
-                        <p class="mute" style="font-size:13px; margin-bottom:14px;">
+                        <h3 class="h2" style="margin-bottom:14px; color:var(--danger);" id="danger-zone-title">⚠️ Danger Zone</h3>
+                        <p class="mute" style="font-size:13px; margin-bottom:14px;" id="danger-zone-desc">
                             This will permanently delete all your study data from both local storage and the cloud.
                         </p>
                         <button id="reset-data-btn" class="danger-btn">

@@ -457,6 +457,34 @@ class StudentProApp {
         console.log("[App] Setting up UI event listeners...");
         const get = id => document.getElementById(id);
 
+        // --- MOBILE SCROLL-TO-HIDE NAV ---
+        this.lastScrollTop = 0;
+        const scrollThreshold = 15;
+        const contentArea = get('content');
+        if (contentArea) {
+            contentArea.addEventListener('scroll', () => {
+                if (window.innerWidth > 768) return;
+                
+                const st = contentArea.scrollTop;
+                const bottomNav = get('mobile-bottom-nav');
+                
+                if (Math.abs(this.lastScrollTop - st) <= scrollThreshold) return;
+
+                if (st > this.lastScrollTop && st > 100) {
+                    // Scroll Down - Hide
+                    bottomNav?.classList.add('nav-hidden');
+                    // Also close mobile menu sheet if open
+                    if (!get('mobile-menu-sheet')?.classList.contains('hidden')) {
+                        this.closeMobileMenu();
+                    }
+                } else {
+                    // Scroll Up - Show
+                    bottomNav?.classList.remove('nav-hidden');
+                }
+                this.lastScrollTop = st <= 0 ? 0 : st;
+            }, { passive: true });
+        }
+
         // Auth Tabs
         get('tab-login')?.addEventListener('click', () => {
             get('tab-login').classList.add('active');

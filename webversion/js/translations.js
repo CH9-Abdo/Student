@@ -504,7 +504,7 @@ const TRANSLATIONS = {
         "session_singular": "جلسة",
         "total_sessions_label": "مجموع الجلسات",
         "upcoming_exams": "امتحانات قادمة",
-        "welcome_back": "مرحباً،",
+        "welcome_back": "أهلاً بك مجدداً،",
         "no_exams_set": "لا امتحانات مجدولة",
         "tasks_label": "مهمة",
         "min_total": "دقيقة إجمالاً",
