@@ -27,7 +27,7 @@ class Database {
             subjects: [],
             chapters: [],
             study_sessions: [],
-            settings: { theme: 'Light', lang: 'English', sync_mode: 'Automatic', pomodoro: { work: 25, short: 5, long: 15 } }
+            settings: { theme: 'Light', lang: 'Arabic', sync_mode: 'Automatic', pomodoro: { work: 25, short: 5, long: 15 } }
         };
     }
 

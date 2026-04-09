@@ -19,7 +19,7 @@ class StudentProApp {
         this.timer = null;
         this.timeLeft = 25 * 60;
         this.timerRunning = false;
-        this.selectedLang = 'English';
+        this.selectedLang = 'Arabic';
         this.isOnline = navigator.onLine;
 
         this.init();
@@ -32,11 +32,15 @@ class StudentProApp {
         
         this.loadLanguagePreference();
         console.log(`[App] Current Language: ${this.selectedLang}`);
-        this.applyLoginScreenLanguage();
-
+        
         const loginLangSelect = document.getElementById('login-lang-select');
         if (loginLangSelect) {
             loginLangSelect.value = this.selectedLang;
+        }
+        
+        this.applyLoginScreenLanguage();
+
+        if (loginLangSelect) {
             loginLangSelect.addEventListener('change', (e) => {
                 this.selectedLang = e.target.value;
                 console.log(`[App] Language changed to: ${this.selectedLang}`);
