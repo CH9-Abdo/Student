@@ -683,9 +683,23 @@
                             <div class="setting-item">
                                 <label id="sync-mode-label">Sync Mode</label>
                                 <select id="sync-mode-select" style="margin-bottom:0;">
-                                    <option value="Automatic">Automatic</option>
-                                    <option value="Manual">Manual</option>
+                                    <option id="sync-opt-auto" value="Automatic">Automatic</option>
+                                    <option id="sync-opt-manual" value="Manual">Manual</option>
                                 </select>
+                            </div>
+                            <div class="setting-item">
+                                <label id="daily-reminder-label">Daily Reminder</label>
+                                <select id="daily-reminder-select" style="margin-bottom:0;">
+                                    <option id="daily-reminder-on" value="enabled">On</option>
+                                    <option id="daily-reminder-off" value="disabled">Off</option>
+                                </select>
+                            </div>
+                            <p id="daily-reminder-help" class="mute" style="margin-top:-6px; font-size:12px;">
+                                Android sends one reminder at 18:00 if you have not studied yet today.
+                            </p>
+                            <div class="setting-item">
+                                <label id="sync-status-label">Sync Status</label>
+                                <span id="settings-sync-status" class="mute" style="font-size:13px;">—</span>
                             </div>
                             <div class="sync-buttons" style="margin-top:16px;">
                                 <button id="settings-sync-btn" class="primary-btn small-btn" data-i18n="account_sync_now_btn">

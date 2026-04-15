@@ -51,17 +51,21 @@ StudentProApp.prototype.refreshDashboard = function() {
     if (sessEl) sessEl.textContent = db.data?.user_profile?.total_sessions || 0;
 
     // ── Daily goal ────────────────────────────────────────
-    const GOAL = 3;
-    const totalSessions = db.data?.user_profile?.total_sessions || 0;
-    const todaySessions = Math.min(totalSessions % GOAL || 0, GOAL);
+    const dailyStats = db.getDailyStudyStats();
+    const goal = Math.max(1, Number(dailyStats.goal || 3));
+    const goalProgress = Math.min(dailyStats.sessions, goal);
     const goalVal = get('daily-goal-val');
     const goalFill = get('daily-goal-bar');
-    if (goalVal) goalVal.textContent = `${todaySessions}/${GOAL}`;
-    if (goalFill) goalFill.style.width = `${(todaySessions / GOAL) * 100}%`;
+    if (goalVal) {
+        goalVal.textContent = dailyStats.complete
+            ? `${dailyStats.sessions}/${goal} ✅`
+            : `${dailyStats.sessions}/${goal}`;
+    }
+    if (goalFill) goalFill.style.width = `${(goalProgress / goal) * 100}%`;
     const dotsEl = get('daily-dots');
     if (dotsEl) {
         dotsEl.querySelectorAll('.ddot').forEach((dot, i) => {
-            dot.classList.toggle('done', i < todaySessions);
+            dot.classList.toggle('done', i < goalProgress);
         });
     }
 
@@ -113,8 +117,8 @@ StudentProApp.prototype.refreshDashboard = function() {
         const subjectCounts = {};
 
         db.data.study_sessions.forEach(s => {
-            if (!s.timestamp && !s.created_at) return;
-            const d = new Date(s.timestamp || s.created_at);
+            const d = db.getStudySessionDate(s);
+            if (!d) return;
             const diff = Math.floor((today - d) / 86400000);
             if (diff >= 0 && diff < 7) {
                 weekCounts[6 - diff]++;

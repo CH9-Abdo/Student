@@ -1,5 +1,6 @@
 // Main App Controller - StudentPro Web V4
 let app;
+const DAILY_STUDY_REMINDER_NOTIFICATION_ID = 9127;
 
 document.addEventListener('DOMContentLoaded', () => {
     // Inject toast container into DOM
@@ -58,10 +59,12 @@ class StudentProApp {
         window.addEventListener('online', () => {
             console.log("[App] System is ONLINE");
             this.onConnectionRestored();
+            this.refreshLastSync();
         });
         window.addEventListener('offline', () => {
             console.log("[App] System is OFFLINE");
             this.showOfflineIndicator();
+            this.refreshLastSync();
         });
 
         this.setupEventListeners();
@@ -311,6 +314,9 @@ class StudentProApp {
         t('lang-select-label',      'language');
         t('theme-label',            'theme');
         t('sync-mode-label',        'sync_mode');
+        t('daily-reminder-label',   'daily_reminder');
+        t('sync-status-label',      'sync_status');
+        t('daily-reminder-help',    'daily_reminder_help');
 
         const settingsTitleHeader = get('settings-title');
         if (settingsTitleHeader) settingsTitleHeader.textContent = T.settings_title || T.settings || 'Settings';
@@ -343,6 +349,10 @@ class StudentProApp {
         if (syncOptAuto) syncOptAuto.textContent = T.sync_auto || T.automatic || 'Automatic';
         const syncOptManual = get('sync-opt-manual');
         if (syncOptManual) syncOptManual.textContent = T.sync_manual || T.manual || 'Manual';
+        const dailyReminderOn = get('daily-reminder-on');
+        if (dailyReminderOn) dailyReminderOn.textContent = T.daily_reminder_on || 'On';
+        const dailyReminderOff = get('daily-reminder-off');
+        if (dailyReminderOff) dailyReminderOff.textContent = T.daily_reminder_off || 'Off';
 
         // ── 7b. LEADERBOARD ──────────────────────────────────
         const lbTitleHeader = get('leaderboard-title');
@@ -421,7 +431,7 @@ class StudentProApp {
             banner.innerHTML = '<i class="fas fa-check-circle"></i> Back Online';
             setTimeout(() => banner.remove(), 3000);
         }
-        db.syncPendingChanges();
+        db.syncPendingChanges().finally(() => this.refreshLastSync());
     }
 
     async onLogin(user) {
@@ -985,7 +995,13 @@ class StudentProApp {
             localStorage.clear();
             db.data = {
                 semesters: [], subjects: [], chapters: [], study_sessions: [],
-                settings: { lang: 'English', theme: 'Light', sync_mode: 'Automatic', pomodoro: { work: 25, short: 5, long: 15 } },
+                settings: {
+                    lang: 'English',
+                    theme: 'Light',
+                    sync_mode: 'Automatic',
+                    pomodoro: { work: 25, short: 5, long: 15 },
+                    reminders: { daily_enabled: true, daily_hour: 18 }
+                },
                 user_profile: { xp: 0, level: 1, total_sessions: 0, display_name: '' }
             };
             db.save();
@@ -999,6 +1015,16 @@ class StudentProApp {
             if (db && db.data && db.data.settings) {
                 db.data.settings.sync_mode = e.target.value;
                 db.save();
+            }
+        });
+
+        get('daily-reminder-select')?.addEventListener('change', (e) => {
+            if (db && db.data && db.data.settings) {
+                if (!db.data.settings.reminders) db.data.settings.reminders = {};
+                db.data.settings.reminders.daily_enabled = e.target.value === 'enabled';
+                db.save();
+                void this.syncDailyStudyReminder();
+                this.refreshLastSync();
             }
         });
 
@@ -1161,6 +1187,7 @@ class StudentProApp {
         this.refreshPomodoroSubjects();
         if (typeof this.refreshPomodoroUI === 'function') this.refreshPomodoroUI();
         this.refreshLastSync();
+        void this.syncDailyStudyReminder();
         this.updateMiniChallenge();
 
         const nameDisp = get('acc-display-name');
@@ -1208,8 +1235,138 @@ class StudentProApp {
     }
 
     refreshLastSync() {
+        const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
+        const pending = typeof db.getPendingSyncCount === 'function' ? db.getPendingSyncCount() : 0;
+        const fill = (template, values = {}) => String(template || '').replace(/\{(\w+)\}/g, (_, key) => (
+            values[key] !== undefined ? String(values[key]) : ''
+        ));
+
+        let text = '';
+        if (!auth.user || auth.user.id === 'offline-user') {
+            text = T.sync_status_offline_local || 'Offline mode · saved on this device';
+        } else if (!navigator.onLine) {
+            text = pending > 0
+                ? fill(T.sync_status_offline_pending || 'Offline · {count} change(s) waiting to sync', { count: pending })
+                : (T.sync_status_offline_cloud || 'Offline · cloud sync paused');
+        } else if (pending > 0) {
+            text = fill(T.sync_status_pending || '{count} change(s) waiting to sync', { count: pending });
+        } else {
+            text = fill(T.sync_status_synced || 'Last sync: {time}', {
+                time: db.lastSync || T.never || 'Never'
+            });
+        }
+
         const el = get('last-sync-label');
-        if (el && db.lastSync) el.textContent = `🔄 Last sync: ${db.lastSync}`;
+        if (el) el.textContent = text;
+
+        const settingsSyncStatus = get('settings-sync-status');
+        if (settingsSyncStatus) settingsSyncStatus.textContent = text;
+    }
+
+    getDailyReminderEnabled() {
+        return db?.data?.settings?.reminders?.daily_enabled !== false;
+    }
+
+    getDailyReminderHour() {
+        const hour = Number(db?.data?.settings?.reminders?.daily_hour ?? 18);
+        return Number.isFinite(hour) ? Math.max(0, Math.min(23, hour)) : 18;
+    }
+
+    async cancelDailyStudyReminder() {
+        const LocalNotifications = this._getLocalNotificationsPlugin?.();
+        if (!LocalNotifications) return;
+
+        try {
+            await LocalNotifications.cancel({
+                notifications: [{ id: DAILY_STUDY_REMINDER_NOTIFICATION_ID }]
+            });
+        } catch {
+            try { await LocalNotifications.cancel({ ids: [DAILY_STUDY_REMINDER_NOTIFICATION_ID] }); } catch {}
+        }
+    }
+
+    getDailyReminderContent() {
+        const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
+        const streak = typeof db.getStudyStreak === 'function' ? db.getStudyStreak() : 0;
+        const dailyStats = typeof db.getDailyStudyStats === 'function'
+            ? db.getDailyStudyStats()
+            : { goal: 3 };
+        const fill = (template, values = {}) => String(template || '').replace(/\{(\w+)\}/g, (_, key) => (
+            values[key] !== undefined ? String(values[key]) : ''
+        ));
+
+        const title = streak > 0
+            ? fill(T.daily_reminder_title_streak || 'Protect your {streak}-day streak', { streak })
+            : (T.daily_reminder_title || 'Time for today\'s study session');
+        const body = fill(
+            T.daily_reminder_body || 'Start one focus session today and work toward your {goal}-session goal.',
+            { goal: dailyStats.goal || 3, streak }
+        );
+
+        return { title, body };
+    }
+
+    async syncDailyStudyReminder() {
+        if (typeof Capacitor === 'undefined' || !Capacitor.isNativePlatform() || !this.getDailyReminderEnabled()) {
+            await this.cancelDailyStudyReminder();
+            return;
+        }
+
+        const LocalNotifications = this._getLocalNotificationsPlugin?.();
+        if (!LocalNotifications) return;
+
+        const dailyStats = typeof db.getDailyStudyStats === 'function'
+            ? db.getDailyStudyStats()
+            : { sessions: 0 };
+        if (dailyStats.sessions > 0) {
+            await this.cancelDailyStudyReminder();
+            return;
+        }
+
+        let currentPerms = null;
+        try {
+            currentPerms = await LocalNotifications.checkPermissions();
+        } catch {
+            return;
+        }
+        if (currentPerms?.display !== 'granted') return;
+
+        const now = new Date();
+        const reminderAt = new Date(now);
+        reminderAt.setHours(this.getDailyReminderHour(), 0, 0, 0);
+        if (reminderAt <= now) {
+            await this.cancelDailyStudyReminder();
+            return;
+        }
+
+        const reminder = this.getDailyReminderContent();
+        await this.cancelDailyStudyReminder();
+
+        try {
+            await LocalNotifications.schedule({
+                notifications: [{
+                    id: DAILY_STUDY_REMINDER_NOTIFICATION_ID,
+                    title: reminder.title,
+                    body: reminder.body,
+                    schedule: { at: reminderAt, allowWhileIdle: true },
+                    extra: { kind: 'daily-study-reminder' }
+                }]
+            });
+        } catch {
+            try {
+                await LocalNotifications.schedule({
+                    notifications: [{
+                        id: DAILY_STUDY_REMINDER_NOTIFICATION_ID,
+                        title: reminder.title,
+                        body: reminder.body,
+                        schedule: { at: reminderAt },
+                        extra: { kind: 'daily-study-reminder' }
+                    }]
+                });
+            } catch (e) {
+                console.warn('[App] Daily reminder scheduling failed:', e);
+            }
+        }
     }
 
     applyTheme(t) {
@@ -1245,6 +1402,10 @@ class StudentProApp {
         const syncSel = get('sync-mode-select');
         if (syncSel && db.data?.settings) {
             syncSel.value = db.data.settings.sync_mode || 'Automatic';
+        }
+        const reminderSel = get('daily-reminder-select');
+        if (reminderSel && db.data?.settings) {
+            reminderSel.value = db.data.settings.reminders?.daily_enabled === false ? 'disabled' : 'enabled';
         }
     }
 

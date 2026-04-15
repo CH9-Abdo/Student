@@ -58,7 +58,11 @@ Database.prototype.syncPendingChanges = async function() {
     this.offlineQueue = failedItems;
     this.saveOfflineQueue();
 
-    if (successCount > 0) console.log(`[Sync] Successfully uploaded ${successCount} changes`);
+    if (successCount > 0) {
+        console.log(`[Sync] Successfully uploaded ${successCount} changes`);
+        this.lastSync = new Date().toLocaleTimeString();
+        localStorage.setItem('last_sync_v7', this.lastSync);
+    }
     return failedItems.length === 0;
 };
 

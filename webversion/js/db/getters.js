@@ -32,9 +32,80 @@ Database.prototype.getNextExamInfo = function() {
     return futureExams[0] || null;
 };
 
+Database.prototype.getStudySessionDate = function(session) {
+    const raw = session?.timestamp || session?.created_at;
+    if (!raw) return null;
+
+    const date = new Date(raw);
+    return Number.isFinite(date.getTime()) ? date : null;
+};
+
+Database.prototype.getDateKey = function(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+Database.prototype.getDailyStudyStats = function(now = new Date()) {
+    const goal = 3;
+    const todayKey = this.getDateKey(now);
+    let sessions = 0;
+    let minutes = 0;
+
+    for (const session of this.data.study_sessions || []) {
+        const sessionDate = this.getStudySessionDate(session);
+        if (!sessionDate || this.getDateKey(sessionDate) !== todayKey) continue;
+        sessions += 1;
+        minutes += Number(session.duration_minutes || 0) || 0;
+    }
+
+    const xp = (typeof this.getPomodoroXpForMinutes === 'function')
+        ? this.getPomodoroXpForMinutes(minutes)
+        : (minutes * 2);
+
+    return {
+        sessions,
+        minutes,
+        xp,
+        goal,
+        remaining: Math.max(0, goal - sessions),
+        complete: sessions >= goal
+    };
+};
+
 Database.prototype.getStudyStreak = function() {
-    if (this.data.study_sessions.length === 0) return 0;
-    return 1; /* Simple placeholder streak */
+    const sessions = this.data.study_sessions || [];
+    if (sessions.length === 0) return 0;
+
+    const studyDays = new Set();
+    for (const session of sessions) {
+        const sessionDate = this.getStudySessionDate(session);
+        if (!sessionDate) continue;
+        studyDays.add(this.getDateKey(sessionDate));
+    }
+    if (studyDays.size === 0) return 0;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const todayKey = this.getDateKey(today);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayKey = this.getDateKey(yesterday);
+
+    let cursor = null;
+    if (studyDays.has(todayKey)) cursor = today;
+    else if (studyDays.has(yesterdayKey)) cursor = yesterday;
+    else return 0;
+
+    let streak = 0;
+    while (studyDays.has(this.getDateKey(cursor))) {
+        streak += 1;
+        cursor = new Date(cursor);
+        cursor.setDate(cursor.getDate() - 1);
+    }
+    return streak;
 };
 
 Database.prototype.getSubjectProgress = function(subId) {

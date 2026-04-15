@@ -1,6 +1,20 @@
 // StudentPro - Minimal Cloud Sync Engine (V7 Simple) - Core Module
 const DB_KEY = 'student_pro_v7_storage';
 const OFFLINE_QUEUE_KEY = 'student_pro_offline_queue';
+const DEFAULT_DB_DATA = {
+    user_profile: { xp: 0, level: 1, total_sessions: 0, display_name: '' },
+    semesters: [],
+    subjects: [],
+    chapters: [],
+    study_sessions: [],
+    settings: {
+        theme: 'Light',
+        lang: 'Arabic',
+        sync_mode: 'Automatic',
+        pomodoro: { work: 25, short: 5, long: 15 },
+        reminders: { daily_enabled: true, daily_hour: 18 }
+    }
+};
 
 class Database {
     constructor() {
@@ -20,14 +34,28 @@ class Database {
     load() {
         console.log('[DB] Loading local data...');
         const saved = localStorage.getItem(DB_KEY);
-        if (saved) return JSON.parse(saved);
+        if (!saved) return JSON.parse(JSON.stringify(DEFAULT_DB_DATA));
+
+        const parsed = JSON.parse(saved);
         return {
-            user_profile: { xp: 0, level: 1, total_sessions: 0, display_name: '' },
-            semesters: [],
-            subjects: [],
-            chapters: [],
-            study_sessions: [],
-            settings: { theme: 'Light', lang: 'Arabic', sync_mode: 'Automatic', pomodoro: { work: 25, short: 5, long: 15 } }
+            ...DEFAULT_DB_DATA,
+            ...parsed,
+            user_profile: {
+                ...DEFAULT_DB_DATA.user_profile,
+                ...(parsed?.user_profile || {})
+            },
+            settings: {
+                ...DEFAULT_DB_DATA.settings,
+                ...(parsed?.settings || {}),
+                pomodoro: {
+                    ...DEFAULT_DB_DATA.settings.pomodoro,
+                    ...(parsed?.settings?.pomodoro || {})
+                },
+                reminders: {
+                    ...DEFAULT_DB_DATA.settings.reminders,
+                    ...(parsed?.settings?.reminders || {})
+                }
+            }
         };
     }
 
@@ -135,6 +163,11 @@ class Database {
                 console.warn(`[DB] Duplicate ids still present in ${table}:`, dupeIds);
             }
         });
+    }
+
+    getPendingSyncCount() {
+        const pendingDeletions = JSON.parse(localStorage.getItem('studentpro_pending_deletions') || '[]');
+        return (this.offlineQueue?.length || 0) + pendingDeletions.length;
     }
 
     // Track deletions while offline

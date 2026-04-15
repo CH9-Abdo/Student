@@ -266,3 +266,9 @@ Database.prototype.applyTemplate = async function(template) {
     }
     return true;
 };
+
+    return true;
+};
+    return true;
+};
+

@@ -9,6 +9,7 @@
 const POMODORO_STATE_KEY = 'studentpro_pomodoro_state_v1';
 const POMODORO_FOCUS_END_NOTIFICATION_ID = 9125;
 const POMODORO_BREAK_END_NOTIFICATION_ID = 9126;
+const POMODORO_XP_PER_MINUTE = 2;
 const POMODORO_END_SOUND_CANDIDATES = [
     'assets/sounds/clock_1.mp3',
     'assets/sounds/clock1.mp3',
@@ -94,23 +95,17 @@ StudentProApp.prototype._schedulePomodoroEndNotification = async function(kind, 
     const allowed = await this._ensurePomodoroNotificationsPermission();
     if (!allowed) return;
 
-    const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
     const isBreak = kind === 'break';
     const id = isBreak ? POMODORO_BREAK_END_NOTIFICATION_ID : POMODORO_FOCUS_END_NOTIFICATION_ID;
-    const title = isBreak
-        ? (T.break_over_title || 'Break Over')
-        : (T.pomodoro_complete_title || 'Pomodoro Complete');
-    const body = isBreak
-        ? (T.break_over_body || 'Break finished. Ready to focus again?')
-        : (T.pomodoro_complete_body || 'Time is up. Great work.');
+    const notification = this._getPomodoroNotificationContent(kind);
 
     try {
         await this._cancelPomodoroEndNotification();
         const baseNotif = {
             id,
-            title,
-            body,
-            extra: { kind: isBreak ? 'pomodoro-break-end' : 'pomodoro-focus-end' }
+            title: notification.title,
+            body: notification.body,
+            extra: notification.extra
         };
 
         try {
@@ -147,6 +142,63 @@ StudentProApp.prototype._getBreakDurationSec = function() {
     // Default to 5 minutes unless settings specify otherwise.
     const breakMins = db.data?.settings?.pomodoro?.short || 5;
     return Math.max(1, Number(breakMins) || 5) * 60;
+};
+
+StudentProApp.prototype._getPomodoroXpForMinutes = function(minutes) {
+    const safeMinutes = Math.max(0, Number(minutes) || 0);
+    return safeMinutes * POMODORO_XP_PER_MINUTE;
+};
+
+StudentProApp.prototype._getPomodoroSubjectName = function(subjectId) {
+    if (!subjectId) return '';
+    const subject = db.data?.subjects?.find(s => s.id === subjectId);
+    return typeof subject?.name === 'string' ? subject.name.trim() : '';
+};
+
+StudentProApp.prototype._fillPomodoroTemplate = function(template, values = {}) {
+    let text = String(template || '');
+    for (const [key, value] of Object.entries(values)) {
+        text = text.split(`{${key}}`).join(String(value ?? ''));
+    }
+    return text;
+};
+
+StudentProApp.prototype._getPomodoroNotificationContent = function(kind) {
+    const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
+
+    if (kind === 'break') {
+        return {
+            title: T.break_resume_title || T.break_over_title || 'Break Finished',
+            body: T.break_resume_body || T.break_over_body || 'Break is over. Return to focus now.',
+            extra: { kind: 'pomodoro-break-end' }
+        };
+    }
+
+    const focusMinutes = Math.max(1, Math.round((this._pomodoroTotalSec || this._getFocusDurationSec()) / 60));
+    const breakMinutes = Math.max(1, Math.round(this._getBreakDurationSec() / 60));
+    const xpEarned = this._getPomodoroXpForMinutes(focusMinutes);
+    const subjectId = this._pomodoroSubjectId ?? this.activeSubjectId ?? null;
+    const subjectName = this._getPomodoroSubjectName(subjectId);
+    const bodyTemplate = subjectName
+        ? (T.pomodoro_complete_body_subject || '{subject} done. +{xp} XP earned. Break for {minutes} min.')
+        : (T.pomodoro_complete_body_generic || 'Focus session done. Select a subject next time to earn XP. Break for {minutes} min.');
+
+    return {
+        title: T.pomodoro_focus_complete_title || T.pomodoro_complete_title || 'Focus Complete',
+        body: this._fillPomodoroTemplate(bodyTemplate, {
+            subject: subjectName,
+            xp: xpEarned,
+            minutes: breakMinutes
+        }),
+        extra: {
+            kind: 'pomodoro-focus-end',
+            subjectId,
+            subjectName,
+            xpEarned,
+            focusMinutes,
+            breakMinutes
+        }
+    };
 };
 
 StudentProApp.prototype._setPomodoroStatus = function(kind) {
@@ -368,13 +420,14 @@ StudentProApp.prototype.completeSession = async function(opts = {}) {
 
     // Focus finished: play sound, award XP, then start break automatically.
     this._playPomodoroEndSound();
-    const workMins = db.data?.settings?.pomodoro?.work || 25;
+    const workMins = Math.max(1, Math.round((this._pomodoroTotalSec || this._getFocusDurationSec()) / 60));
+    const xpEarned = this._getPomodoroXpForMinutes(workMins);
     const subjectId = this._pomodoroSubjectId ?? this.activeSubjectId ?? null;
 
     if (subjectId) {
         await db.logSession(subjectId, workMins);
         await db.updateProfile({
-            xp: (db.data.user_profile.xp || 0) + 50,
+            xp: (db.data.user_profile.xp || 0) + xpEarned,
             total_sessions: (db.data.user_profile.total_sessions || 0) + 1
         });
     }
@@ -384,8 +437,14 @@ StudentProApp.prototype.completeSession = async function(opts = {}) {
     const breakMins = Math.round(breakSec / 60);
     {
         const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
-        const tmpl = T.toast_session_done_break || "🎉 Session Done! +50 XP • Break: {minutes} min";
-        showToast(String(tmpl).replace('{minutes}', String(breakMins)), 'success', 4500);
+        const tmpl = T.toast_session_done_break || "Session Done! +{xp} XP • Break: {minutes} min";
+        showToast(
+            String(tmpl)
+                .replace('{xp}', String(xpEarned))
+                .replace('{minutes}', String(breakMins)),
+            'success',
+            4500
+        );
     }
     this._setPomodoroStatus('break');
     this._pomodoroTotalSec = breakSec;
@@ -767,9 +826,8 @@ StudentProApp.prototype.refreshPomodoroUI = function() {
     const minutesEl = get('minutes-today');
     if (minutesEl) minutesEl.textContent = String(minutesToday);
 
-    const XP_PER_SESSION = 50;
     const xpTodayEl = get('xp-today');
-    if (xpTodayEl) xpTodayEl.textContent = String(sessionsToday * XP_PER_SESSION);
+    if (xpTodayEl) xpTodayEl.textContent = String(this._getPomodoroXpForMinutes(minutesToday));
 
     const focusMinutes = Math.round(this._getFocusDurationSec() / 60);
     const breakMinutes = Math.round(this._getBreakDurationSec() / 60);
