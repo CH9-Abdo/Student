@@ -422,13 +422,15 @@ StudentProApp.prototype.completeSession = async function(opts = {}) {
     const workMins = Math.max(1, Math.round((this._pomodoroTotalSec || this._getFocusDurationSec()) / 60));
     const xpEarned = this._getPomodoroXpForMinutes(workMins);
     const subjectId = this._pomodoroSubjectId ?? this.activeSubjectId ?? null;
+    let totalXpAwarded = 0;
 
     if (subjectId) {
-        await db.logSession(subjectId, workMins);
-        await db.updateProfile({
-            xp: (db.data.user_profile.xp || 0) + xpEarned,
-            total_sessions: (db.data.user_profile.total_sessions || 0) + 1
+        const sessionResult = await db.completeFocusSession({
+            subjectId,
+            durationMinutes: workMins,
+            completedAt: new Date()
         });
+        totalXpAwarded = Number(sessionResult?.xpAwarded || 0) || 0;
     }
 
     // Start break immediately
@@ -439,7 +441,7 @@ StudentProApp.prototype.completeSession = async function(opts = {}) {
         const tmpl = T.toast_session_done_break || "Session Done! +{xp} XP • Break: {minutes} min";
         showToast(
             String(tmpl)
-                .replace('{xp}', String(xpEarned))
+                .replace('{xp}', String(totalXpAwarded))
                 .replace('{minutes}', String(breakMins)),
             'success',
             4500
@@ -777,27 +779,31 @@ StudentProApp.prototype.refreshPomodoroUI = function() {
     }
 
     const xpTotal = Number(db.data?.user_profile?.xp || 0);
-    const level = Number(db.data?.user_profile?.level || 1);
+    const levelProgress = typeof db?.getLevelProgress === 'function'
+        ? db.getLevelProgress(xpTotal)
+        : {
+            level: Number(db.data?.user_profile?.level || 1),
+            xpIntoLevel: xpTotal,
+            xpForNextLevel: 1000,
+            progressPct: 0
+        };
+    const level = Number(levelProgress.level || 1);
 
     const levelEl = get('level-display');
     if (levelEl) levelEl.textContent = `${T.level_label || T.level || 'Level'} ${level}`;
 
     const badgeEl = get('level-badge-display');
     if (badgeEl) {
-        const badges = ['Beginner', 'Focused', 'Disciplined', 'Advanced', 'Master'];
-        badgeEl.textContent = badges[Math.min(level - 1, badges.length - 1)];
+        badgeEl.textContent = typeof db?.getLevelTitle === 'function'
+            ? db.getLevelTitle(level, this.selectedLang)
+            : (T.beginner || 'Beginner');
     }
 
-    // Progress to next level: use the same threshold as the DB level-up logic.
-    const XP_PER_LEVEL = (typeof db?.getXpPerLevel === 'function') ? db.getXpPerLevel() : 1000;
-    const xpIntoLevel = ((xpTotal % XP_PER_LEVEL) + XP_PER_LEVEL) % XP_PER_LEVEL;
-    const pct = Math.max(0, Math.min(100, Math.round((xpIntoLevel / XP_PER_LEVEL) * 100)));
-
     const bar = get('xp-bar');
-    if (bar) bar.style.width = `${pct}%`;
+    if (bar) bar.style.width = `${levelProgress.progressPct || 0}%`;
 
     const label = get('xp-label');
-    if (label) label.textContent = `${xpIntoLevel} / ${XP_PER_LEVEL} XP`;
+    if (label) label.textContent = `${levelProgress.xpIntoLevel || 0} / ${levelProgress.xpForNextLevel || 600} XP`;
 
     // Today stats from sessions
     const sessions = db.data?.study_sessions || [];
@@ -826,7 +832,12 @@ StudentProApp.prototype.refreshPomodoroUI = function() {
     if (minutesEl) minutesEl.textContent = String(minutesToday);
 
     const xpTodayEl = get('xp-today');
-    if (xpTodayEl) xpTodayEl.textContent = String(this._getPomodoroXpForMinutes(minutesToday));
+    if (xpTodayEl) {
+        const dailyStats = typeof db?.getDailyStudyStats === 'function'
+            ? db.getDailyStudyStats(now)
+            : { xp: this._getPomodoroXpForMinutes(minutesToday) };
+        xpTodayEl.textContent = String(Number(dailyStats.xp || 0));
+    }
 
     const focusMinutes = Math.round(this._getFocusDurationSec() / 60);
     const breakMinutes = Math.round(this._getBreakDurationSec() / 60);

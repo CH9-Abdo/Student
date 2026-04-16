@@ -343,7 +343,7 @@
     color: var(--text);
 }
 .an-kpi-lbl { font-size: 11px; font-weight: 600; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.7px; }
-.an-kpi-note { font-size: 11px; color: var(--text-mute); }
+.an-kpi-note { font-size: 11px; color: var(--text-mute); line-height: 1.4; overflow-wrap: anywhere; }
 .an-kpi-note.up   { color: #10b981; }
 .an-kpi-note.warn { color: var(--accent); }
 
@@ -367,12 +367,14 @@
     align-items: center;
     justify-content: space-between;
     margin-bottom: 18px;
+    gap: 10px;
 }
 .an-card-title {
     font-family: 'Sora', sans-serif;
     font-size: 15px;
     font-weight: 700;
     color: var(--text);
+    line-height: 1.3;
 }
 .an-card-badge {
     font-size: 11px;
@@ -386,8 +388,8 @@
 /* Subject bars */
 .an-subject-bars { display: flex; flex-direction: column; gap: 15px; }
 .an-sb-row { display: flex; flex-direction: column; gap: 5px; }
-.an-sb-top { display: flex; justify-content: space-between; align-items: center; }
-.an-sb-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.an-sb-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.an-sb-name { font-size: 13px; font-weight: 600; color: var(--text); min-width: 0; overflow-wrap: anywhere; }
 .an-sb-pct  { font-size: 12px; font-weight: 700; color: var(--text-mute); min-width: 32px; text-align: right; }
 .an-sb-track {
     height: 9px;
@@ -401,7 +403,7 @@
     transition: width 0.7s cubic-bezier(.4,0,.2,1);
     min-width: 3px;
 }
-.an-sb-chips { display: flex; gap: 5px; }
+.an-sb-chips { display: flex; gap: 5px; flex-wrap: wrap; }
 .an-chip {
     font-size: 10px;
     font-weight: 600;
@@ -448,7 +450,7 @@
 .an-exam-item.urgent { border-left-color: var(--danger);  background: rgba(239,68,68,0.04); }
 .an-exam-item.soon   { border-left-color: var(--accent);  background: rgba(245,158,11,0.04); }
 .an-exam-item.safe   { border-left-color: var(--primary); background: var(--primary-light); }
-.an-exam-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--text); }
+.an-exam-name { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: var(--text); overflow-wrap: anywhere; }
 .an-exam-days {
     font-family: 'Sora', sans-serif;
     font-size: 14px;
@@ -463,7 +465,7 @@
 .an-breakdown { display: flex; flex-direction: column; gap: 10px; }
 .an-bk-row { display: flex; align-items: center; gap: 12px; }
 .an-bk-dot { width: 12px; height: 12px; border-radius: 4px; flex-shrink: 0; }
-.an-bk-name { font-size: 13px; font-weight: 500; color: var(--text); min-width: 120px; }
+.an-bk-name { font-size: 13px; font-weight: 500; color: var(--text); min-width: 120px; overflow-wrap: anywhere; }
 .an-bk-bar-wrap { flex: 1; height: 7px; background: var(--progress-bg); border-radius: 99px; overflow: hidden; }
 .an-bk-bar { height: 100%; border-radius: 99px; transition: width 0.6s; }
 .an-bk-val { font-size: 12px; font-weight: 700; color: var(--text-mute); min-width: 52px; text-align: right; }

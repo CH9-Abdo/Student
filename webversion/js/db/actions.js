@@ -187,6 +187,7 @@ Database.prototype.toggleChapterStatus = async function(chapterId, type, status)
     const c = this.data.chapters[idx];
     const sub = this.data.subjects.find(s => s.id === c.subject_id);
     const subHasEx = sub ? (sub.has_exercises !== false) : true;
+    const wasCompleted = !!c.is_completed;
 
     if (type === 'video') c.video_completed = status;
     else c.exercises_completed = status;
@@ -195,25 +196,118 @@ Database.prototype.toggleChapterStatus = async function(chapterId, type, status)
     this.save();
 
     await this.pushToCloud('chapters', c);
+
+    if (status && !wasCompleted && c.is_completed) {
+        const now = new Date();
+        const rewardAmount = subHasEx ? 20 : 10;
+        await this.claimXpReward(
+            'chapter_completion',
+            String(chapterId),
+            rewardAmount,
+            subHasEx ? 'chapter_completion' : 'course_only_completion',
+            {
+                chapterId,
+                subjectId: c.subject_id,
+                dateKey: typeof this.getDateKey === 'function' ? this.getDateKey(now) : null
+            }
+        );
+    }
 };
 
-Database.prototype.updateProfile = async function(updates) {
+Database.prototype.claimXpReward = async function(bucket, rewardKey, amount, reason, meta = {}) {
+    const safeAmount = Math.max(0, Math.round(Number(amount) || 0));
+    if (!safeAmount) {
+        return {
+            awarded: false,
+            duplicate: false,
+            amount: 0,
+            reason,
+            meta
+        };
+    }
+
+    if (this.hasRewardEvent(bucket, rewardKey)) {
+        return {
+            awarded: false,
+            duplicate: true,
+            amount: 0,
+            reason,
+            meta
+        };
+    }
+
+    this.recordRewardEvent(bucket, rewardKey, {
+        amount: safeAmount,
+        reason,
+        dateKey: meta?.dateKey || null
+    });
+
+    const result = await this.awardXp(reason, safeAmount, meta);
+    this.notifyRewardGranted?.(reason, safeAmount, meta);
+    return {
+        ...result,
+        duplicate: false,
+        rewardBucket: bucket,
+        rewardKey
+    };
+};
+
+Database.prototype.awardXp = async function(reason, amount, meta = {}) {
+    const safeAmount = Math.max(0, Math.round(Number(amount) || 0));
+    if (!safeAmount) {
+        return {
+            awarded: false,
+            amount: 0,
+            reason,
+            meta,
+            level: Number(this.data?.user_profile?.level || 1) || 1
+        };
+    }
+
+    const currentXp = Number(this.data?.user_profile?.xp || 0) || 0;
+    const profileResult = await this.updateProfile(
+        { xp: currentXp + safeAmount },
+        { showLevelToast: true, reason, meta }
+    );
+
+    return {
+        ...profileResult,
+        awarded: true,
+        amount: safeAmount,
+        reason,
+        meta
+    };
+};
+
+Database.prototype.updateProfile = async function(updates, options = {}) {
     console.log('[DB] updateProfile:', updates);
     if (!this.data.user_profile) return;
-    
+
+    const previousLevel = Number(this.data.user_profile.level || this.getLevelFromXp(this.data.user_profile.xp || 0) || 1) || 1;
     Object.assign(this.data.user_profile, updates);
-    
-    // Basic Level Up Logic
-    const xp = this.data.user_profile.xp || 0;
-    const xpPerLevel = (typeof this.getXpPerLevel === 'function') ? this.getXpPerLevel() : 1000;
-    const newLevel = Math.floor(xp / xpPerLevel) + 1;
-    if (newLevel > (this.data.user_profile.level || 1)) {
-        this.data.user_profile.level = newLevel;
-        console.log(`[DB] Level Up! New Level: ${newLevel}`);
-    }
-    
+
+    this.data.user_profile.xp = Math.max(0, Number(this.data.user_profile.xp || 0));
+    this.data.user_profile.total_sessions = Math.max(0, Number(this.data.user_profile.total_sessions || 0));
+    const newLevel = this.getLevelFromXp(this.data.user_profile.xp);
+    this.data.user_profile.level = newLevel;
+
     this.save();
     await this.pushToCloud('user_profile', this.data.user_profile);
+
+    if (newLevel > previousLevel) {
+        console.log(`[DB] Level Up! New Level: ${newLevel}`);
+        if (options.showLevelToast !== false) {
+            this.notifyLevelProgression(previousLevel, newLevel);
+        }
+    }
+
+    return {
+        profile: this.data.user_profile,
+        previousLevel,
+        level: newLevel,
+        levelUp: newLevel > previousLevel,
+        milestones: this.getMilestonesCrossed(previousLevel, newLevel)
+    };
 };
 
 Database.prototype.logSession = async function(subjectId, duration) {
@@ -231,7 +325,94 @@ Database.prototype.logSession = async function(subjectId, duration) {
     this.save();
     
     await this.pushToCloud('study_sessions', newSession);
-    return newSession.id || localId;
+    await this.updateProfile({
+        total_sessions: (Number(this.data.user_profile.total_sessions || 0) || 0) + 1
+    }, { showLevelToast: false });
+
+    const sessionDate = (typeof this.getStudySessionDate === 'function' ? this.getStudySessionDate(newSession) : null) || new Date();
+    const dateKey = typeof this.getDateKey === 'function' ? this.getDateKey(sessionDate) : null;
+    const rewards = [];
+
+    const dailyStats = typeof this.getDailyStudyStats === 'function'
+        ? this.getDailyStudyStats(sessionDate)
+        : { goal: 3, sessions: 0 };
+
+    if (dailyStats.sessions >= dailyStats.goal && dateKey) {
+        const dailyGoalReward = await this.claimXpReward(
+            'daily_goal',
+            dateKey,
+            30,
+            'daily_goal',
+            {
+                dateKey,
+                goal: dailyStats.goal,
+                sessions: dailyStats.sessions
+            }
+        );
+        if (dailyGoalReward.awarded) rewards.push(dailyGoalReward);
+    }
+
+    if (dailyStats.sessions === 1 && dateKey) {
+        const streak = typeof this.getStudyStreak === 'function' ? this.getStudyStreak() : 0;
+        const streakBonus = Math.min(Math.max(0, streak - 1) * 15, 90);
+        if (streak > 1 && streakBonus > 0) {
+            const streakReward = await this.claimXpReward(
+                'streak_bonus',
+                dateKey,
+                streakBonus,
+                'study_streak',
+                {
+                    dateKey,
+                    streak
+                }
+            );
+            if (streakReward.awarded) rewards.push(streakReward);
+        }
+    }
+
+    return {
+        id: newSession.id || localId,
+        rewards,
+        bonusXp: rewards.reduce((total, reward) => total + (Number(reward.amount || 0) || 0), 0),
+        dateKey
+    };
+};
+
+Database.prototype.completeFocusSession = async function({ subjectId, durationMinutes, completedAt = new Date() } = {}) {
+    const safeSubjectId = Number(subjectId || 0) || null;
+    const safeMinutes = Math.max(1, Math.round(Number(durationMinutes) || 0));
+
+    if (!safeSubjectId || !safeMinutes) {
+        return {
+            logged: false,
+            xpAwarded: 0,
+            focusXp: 0,
+            bonusXp: 0,
+            rewards: [],
+            dateKey: typeof this.getDateKey === 'function' ? this.getDateKey(completedAt instanceof Date ? completedAt : new Date()) : null
+        };
+    }
+
+    const sessionResult = await this.logSession(safeSubjectId, safeMinutes);
+    const focusXp = typeof this.getPomodoroXpForMinutes === 'function'
+        ? this.getPomodoroXpForMinutes(safeMinutes)
+        : (safeMinutes * 2);
+
+    const focusReward = await this.awardXp('pomodoro_focus', focusXp, {
+        subjectId: safeSubjectId,
+        durationMinutes: safeMinutes,
+        dateKey: sessionResult?.dateKey || null
+    });
+
+    return {
+        logged: true,
+        sessionId: sessionResult?.id || null,
+        focusXp: Number(focusReward?.amount || 0) || 0,
+        bonusXp: Number(sessionResult?.bonusXp || 0) || 0,
+        xpAwarded: (Number(focusReward?.amount || 0) || 0) + (Number(sessionResult?.bonusXp || 0) || 0),
+        rewards: [focusReward, ...(sessionResult?.rewards || [])].filter(Boolean),
+        dateKey: sessionResult?.dateKey || null
+    };
 };
 
 Database.prototype.applyTemplate = async function(template) {
@@ -266,6 +447,4 @@ Database.prototype.applyTemplate = async function(template) {
     }
     return true;
 };
-
-
 

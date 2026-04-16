@@ -160,7 +160,7 @@ Database.prototype.updateLocalId = function(table, oldId, newId) {
     }
 };
 
-Database.prototype.syncFromCloud = async function() {
+Database.prototype.syncFromCloud = async function(options = {}) {
     if (!auth || !auth.user || auth.user.id === 'offline-user') {
         console.warn('syncFromCloud: No cloud user session');
         return false;
@@ -171,6 +171,15 @@ Database.prototype.syncFromCloud = async function() {
     }
     if (!navigator.onLine) {
         console.warn('syncFromCloud: Offline');
+        return false;
+    }
+
+    const allowDirtyDownload = options.allowDirtyDownload === true;
+    const pendingBreakdown = typeof this.getPendingSyncBreakdown === 'function'
+        ? this.getPendingSyncBreakdown()
+        : { total: 0 };
+    if (!allowDirtyDownload && pendingBreakdown.total > 0) {
+        console.warn(`syncFromCloud: blocked because ${pendingBreakdown.total} local cloud change(s) are still pending`);
         return false;
     }
 
@@ -210,6 +219,9 @@ Database.prototype.syncFromCloud = async function() {
 
         this.data.study_sessions = rSess.data || [];
         if (rProf.data) this.data.user_profile = { ...this.data.user_profile, ...rProf.data };
+        if (typeof this.normalizeProgressionData === 'function') {
+            this.normalizeProgressionData();
+        }
 
         this.lastSync = new Date().toLocaleTimeString();
         localStorage.setItem('last_sync_v7', this.lastSync);

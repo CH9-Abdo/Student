@@ -60,14 +60,20 @@ Database.prototype.getDailyStudyStats = function(now = new Date()) {
         minutes += Number(session.duration_minutes || 0) || 0;
     }
 
-    const xp = (typeof this.getPomodoroXpForMinutes === 'function')
+    const baseXp = (typeof this.getPomodoroXpForMinutes === 'function')
         ? this.getPomodoroXpForMinutes(minutes)
         : (minutes * 2);
+    const bonusXp = typeof this.getRewardXpForDate === 'function'
+        ? this.getRewardXpForDate(todayKey)
+        : 0;
+    const xp = baseXp + bonusXp;
 
     return {
         sessions,
         minutes,
         xp,
+        base_xp: baseXp,
+        bonus_xp: bonusXp,
         goal,
         remaining: Math.max(0, goal - sessions),
         complete: sessions >= goal

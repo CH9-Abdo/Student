@@ -962,7 +962,16 @@ class StudentProApp {
         get('web-download-btn')?.addEventListener('click', async () => {
             console.log("[App] Sync: download (from cloud) started");
             try {
-                await db.syncFromCloud();
+                const result = await db.syncFromCloud();
+                if (!result) {
+                    showToast(
+                        (TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"]).toast_sync_blocked_pending
+                            || "Upload your pending cloud changes before downloading.",
+                        'warning'
+                    );
+                    this.refreshLastSync();
+                    return;
+                }
                 this.refreshAll();
                 console.log("[App] Sync: download finished");
                 showToast((TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_download_ok || "Data downloaded from cloud! ☁️", 'success');
@@ -1030,8 +1039,17 @@ class StudentProApp {
 
         get('manual-sync-btn')?.addEventListener('click', async () => {
             try {
-                await db.syncPendingChanges();
-                await db.syncFromCloud();
+                const uploadOk = await db.syncPendingChanges();
+                const downloadOk = uploadOk ? await db.syncFromCloud() : false;
+                if (!downloadOk) {
+                    showToast(
+                        (TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"]).toast_sync_blocked_pending
+                            || "Upload your pending cloud changes before downloading.",
+                        'warning'
+                    );
+                    this.refreshLastSync();
+                    return;
+                }
                 this.refreshAll();
                 showToast((TRANSLATIONS[this.selectedLang]||TRANSLATIONS["English"]).toast_sync_ok || "Synced! ☁️", 'success');
                 this.refreshLastSync();
@@ -1223,7 +1241,10 @@ class StudentProApp {
         const accStats = get('acc-stats');
         if (accStats && db.data?.user_profile) {
             const level = db.data.user_profile.level || 1;
-            accStats.textContent = `${T.level_label || T.level || 'Level'} ${level} ${T.student || 'Student'}`;
+            const title = typeof db?.getLevelTitle === 'function'
+                ? db.getLevelTitle(level, this.selectedLang)
+                : (T.student || 'Student');
+            accStats.textContent = `${T.level_label || T.level || 'Level'} ${level} | ${title}`;
         }
     }
 
@@ -1236,20 +1257,23 @@ class StudentProApp {
 
     refreshLastSync() {
         const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
-        const pending = typeof db.getPendingSyncCount === 'function' ? db.getPendingSyncCount() : 0;
+        const pendingBreakdown = typeof db.getPendingSyncBreakdown === 'function'
+            ? db.getPendingSyncBreakdown()
+            : { uploads: typeof db.getPendingSyncCount === 'function' ? db.getPendingSyncCount() : 0, deletions: 0, total: typeof db.getPendingSyncCount === 'function' ? db.getPendingSyncCount() : 0 };
+        const pending = pendingBreakdown.total;
         const fill = (template, values = {}) => String(template || '').replace(/\{(\w+)\}/g, (_, key) => (
             values[key] !== undefined ? String(values[key]) : ''
         ));
 
         let text = '';
         if (!auth.user || auth.user.id === 'offline-user') {
-            text = T.sync_status_offline_local || 'Offline mode · saved on this device';
+            text = T.sync_status_offline_local || 'Offline mode | saved on this device only';
         } else if (!navigator.onLine) {
             text = pending > 0
-                ? fill(T.sync_status_offline_pending || 'Offline · {count} change(s) waiting to sync', { count: pending })
-                : (T.sync_status_offline_cloud || 'Offline · cloud sync paused');
+                ? fill(T.sync_status_offline_pending || 'Offline | {count} cloud change(s) queued', { count: pending })
+                : (T.sync_status_offline_cloud || 'Offline | cloud sync paused');
         } else if (pending > 0) {
-            text = fill(T.sync_status_pending || '{count} change(s) waiting to sync', { count: pending });
+            text = fill(T.sync_status_pending || '{count} cloud change(s) waiting to sync', { count: pending });
         } else {
             text = fill(T.sync_status_synced || 'Last sync: {time}', {
                 time: db.lastSync || T.never || 'Never'

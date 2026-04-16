@@ -493,12 +493,14 @@ StudentProApp.prototype.addResource = function() {
 StudentProApp.prototype.toggleCap = async function(id, type) {
     const c = db.data.chapters.find(x => x.id === id);
     if (!c) return;
+    const subjectWindowModal = get('subject-window-modal');
+    const isSubjectWindowOpen = !!subjectWindowModal && !subjectWindowModal.classList.contains('hidden');
     console.log(
         `[Planner] Chapter toggle: id=${id}, subject_id=${c.subject_id}, chapter="${c.name}", field=${type}, next=${!(type === 'video' ? c.video_completed : c.exercises_completed)}`
     );
     await db.toggleChapterStatus(id, type, !(type === 'video' ? c.video_completed : c.exercises_completed));
-    this.refreshSubjectWindowData();
-    this.refreshPlanner();
+    if (isSubjectWindowOpen) this.refreshSubjectWindowData();
+    this.refreshAll();
 };
 
 StudentProApp.prototype.togglePlannerChapterStatus = async function(id, type) {

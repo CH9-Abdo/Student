@@ -44,16 +44,26 @@ StudentProApp.prototype.refreshLeaderboard = async function() {
         const rest = data.slice(3);
 
         const myId = auth.user ? auth.user.id : 'offline-user';
+        const escapeHtml = (value) => String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
 
         const renderPod = (u, rank) => {
             if (!u) {
                 return `<div class="lb-pod"><div class="lb-loading">${T.lb_loading || 'Loading...'}</div></div>`;
             }
             const isMe = u.user_id === myId;
-            const name = u.display_name || (T.student || 'Student');
+            const name = escapeHtml(u.display_name || (T.student || 'Student'));
             const levelLabel = T.level_label || T.level || 'Level';
             const sessions = Number(u.total_sessions ?? u.sessions ?? 0) || 0;
             const xp = Number(u.xp || 0) || 0;
+            const level = Number(u.level || 1) || 1;
+            const levelTitle = typeof db?.getLevelTitle === 'function'
+                ? db.getLevelTitle(level, this.selectedLang)
+                : (T.beginner || 'Beginner');
             const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
             const cls = rank === 1 ? 'gold' : rank === 2 ? 'silver' : 'bronze';
             const meTag = isMe ? ` <span class="lb-chip primary lb-mechip">Me</span>` : '';
@@ -69,7 +79,7 @@ StudentProApp.prototype.refreshLeaderboard = async function() {
                     <div class="lb-meta">
                         <span class="lb-chip"><strong>${sessions}</strong> ${T.lb_sessions || 'Sessions'}</span>
                         <span class="lb-chip"><strong>${xp}</strong> ${T.xp || 'XP'}</span>
-                        <span class="lb-chip"><strong>${u.level || 1}</strong> ${levelLabel}</span>
+                        <span class="lb-chip"><strong>${level}</strong> ${levelLabel} <span class="lb-chip-title">${escapeHtml(levelTitle)}</span></span>
                     </div>
                 </div>
             `;
@@ -100,9 +110,13 @@ StudentProApp.prototype.refreshLeaderboard = async function() {
         const renderRow = (u, idx) => {
             const isMe = u.user_id === myId;
             const rank = idx + 4;
-            const name = u.display_name || (T.student || 'Student');
+            const name = escapeHtml(u.display_name || (T.student || 'Student'));
             const sessions = Number(u.total_sessions ?? u.sessions ?? 0) || 0;
             const xp = Number(u.xp || 0) || 0;
+            const level = Number(u.level || 1) || 1;
+            const levelTitle = typeof db?.getLevelTitle === 'function'
+                ? db.getLevelTitle(level, this.selectedLang)
+                : (T.beginner || 'Beginner');
             return `
                 <div class="lb-row ${isMe ? 'me' : ''}">
                     <div class="lb-col-rank">${rank}</div>
@@ -110,7 +124,10 @@ StudentProApp.prototype.refreshLeaderboard = async function() {
                         ${name}${isMe ? ' <span class="badge">Me</span>' : ''}
                         <span class="lb-sub">${xp} ${T.xp || 'XP'}</span>
                     </div>
-                    <div class="lb-col-level">${u.level || 1}</div>
+                    <div class="lb-col-level">
+                        <span class="lb-level-num">${level}</span>
+                        <span class="lb-level-title">${escapeHtml(levelTitle)}</span>
+                    </div>
                     <div class="lb-col-sessions">${sessions}</div>
                 </div>
             `;

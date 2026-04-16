@@ -2,6 +2,12 @@
 StudentProApp.prototype.refreshAnalytics = function() {
     const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
     const ACCENT_COLORS = ['#6366f1','#0ea5a0','#f59e0b','#ef4444','#8b5cf6','#10b981','#f43f5e','#3b82f6'];
+    const escapeHtml = (value) => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     const subjects = db.data.subjects;
     const chapters = db.data.chapters;
     const sessions = db.data.study_sessions;
@@ -27,10 +33,11 @@ StudentProApp.prototype.refreshAnalytics = function() {
         const examText = exam
             ? (exam.days === 0 ? (T.today || 'Today!') : `${exam.days}${T.days_left ? ' ' + T.days_left : 'd'}`)
             : (T.none || '—');
+        const examName = escapeHtml(exam?.name || '');
         const examNote = exam
             ? (exam.days <= 7
-                ? `<span class="an-kpi-note warn">⚠ ${exam.name}</span>`
-                : `<span class="an-kpi-note">${exam.name}</span>`)
+                ? `<span class="an-kpi-note warn" dir="auto" title="${examName}">⚠ ${examName}</span>`
+                : `<span class="an-kpi-note" dir="auto" title="${examName}">${examName}</span>`)
             : `<span class="an-kpi-note">${T.no_exams_set || 'No exams set'}</span>`;
         const weekNote = weekSessions > 0
             ? `${weekSessions} ${T.sessions_this_week_label || 'this week'}`
@@ -75,6 +82,7 @@ StudentProApp.prototype.refreshAnalytics = function() {
         } else {
             subBarsEl.innerHTML = subjects.map((s, idx) => {
                 const color   = ACCENT_COLORS[idx % ACCENT_COLORS.length];
+                const safeName = escapeHtml(s.name || (T.subjects || 'Subject'));
                 const chaps   = chapters.filter(c => c.subject_id === s.id);
                 const vDone   = chaps.filter(c => c.video_completed).length;
                 const eDone   = chaps.filter(c => c.exercises_completed).length;
@@ -89,7 +97,7 @@ StudentProApp.prototype.refreshAnalytics = function() {
                 return `
                     <div class="an-sb-row">
                         <div class="an-sb-top">
-                            <span class="an-sb-name">${s.name}</span>
+                            <span class="an-sb-name" dir="auto" title="${safeName}">${safeName}</span>
                             <span class="an-sb-pct">${perc}%</span>
                         </div>
                         <div class="an-sb-track">
@@ -160,9 +168,10 @@ StudentProApp.prototype.refreshAnalytics = function() {
                 const lbl  = e.days === 0
                     ? (T.today || 'Today!')
                     : `${e.days} ${T.days_left || 'd left'}`;
+                const safeExamName = escapeHtml(e.name);
                 return `
                     <div class="an-exam-item ${cls}">
-                        <span class="an-exam-name">${e.name}</span>
+                        <span class="an-exam-name" dir="auto" title="${safeExamName}">${safeExamName}</span>
                         <span class="an-exam-days">${lbl}</span>
                     </div>
                 `;
@@ -194,10 +203,11 @@ StudentProApp.prototype.refreshAnalytics = function() {
             bkEl.innerHTML = entries.map(([name, mins], idx) => {
                 const color = ACCENT_COLORS[idx % ACCENT_COLORS.length];
                 const width = Math.round((mins / maxVal) * 100);
+                const safeName = escapeHtml(name);
                 return `
                     <div class="an-bk-row">
                         <span class="an-bk-dot" style="background:${color};"></span>
-                        <span class="an-bk-name">${name}</span>
+                        <span class="an-bk-name" dir="auto" title="${safeName}">${safeName}</span>
                         <div class="an-bk-bar-wrap">
                             <div class="an-bk-bar" style="width:${width}%;background:${color};opacity:0.8;"></div>
                         </div>
