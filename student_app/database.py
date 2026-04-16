@@ -228,7 +228,57 @@ def get_next_exam_info():
     days = (datetime.strptime(r['exam_date'], "%Y-%m-%d").date() - datetime.now().date()).days
     return (r['name'], days) if days >= 0 else None
 
-def get_study_streak(): return 1
+def get_daily_study_stats(goal=3):
+    conn = get_db_connection()
+    today_key = datetime.now().date().isoformat()
+    row = conn.execute(
+        "SELECT COUNT(*) AS sessions, COALESCE(SUM(duration_minutes), 0) AS minutes "
+        "FROM study_sessions WHERE date(timestamp) = ?",
+        (today_key,)
+    ).fetchone()
+    conn.close()
+
+    sessions = int(row['sessions'] or 0)
+    minutes = int(row['minutes'] or 0)
+    return {
+        "sessions": sessions,
+        "minutes": minutes,
+        "xp": minutes * 2,
+        "goal": goal,
+        "remaining": max(0, goal - sessions),
+        "complete": sessions >= goal
+    }
+
+def get_study_streak():
+    conn = get_db_connection()
+    rows = conn.execute(
+        "SELECT DISTINCT date(timestamp) AS study_day "
+        "FROM study_sessions "
+        "WHERE timestamp IS NOT NULL "
+        "ORDER BY study_day DESC"
+    ).fetchall()
+    conn.close()
+
+    study_days = {row['study_day'] for row in rows if row['study_day']}
+    if not study_days:
+        return 0
+
+    today = datetime.now().date()
+    yesterday = today - timedelta(days=1)
+
+    if today.isoformat() in study_days:
+        cursor = today
+    elif yesterday.isoformat() in study_days:
+        cursor = yesterday
+    else:
+        return 0
+
+    streak = 0
+    while cursor.isoformat() in study_days:
+        streak += 1
+        cursor -= timedelta(days=1)
+    return streak
+
 def add_semester(name): conn = get_db_connection(); c = conn.cursor(); c.execute("INSERT INTO semesters (id, name) VALUES (?, ?)", (int(datetime.now().timestamp()), name)); conn.commit(); conn.close()
 def add_subject(name, sem_id): conn = get_db_connection(); c = conn.cursor(); c.execute("INSERT INTO subjects (id, semester_id, name) VALUES (?, ?, ?)", (int(datetime.now().timestamp()), sem_id, name)); conn.commit(); conn.close()
 def add_chapter(sub_id, name, youtube_url=None): 

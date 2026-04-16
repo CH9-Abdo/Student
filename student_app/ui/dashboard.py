@@ -4,7 +4,14 @@ from PyQt5.QtWidgets import (
     QScrollArea, QGridLayout, QProgressBar, QPushButton
 )
 from PyQt5.QtCore import Qt, QDate, pyqtSignal
-from student_app.database import get_todo_chapters, get_progress_stats, get_all_subjects, get_next_exam_info, get_study_streak
+from student_app.database import (
+    get_todo_chapters,
+    get_progress_stats,
+    get_all_subjects,
+    get_next_exam_info,
+    get_study_streak,
+    get_daily_study_stats
+)
 from student_app.settings import get_language
 from student_app.ui.translations import TRANSLATIONS
 
@@ -152,16 +159,14 @@ class Dashboard(QWidget):
         self.streak_card.update_value(f"{streak} Days")
 
         # 2.6 Daily Goal Logic
-        from student_app.database import get_db_connection
-        from datetime import datetime
-        today_str = datetime.now().strftime("%Y-%m-%d")
-        conn = get_db_connection()
-        today_sessions = conn.execute("SELECT COUNT(*) FROM study_sessions WHERE date(timestamp) = ?", (today_str,)).fetchone()[0]
-        conn.close()
-        
-        self.daily_goal_label.setText(f"{today_sessions}/3")
-        self.daily_progress.setValue(min(today_sessions, 3))
-        if today_sessions >= 3: self.daily_goal_label.setText(f"{today_sessions}/3 ✅")
+        daily_stats = get_daily_study_stats()
+        goal = max(1, int(daily_stats["goal"]))
+        sessions_today = int(daily_stats["sessions"])
+        self.daily_goal_label.setText(
+            f"{sessions_today}/{goal} ✅" if daily_stats["complete"] else f"{sessions_today}/{goal}"
+        )
+        self.daily_progress.setRange(0, goal)
+        self.daily_progress.setValue(min(sessions_today, goal))
 
         # 3. To-Do List
         for i in reversed(range(self.todo_layout.count())): 

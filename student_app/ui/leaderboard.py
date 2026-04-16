@@ -74,7 +74,7 @@ class LeaderboardTab(QWidget):
                 self.table.setItem(i, 2, QTableWidgetItem(f"Level {level}"))
                 
                 # Sessions
-                sessions = row['sessions_count'] if row['sessions_count'] else 0
+                sessions = row.get('sessions_count', 0)
                 self.table.setItem(i, 3, QTableWidgetItem(str(sessions)))
 
                 # Alignment

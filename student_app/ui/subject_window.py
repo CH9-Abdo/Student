@@ -263,12 +263,16 @@ class SubjectWindow(QMainWindow):
         has_exercises = True
         
         if subject:
-            if subject['exam_date']:
-                self.exam_date_edit.setDate(QDate.fromString(subject['exam_date'], "yyyy-MM-dd"))
-            if subject['test_date']:
-                self.test_date_edit.setDate(QDate.fromString(subject['test_date'], "yyyy-MM-dd"))
+            subject_dict = dict(subject)
+            exam_date = subject_dict.get('exam_date')
+            if exam_date:
+                self.exam_date_edit.setDate(QDate.fromString(exam_date, "yyyy-MM-dd"))
+            
+            test_date = subject_dict.get('test_date')
+            if test_date:
+                self.test_date_edit.setDate(QDate.fromString(test_date, "yyyy-MM-dd"))
             # Check for has_exercises column safely
-            try: has_exercises = bool(subject['has_exercises'])
+            try: has_exercises = bool(subject_dict.get('has_exercises', False))
             except: pass
 
         # Refresh Progress

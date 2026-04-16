@@ -410,11 +410,10 @@ StudentProApp.prototype.completeSession = async function(opts = {}) {
     const completedKind = this._pomodoroKind || 'focus';
 
     if (completedKind === 'break') {
-        // Break finished: return to focus.
+        // Break finished: start next focus automatically (continuous cycle).
         const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
         showToast(T.toast_break_finished || "✅ Break finished. Ready to focus.", 'info', 3500);
-        this.resetTimer();
-        this.refreshAll();
+        this.startNextFocus();
         return;
     }
 
@@ -994,7 +993,8 @@ StudentProApp.prototype.startNextFocus = function() {
     this.timeLeft = this._getFocusDurationSec();
     this._pomodoroTotalSec = this.timeLeft;
     this._pomodoroSubjectId = null;
-    this.applyRecommendedPomodoroSubject();
+    // Don't auto-switch subjects if the user already picked one.
+    if (!this.activeSubjectId) this.applyRecommendedPomodoroSubject();
     this.updateTimerDisplay();
     this.toggleTimer();
     this.refreshAll();
