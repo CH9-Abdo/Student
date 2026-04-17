@@ -353,9 +353,9 @@
 
                 <!-- Empty state (shown via JS) -->
                 <div id="planner-empty" class="planner-empty hidden">
-                    <div class="planner-empty-icon">📚</div>
-                    <p>No subjects yet</p>
-                    <span>Click "Add Subject" above to get started</span>
+                    <img src="assets/img/no-subject.png" alt="No subjects" class="empty-state-img">
+                    <p data-i18n="no_subjects_yet">No subjects yet</p>
+                    <span data-i18n="add_subject_hint">Click "Add Subject" above to get started</span>
                 </div>
 
                 <!-- Hidden legacy elements kept for JS compatibility -->
@@ -397,11 +397,13 @@
                         <!-- Timer Card -->
                         <div class="card timer-card">
                             <div class="timer-display-wrapper">
+                                <img src="assets/img/pomodoro-technique.png" class="timer-bg-image" alt="Focus">
+                                <img src="assets/img/relaxation.png" class="timer-bg-break-image" alt="Break">
                                 <svg class="timer-svg" viewBox="0 0 100 100">
                                     <defs>
                                         <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" style="stop-color:var(--primary);stop-opacity:1" />
-                                            <stop offset="100%" style="stop-color:var(--secondary);stop-opacity:1" />
+                                            <stop offset="0%" style="stop-color:#ff8a00;stop-opacity:1" />
+                                            <stop offset="100%" style="stop-color:#ff2d55;stop-opacity:1" />
                                         </linearGradient>
                                     </defs>
                                     <circle class="timer-bg" cx="50" cy="50" r="45"/>
@@ -554,27 +556,33 @@
             ========================================== -->
             <section id="analytics" class="tab-content">
 
-                <div class="an-header">
-                    <div>
-                        <h2 class="h1">Analytics</h2>
-                        <p class="mute" id="analytics-semester-label">All semesters</p>
-                    </div>
+                <div id="analytics-empty" class="analytics-empty hidden">
+                    <img src="assets/img/no-analytics.png" alt="No analytics" class="empty-state-img">
+                    <p data-i18n="no_sessions_yet">No study sessions recorded yet</p>
+                    <span data-i18n="start_focus_hint">Start a Pomodoro session to see your progress!</span>
                 </div>
 
-                <!-- KPI row -->
-                <div class="an-kpi-row" id="an-kpi-row"></div>
-
-                <!-- Main grid -->
-                <div class="an-grid">
-
-                    <!-- Subject Progress (tall, left) -->
-                    <div class="card an-card an-card-tall">
-                        <div class="an-card-head">
-                            <h3 class="an-card-title">Subject Progress</h3>
-                            <span class="an-card-badge" id="an-subjects-count">0 subjects</span>
+                <div id="analytics-content" class="analytics-content">
+                    <div class="an-header">
+                        <div>
+                            <h2 class="h1">Analytics</h2>
+                            <p class="mute" id="analytics-semester-label">All semesters</p>
                         </div>
-                        <div id="an-subject-bars" class="an-subject-bars"></div>
                     </div>
+
+                    <!-- KPI row -->
+                    <div id="an-kpi-row" class="an-kpi-row"></div>
+
+                    <!-- Main grid -->
+                    <div class="an-grid">
+                        <!-- Subject Progress (tall, left) -->
+                        <div class="card an-card an-card-tall">
+                            <div class="an-card-head">
+                                <h3 class="an-card-title">Subject Progress</h3>
+                                <span class="an-card-badge" id="an-subjects-count">0 subjects</span>
+                            </div>
+                            <div id="an-subject-bars" class="an-subject-bars"></div>
+                        </div>
 
                     <!-- Right column: two stacked cards -->
                     <div class="an-right-col">
@@ -613,6 +621,7 @@
                 <canvas id="weekly-bar-chart" style="display:none;"></canvas>
                 <canvas id="subject-pie-chart" style="display:none;"></canvas>
 
+                </div> <!-- End analytics-content -->
             </section>
 
             <!-- ==========================================
@@ -621,9 +630,12 @@
             <section id="leaderboard" class="tab-content">
                 <div class="lb-shell">
                     <div class="lb-top">
-                        <div class="lb-title">
-                            <h2 class="h1" id="leaderboard-title">Leaderboard</h2>
-                            <p class="mute" id="lb-subtitle">Ranked by sessions, then XP</p>
+                        <div class="lb-title-group">
+                            <img src="assets/img/trophy.png" class="lb-trophy-icon" alt="Trophy">
+                            <div class="lb-title">
+                                <h2 class="h1" id="leaderboard-title">Leaderboard</h2>
+                                <p class="mute" id="lb-subtitle">Ranked by sessions, then XP</p>
+                            </div>
                         </div>
                         <div class="lb-segments" role="tablist" aria-label="Leaderboard period">
                             <button class="lb-seg active" role="tab" aria-selected="true" data-period="daily" id="lb-seg-daily">Daily</button>

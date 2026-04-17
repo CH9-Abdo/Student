@@ -204,6 +204,9 @@ StudentProApp.prototype._getPomodoroNotificationContent = function(kind) {
 StudentProApp.prototype._setPomodoroStatus = function(kind) {
     this._pomodoroKind = kind;
     const el = get('timer-status');
+    const card = document.querySelector('.timer-card');
+    if (card) card.classList.toggle('mode-break', kind === 'break');
+    
     if (!el) return;
     const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
     el.textContent = kind === 'break'
@@ -224,6 +227,9 @@ StudentProApp.prototype._setPomodoroPrimaryButton = function(mode) {
     const state = states[mode] || states.start;
     btn.innerHTML = `<i class="fas ${state.icon}"></i> ${state.label}`;
     btn.classList.toggle('running', state.running);
+
+    const wrapper = document.querySelector('.timer-display-wrapper');
+    if (wrapper) wrapper.classList.toggle('timer-running', state.running);
 };
 
 StudentProApp.prototype._playPomodoroEndSound = async function() {

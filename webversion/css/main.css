@@ -712,3 +712,65 @@ input::placeholder { color: var(--text-mute); }
 html[dir="rtl"] .modal-actions { flex-direction: row-reverse; }
 html[dir="rtl"] .setting-item  { flex-direction: row-reverse; }
 html[dir="rtl"] .header-actions { flex-direction: row-reverse; }
+
+/* --- NEW ASSETS STYLING --- */
+.lb-title-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.lb-trophy-icon {
+    height: 48px;
+    width: auto;
+    filter: drop-shadow(0 4px 8px rgba(245, 158, 11, 0.4));
+}
+
+.empty-state-img {
+    width: 180px;
+    height: auto;
+    margin-bottom: 20px;
+    opacity: 0.9;
+}
+
+.planner-empty, .analytics-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.planner-empty p, .analytics-empty p {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.planner-empty span, .analytics-empty span {
+    font-size: 0.9rem;
+    color: var(--text-mute);
+}
+
+.analytics-content.hidden {
+    display: none;
+}
+
+/* Responsive adjustments for new assets */
+@media (max-width: 768px) {
+    .lb-title-group {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+    
+    .lb-trophy-icon {
+        height: 40px;
+    }
+    
+    .empty-state-img {
+        width: 140px;
+    }
+}

@@ -12,6 +12,16 @@ StudentProApp.prototype.refreshAnalytics = function() {
     const chapters = db.data.chapters;
     const sessions = db.data.study_sessions;
 
+    // ── Toggle Empty State ────────────────────────────────
+    const emptyEl = get('analytics-empty');
+    const contentEl = get('analytics-content');
+    if (emptyEl && contentEl) {
+        const hasData = sessions.length > 0;
+        emptyEl.classList.toggle('hidden', hasData);
+        contentEl.classList.toggle('hidden', !hasData);
+        if (!hasData) return;
+    }
+
     // ── Compute base stats ────────────────────────────────
     const stats   = db.getProgressStats();
     const overallPerc = stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
