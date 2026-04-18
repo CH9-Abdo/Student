@@ -5,415 +5,412 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>الشنين — Your Study Companion</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg:      #080b14;
-            --surface: #0f1521;
-            --border:  rgba(255,255,255,0.07);
-            --text:    #f0f4ff;
-            --mute:    #7a8aaa;
-            --amber:   #f5a623;
-            --teal:    #00d4aa;
-            --red:     #ff5f6d;
-            --blue:    #4facfe;
+            --bg:            #0b0f1e;
+            --surface:       #111827;
+            --card:          #161d30;
+            --text:          #f1f5f9;
+            --text-mute:     #8892b0;
+            --primary:       #7b7fe8;
+            --primary-hover: #6366f1;
+            --primary-light: rgba(123,127,232,0.12);
+            --secondary:     #14b8b2;
+            --accent:        #fbbf24;
+            --danger:        #f87171;
+            --border:        #1e2a42;
+            --shadow-sm:     0 1px 3px rgba(0,0,0,0.3);
+            --shadow-md:     0 4px 16px rgba(0,0,0,0.3);
+            --shadow-lg:     0 12px 40px rgba(0,0,0,0.4);
+            --radius-sm:     10px;
+            --radius-md:     16px;
+            --radius-lg:     24px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
 
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'DM Sans', sans-serif;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* ── CANVAS BG ── */
         canvas#bg {
-            position: fixed;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
+            position: fixed; inset: 0;
+            width: 100%; height: 100%;
+            pointer-events: none; z-index: 0;
         }
 
-        /* ── NOISE GRAIN ── */
         body::after {
             content: '';
-            position: fixed;
-            inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-            pointer-events: none;
-            z-index: 1;
-            opacity: 0.4;
+            position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: 1; opacity: 0.35;
         }
 
-        /* ── LAYOUT ── */
         .wrap {
-            position: relative;
-            z-index: 2;
-            max-width: 680px;
+            position: relative; z-index: 2;
+            max-width: 720px;
             margin: 0 auto;
-            padding: 0 24px 80px;
+            padding: 0 24px 100px;
         }
 
-        /* ── TOP NAV ── */
+        /* ══ NAV ══ */
         nav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 28px 0 0;
-            opacity: 0;
-            animation: fadeUp 0.6s 0.1s ease forwards;
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 24px; margin: 0 -24px;
+            background: rgba(11,15,30,0.8);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(30,42,66,0.6);
+            opacity: 0; animation: fadeDown 0.5s 0.1s ease forwards;
         }
 
         .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-family: 'Bricolage Grotesque', sans-serif;
-            font-weight: 800;
-            font-size: 18px;
-            letter-spacing: -0.3px;
+            display: flex; align-items: center; gap: 10px;
+            font-family: 'Sora', sans-serif; font-weight: 800; font-size: 18px;
+            text-decoration: none; color: var(--text);
         }
 
-        .nav-logo span {
-            display: grid;
-            place-items: center;
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, var(--amber), #e8912a);
-            border-radius: 10px;
-            font-size: 18px;
+        .nav-logo-icon {
+            display: grid; place-items: center;
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: var(--radius-sm);
+            box-shadow: 0 4px 12px rgba(123,127,232,0.35);
+        }
+
+        .nav-logo-icon img {
+            height: 22px; width: auto; display: block;
+            filter: brightness(0) invert(1);
         }
 
         .nav-badge {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 99px;
-            border: 1px solid var(--border);
-            color: var(--mute);
-            letter-spacing: 0.5px;
+            font-size: 11px; font-weight: 600;
+            padding: 4px 10px; border-radius: 99px;
+            border: 1px solid var(--border); color: var(--text-mute);
         }
 
-        /* ── HERO ── */
+        /* ══ HERO ══ */
         .hero {
-            padding: 72px 0 56px;
+            padding: 72px 0 80px;
             text-align: center;
         }
 
         .hero-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: var(--amber);
-            border: 1px solid rgba(245,166,35,0.3);
-            background: rgba(245,166,35,0.06);
-            padding: 6px 14px;
-            border-radius: 99px;
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 12px; font-weight: 600;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            color: var(--accent);
+            border: 1px solid rgba(251,191,36,0.3);
+            background: rgba(251,191,36,0.07);
+            padding: 6px 16px; border-radius: 99px;
             margin-bottom: 28px;
-            opacity: 0;
-            animation: fadeUp 0.6s 0.2s ease forwards;
+            opacity: 0; animation: fadeUp 0.6s 0.25s ease forwards;
         }
 
-        .hero-tag::before {
-            content: '';
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: var(--amber);
-            animation: pulse 2s infinite;
+        .tag-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--accent); animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.7); }
+            0%,100% { opacity:1; transform:scale(1); }
+            50%      { opacity:0.4; transform:scale(0.7); }
         }
 
         .hero h1 {
-            font-family: 'Bricolage Grotesque', sans-serif;
-            font-size: clamp(44px, 9vw, 72px);
-            font-weight: 800;
-            line-height: 1.0;
-            letter-spacing: -2px;
-            margin-bottom: 20px;
-            opacity: 0;
-            animation: fadeUp 0.7s 0.3s ease forwards;
+            font-family: 'Sora', sans-serif;
+            font-size: clamp(38px, 8vw, 64px);
+            font-weight: 800; line-height: 1.05;
+            letter-spacing: -2px; margin-bottom: 16px;
+            opacity: 0; animation: fadeUp 0.7s 0.35s ease forwards;
         }
 
         .hero h1 em {
             font-style: normal;
-            background: linear-gradient(90deg, var(--amber) 0%, #ffcc70 50%, var(--teal) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 60%, var(--accent) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
 
-        .hero p {
-            font-size: 17px;
-            color: var(--mute);
-            line-height: 1.65;
-            max-width: 440px;
-            margin: 0 auto 40px;
-            opacity: 0;
-            animation: fadeUp 0.7s 0.4s ease forwards;
+        .hero-sub {
+            font-size: 16px; color: var(--text-mute); line-height: 1.7;
+            max-width: 440px; margin: 0 auto 48px;
+            opacity: 0; animation: fadeUp 0.7s 0.45s ease forwards;
         }
 
-        /* ── STATS STRIP ── */
-        .stats {
+        /* ══════════════════════════════════════
+           BIG DOWNLOAD BUTTONS — front & center
+        ══════════════════════════════════════ */
+        .download-hero {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+            opacity: 0; animation: fadeUp 0.7s 0.55s ease forwards;
+        }
+
+        .dl-btn {
+            position: relative;
             display: flex;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
-            gap: 32px;
-            flex-wrap: wrap;
-            margin-bottom: 56px;
-            opacity: 0;
-            animation: fadeUp 0.7s 0.5s ease forwards;
+            gap: 10px;
+            padding: 28px 16px 24px;
+            border-radius: var(--radius-lg);
+            text-decoration: none;
+            border: 1.5px solid var(--border);
+            background: var(--card);
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+            cursor: pointer;
+        }
+
+        /* Glow orb behind each button */
+        .dl-btn::before {
+            content: '';
+            position: absolute;
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            top: -30px; left: 50%; transform: translateX(-50%);
+            filter: blur(40px);
+            opacity: 0.35;
+            transition: opacity 0.3s;
+        }
+
+        .dl-btn.win::before  { background: var(--secondary); }
+        .dl-btn.apk::before  { background: var(--danger); }
+        .dl-btn.web::before  { background: var(--primary); }
+
+        .dl-btn:hover { transform: translateY(-4px); }
+        .dl-btn:hover::before { opacity: 0.65; }
+        .dl-btn.win:hover { border-color: var(--secondary); box-shadow: 0 16px 48px rgba(20,184,178,0.18); }
+        .dl-btn.apk:hover { border-color: var(--danger);    box-shadow: 0 16px 48px rgba(248,113,113,0.18); }
+        .dl-btn.web:hover { border-color: var(--primary);   box-shadow: 0 16px 48px rgba(123,127,232,0.18); }
+
+        .dl-btn:active { transform: translateY(-1px); }
+
+        .dl-os-icon {
+            font-size: 36px;
+            position: relative; z-index: 1;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+            transition: transform 0.2s;
+        }
+
+        .dl-btn:hover .dl-os-icon { transform: scale(1.12); }
+
+        .dl-content { position: relative; z-index: 1; }
+
+        .dl-label {
+            font-family: 'Sora', sans-serif;
+            font-size: 14px; font-weight: 700;
+            color: var(--text); margin-bottom: 4px;
+        }
+
+        .dl-sub {
+            font-size: 11px; color: var(--text-mute);
+            line-height: 1.4; text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .dl-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 11px; font-weight: 700;
+            padding: 5px 12px; border-radius: 99px;
+            border: 1px solid;
+            transition: background 0.2s;
+        }
+
+        .dl-btn.win .dl-badge { color: var(--secondary); border-color: rgba(20,184,178,0.35); }
+        .dl-btn.apk .dl-badge { color: var(--danger);    border-color: rgba(248,113,113,0.35); }
+        .dl-btn.web .dl-badge { color: var(--primary);   border-color: rgba(123,127,232,0.35); }
+
+        .dl-btn.win:hover .dl-badge { background: rgba(20,184,178,0.1); }
+        .dl-btn.apk:hover .dl-badge { background: rgba(248,113,113,0.1); }
+        .dl-btn.web:hover .dl-badge { background: rgba(123,127,232,0.1); }
+
+        /* Recommended badge */
+        .recommended-tag {
+            position: absolute;
+            top: 12px; right: 12px;
+            font-size: 10px; font-weight: 700;
+            padding: 3px 8px; border-radius: 99px;
+            background: var(--accent); color: #0b0f1e;
+        }
+
+        /* Tap hint */
+        .download-hint {
+            font-size: 12px; color: var(--text-mute);
+            text-align: center; margin-bottom: 64px;
+            opacity: 0; animation: fadeUp 0.5s 0.7s ease forwards;
+        }
+
+        .download-hint span { color: var(--primary); }
+
+        /* ══ STATS ══ */
+        .stats {
+            display: flex; justify-content: center;
+            flex-wrap: wrap; gap: 0;
+            margin-bottom: 64px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg); overflow: hidden;
+            opacity: 0; animation: fadeUp 0.7s 0.75s ease forwards;
         }
 
         .stat {
-            text-align: center;
+            flex: 1; min-width: 110px;
+            text-align: center; padding: 22px 16px;
+            position: relative;
+        }
+
+        .stat + .stat::before {
+            content: ''; position: absolute;
+            left: 0; top: 20%; bottom: 20%;
+            width: 1px; background: var(--border);
         }
 
         .stat-val {
-            font-family: 'Bricolage Grotesque', sans-serif;
-            font-size: 26px;
-            font-weight: 800;
-            color: var(--text);
+            font-family: 'Sora', sans-serif;
+            font-size: 26px; font-weight: 800;
+            line-height: 1; margin-bottom: 5px;
         }
 
-        .stat-lbl {
-            font-size: 12px;
-            color: var(--mute);
-            margin-top: 2px;
+        .stat-val.purple { color: var(--primary); }
+        .stat-val.teal   { color: var(--secondary); }
+        .stat-val.amber  { color: var(--accent); }
+        .stat-lbl { font-size: 12px; color: var(--text-mute); font-weight: 500; }
+
+        /* ══ PREVIEW ══ */
+        .preview-wrap {
+            position: relative; margin-bottom: 72px;
+            opacity: 0; animation: fadeUp 0.7s 0.8s ease forwards;
         }
 
-        .stat-div {
-            width: 1px;
-            background: var(--border);
-            align-self: stretch;
+        .preview-glow {
+            position: absolute; inset: 20px 40px -20px;
+            background: radial-gradient(ellipse, rgba(123,127,232,0.2), transparent 70%);
+            filter: blur(30px); z-index: 0;
         }
 
-        /* ── DOWNLOAD CARDS ── */
-        .section-label {
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--mute);
-            margin-bottom: 16px;
-            opacity: 0;
-            animation: fadeUp 0.6s 0.55s ease forwards;
-        }
-
-        .cards {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 48px;
-        }
-
-        .card {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            padding: 22px 24px;
-            border-radius: 18px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            text-decoration: none;
-            overflow: hidden;
-            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-            opacity: 0;
-        }
-
-        .card:nth-child(1) { animation: fadeUp 0.6s 0.6s ease forwards; }
-        .card:nth-child(2) { animation: fadeUp 0.6s 0.68s ease forwards; }
-        .card:nth-child(3) { animation: fadeUp 0.6s 0.76s ease forwards; }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .card.win::before  { background: radial-gradient(ellipse at 20% 50%, rgba(0,212,170,0.06), transparent 60%); }
-        .card.apk::before  { background: radial-gradient(ellipse at 20% 50%, rgba(255,95,109,0.06), transparent 60%); }
-        .card.web::before  { background: radial-gradient(ellipse at 20% 50%, rgba(79,172,254,0.06), transparent 60%); }
-
-        .card:hover { transform: translateY(-3px); }
-        .card:hover::before { opacity: 1; }
-        .card.win:hover  { border-color: rgba(0,212,170,0.3);  box-shadow: 0 8px 40px rgba(0,212,170,0.08); }
-        .card.apk:hover  { border-color: rgba(255,95,109,0.3); box-shadow: 0 8px 40px rgba(255,95,109,0.08); }
-        .card.web:hover  { border-color: rgba(79,172,254,0.3); box-shadow: 0 8px 40px rgba(79,172,254,0.08); }
-
-        .card-icon {
-            flex-shrink: 0;
-            width: 52px;
-            height: 52px;
-            border-radius: 14px;
-            display: grid;
-            place-items: center;
-            font-size: 24px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .card.win  .card-icon { background: rgba(0,212,170,0.12);  }
-        .card.apk  .card-icon { background: rgba(255,95,109,0.12); }
-        .card.web  .card-icon { background: rgba(79,172,254,0.12); }
-
-        .card-body {
-            flex: 1;
-            position: relative;
-            z-index: 1;
-        }
-
-        .card-title {
-            font-family: 'Bricolage Grotesque', sans-serif;
-            font-weight: 600;
-            font-size: 17px;
-            color: var(--text);
-            margin-bottom: 3px;
-        }
-
-        .card-desc {
-            font-size: 13px;
-            color: var(--mute);
-        }
-
-        .card-pill {
-            position: relative;
-            z-index: 1;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 5px 11px;
-            border-radius: 99px;
-            white-space: nowrap;
-            letter-spacing: 0.3px;
-        }
-
-        .card.win  .card-pill { background: rgba(0,212,170,0.1);  color: var(--teal); border: 1px solid rgba(0,212,170,0.25); }
-        .card.apk  .card-pill { background: rgba(255,95,109,0.1); color: var(--red);  border: 1px solid rgba(255,95,109,0.25); }
-        .card.web  .card-pill { background: rgba(79,172,254,0.1); color: var(--blue); border: 1px solid rgba(79,172,254,0.25); }
-
-        .card-arrow {
-            position: relative;
-            z-index: 1;
-            color: var(--mute);
-            font-size: 18px;
-            transition: transform 0.2s, color 0.2s;
-        }
-        .card:hover .card-arrow { transform: translate(3px, -3px); color: var(--text); }
-
-        /* ── FEATURES ── */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 48px;
-            opacity: 0;
-            animation: fadeUp 0.6s 0.85s ease forwards;
-        }
-
-        .feat {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 20px 18px;
-            text-align: center;
-            transition: border-color 0.2s, transform 0.2s;
-        }
-
-        .feat:hover {
-            border-color: rgba(245,166,35,0.25);
-            transform: translateY(-2px);
-        }
-
-        .feat-icon {
-            font-size: 26px;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        .feat-name {
-            font-family: 'Bricolage Grotesque', sans-serif;
-            font-weight: 600;
-            font-size: 13px;
-            color: var(--text);
-            margin-bottom: 4px;
-        }
-
-        .feat-desc {
-            font-size: 11.5px;
-            color: var(--mute);
-            line-height: 1.5;
-        }
-
-        /* ── PREVIEW IMAGE ── */
         .preview {
-            position: relative;
-            margin-bottom: 48px;
-            border-radius: 20px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-            opacity: 0;
-            animation: fadeUp 0.6s 0.72s ease forwards;
+            position: relative; z-index: 1;
+            border-radius: var(--radius-lg); overflow: hidden;
+            border: 1px solid var(--border); box-shadow: var(--shadow-lg);
         }
 
-        .preview img {
-            width: 100%;
-            display: block;
-            border-radius: 20px;
-        }
+        .preview img { width: 100%; display: block; }
 
         .preview-overlay {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            height: 60%;
+            position: absolute; bottom:0; left:0; right:0;
+            height: 50%;
             background: linear-gradient(to top, var(--bg), transparent);
             pointer-events: none;
         }
 
-        /* ── FOOTER ── */
+        /* ══ SECTIONS ══ */
+        .section-label {
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 2px; text-transform: uppercase;
+            color: var(--text-mute); margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 22px; font-weight: 800;
+            letter-spacing: -0.5px; margin-bottom: 6px;
+        }
+
+        .section-sub {
+            font-size: 14px; color: var(--text-mute); margin-bottom: 24px;
+        }
+
+        /* ══ HOW IT WORKS ══ */
+        .how-section {
+            margin-bottom: 64px;
+            opacity: 0; animation: fadeUp 0.6s 0.85s ease forwards;
+        }
+
+        .steps { display: flex; flex-direction: column; gap: 4px; }
+
+        .step {
+            display: flex; align-items: flex-start; gap: 18px;
+            padding: 20px; border-radius: var(--radius-md);
+            border: 1px solid var(--border); background: var(--card);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .step:hover { border-color: rgba(123,127,232,0.35); box-shadow: var(--shadow-md); }
+
+        .step-num {
+            flex-shrink: 0; width: 36px; height: 36px;
+            border-radius: var(--radius-sm);
+            background: var(--primary-light); color: var(--primary);
+            font-family: 'Sora', sans-serif; font-weight: 800; font-size: 15px;
+            display: grid; place-items: center;
+        }
+
+        .step-title { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+        .step-desc  { font-size: 13px; color: var(--text-mute); line-height: 1.55; }
+
+        /* ══ FEATURES ══ */
+        .features-section {
+            margin-bottom: 64px;
+            opacity: 0; animation: fadeUp 0.6s 0.9s ease forwards;
+        }
+
+        .features-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+
+        .feat {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 20px 18px;
+            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+        }
+
+        .feat:hover { border-color: rgba(123,127,232,0.3); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .feat-icon { font-size: 26px; display: block; margin-bottom: 12px; }
+        .feat-name { font-family:'Sora',sans-serif; font-size:13px; font-weight:700; margin-bottom:5px; }
+        .feat-desc { font-size:12px; color:var(--text-mute); line-height:1.5; }
+
+        /* ══ FOOTER ══ */
         footer {
-            text-align: center;
-            color: var(--mute);
-            font-size: 13px;
-            padding-top: 32px;
-            border-top: 1px solid var(--border);
-            opacity: 0;
-            animation: fadeUp 0.5s 1s ease forwards;
+            text-align: center; color: var(--text-mute); font-size: 13px;
+            padding-top: 32px; border-top: 1px solid var(--border);
+            opacity: 0; animation: fadeUp 0.5s 1s ease forwards;
         }
 
-        footer span { color: var(--amber); }
+        footer span { color: var(--accent); }
+        footer a { color: var(--text-mute); text-decoration: none; }
+        footer a:hover { color: var(--primary); }
 
-        /* ── ANIMATIONS ── */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
+        /* ══ ANIMATIONS ══ */
+        @keyframes fadeUp   { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes fadeDown { from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:translateY(0)} }
 
-        /* ── RESPONSIVE ── */
-        @media (max-width: 520px) {
-            .features-grid { grid-template-columns: repeat(2, 1fr); }
+        /* ══ RESPONSIVE ══ */
+        @media (max-width: 560px) {
+            .download-hero { grid-template-columns: 1fr; gap: 10px; }
+            .dl-btn {
+                flex-direction: row; padding: 18px 20px;
+                justify-content: flex-start; gap: 16px;
+                text-align: left;
+            }
+            .dl-os-icon { font-size: 28px; }
+            .dl-sub { text-align: left; }
+            .features-grid { grid-template-columns: repeat(2,1fr); }
             .hero h1 { letter-spacing: -1px; }
-            .stats { gap: 20px; }
-            .card { padding: 18px; gap: 14px; }
-            .card-icon { width: 44px; height: 44px; font-size: 20px; }
         }
 
-        @media (max-width: 360px) {
+        @media (max-width: 380px) {
             .features-grid { grid-template-columns: 1fr; }
-            .card-pill { display: none; }
+            .stat + .stat::before { display: none; }
         }
     </style>
 </head>
@@ -423,190 +420,181 @@
 
 <div class="wrap">
 
+    <!-- ── NAV ── -->
     <nav>
-        <div class="nav-logo">
-            <span><img src="logo.png" style="height:24px; width:auto; display:block; filter: brightness(0) invert(1);" alt="Logo"></span>
+        <a href="#" class="nav-logo">
+            <div class="nav-logo-icon">
+                <img src="logo.png" alt="Logo">
+            </div>
             الشنين
-        </div>
+        </a>
         <div class="nav-badge">v2.0 Beta</div>
     </nav>
 
-    <!-- HERO -->
+    <!-- ── HERO ── -->
     <section class="hero">
-        <div class="hero-tag">Study smarter, not harder</div>
+        <div class="hero-tag">
+            <span class="tag-dot"></span>
+            Study Smarter, Not Harder
+        </div>
+
         <h1>Your personal<br><em>study engine</em></h1>
-        <p>Track subjects, crush deadlines, and study with focus — on any device, anytime.</p>
+
+        <p class="hero-sub">
+            Track subjects, crush deadlines, and study with focus.<br>
+            Pick your platform and start in seconds.
+        </p>
+
+        <!-- BIG DOWNLOAD BUTTONS — right here, above the fold -->
+        <div class="download-hero">
+
+            <a href="https://www.mediafire.com/file/60a87sv5kewr4g4/StudentPro_Setup.exe/file"
+               target="_blank" class="dl-btn win">
+                <span class="recommended-tag">⭐ Best</span>
+                <div class="dl-os-icon">🖥️</div>
+                <div class="dl-content">
+                    <div class="dl-label">Windows</div>
+                    <div class="dl-sub">Full desktop experience<br>Works offline</div>
+                    <div class="dl-badge">⬇ Download .EXE</div>
+                </div>
+            </a>
+
+            <a href="Chnain.apk" download="Chnain.apk" class="dl-btn apk">
+                <div class="dl-os-icon">📱</div>
+                <div class="dl-content">
+                    <div class="dl-label">Android</div>
+                    <div class="dl-sub">Study on the go<br>Works offline</div>
+                    <div class="dl-badge">⬇ Download .APK</div>
+                </div>
+            </a>
+
+            <a href="webversion/index.html" class="dl-btn web">
+                <div class="dl-os-icon">🌐</div>
+                <div class="dl-content">
+                    <div class="dl-label">Web App</div>
+                    <div class="dl-sub">No install needed<br>Open instantly</div>
+                    <div class="dl-badge">→ Open Now</div>
+                </div>
+            </a>
+
+        </div>
+
+        <p class="download-hint">
+            All platforms · <span>100% Free</span> · No account required
+        </p>
     </section>
 
-    <!-- STATS -->
+    <!-- ── STATS ── -->
     <div class="stats">
         <div class="stat">
-            <div class="stat-val">3+</div>
+            <div class="stat-val purple">3+</div>
             <div class="stat-lbl">Platforms</div>
         </div>
-        <div class="stat-div"></div>
         <div class="stat">
-            <div class="stat-val">25</div>
-            <div class="stat-lbl">Min Focus Sessions</div>
+            <div class="stat-val teal">25 min</div>
+            <div class="stat-lbl">Focus Sessions</div>
         </div>
-        <div class="stat-div"></div>
         <div class="stat">
-            <div class="stat-val">100%</div>
-            <div class="stat-lbl">Free</div>
+            <div class="stat-val amber">100%</div>
+            <div class="stat-lbl">Free Forever</div>
         </div>
     </div>
 
-    <!-- PREVIEW IMAGE -->
-    <div class="preview">
-        <img src="dashboard.png" alt="الشنين Dashboard Preview">
-        <div class="preview-overlay"></div>
+    <!-- ── PREVIEW ── -->
+    <div class="preview-wrap">
+        <div class="preview-glow"></div>
+        <div class="preview">
+            <img src="dashboard.png" alt="الشنين Dashboard Preview">
+            <div class="preview-overlay"></div>
+        </div>
     </div>
 
-    <!-- DOWNLOAD SECTION -->
-    <div class="section-label">Choose your platform</div>
-
-    <div class="cards">
-        <a href="https://www.mediafire.com/file/60a87sv5kewr4g4/StudentPro_Setup.exe/file"
-           target="_blank" class="card win">
-            <div class="card-icon">💻</div>
-            <div class="card-body">
-                <div class="card-title">Windows App</div>
-                <div class="card-desc">Full desktop experience, offline support</div>
+    <!-- ── HOW IT WORKS ── -->
+    <div class="how-section">
+        <div class="section-label">How It Works</div>
+        <div class="section-title">From zero to focused in 3 steps</div>
+        <p class="section-sub">No account required. Start immediately.</p>
+        <div class="steps">
+            <div class="step">
+                <div class="step-num">1</div>
+                <div>
+                    <div class="step-title">Pick your platform</div>
+                    <div class="step-desc">Download for Windows, install the Android APK, or open the web version directly — no account needed.</div>
+                </div>
             </div>
-            <div class="card-pill">EXE · Win 10+</div>
-            <div class="card-arrow">↗</div>
-        </a>
-
-        <a href="Chnain.apk" download="Chnain.apk" class="card apk">
-            <div class="card-icon">📱</div>
-            <div class="card-body">
-                <div class="card-title">Android App</div>
-                <div class="card-desc">Study on the go, works offline</div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div>
+                    <div class="step-title">Add your subjects</div>
+                    <div class="step-desc">Set up your study plan — subjects, chapters, and deadlines. Everything organized in one place.</div>
+                </div>
             </div>
-            <div class="card-pill">APK · Android 8+</div>
-            <div class="card-arrow">↗</div>
-        </a>
-
-        <a href="webversion/index.html" class="card web">
-            <div class="card-icon">🌐</div>
-            <div class="card-body">
-                <div class="card-title">Web Version</div>
-                <div class="card-desc">No install needed, open instantly</div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <div>
+                    <div class="step-title">Study & level up</div>
+                    <div class="step-desc">Use Pomodoro sessions, track progress, earn XP, and climb the global leaderboard.</div>
+                </div>
             </div>
-            <div class="card-pill">Open Now →</div>
-            <div class="card-arrow">↗</div>
-        </a>
-    </div>
-
-    <!-- FEATURES -->
-    <div class="features-grid">
-        <div class="feat">
-            <span class="feat-icon">📚</span>
-            <div class="feat-name">Study Planner</div>
-            <div class="feat-desc">Organize subjects & track chapters</div>
-        </div>
-        <div class="feat">
-            <span class="feat-icon">⏱️</span>
-            <div class="feat-name">Pomodoro Timer</div>
-            <div class="feat-desc">Deep focus with session tracking</div>
-        </div>
-        <div class="feat">
-            <span class="feat-icon">🏆</span>
-            <div class="feat-name">Gamification</div>
-            <div class="feat-desc">XP, levels & global leaderboard</div>
-        </div>
-        <div class="feat">
-            <span class="feat-icon">☁️</span>
-            <div class="feat-name">Cloud Sync</div>
-            <div class="feat-desc">Always in sync across devices</div>
-        </div>
-        <div class="feat">
-            <span class="feat-icon">📊</span>
-            <div class="feat-name">Analytics</div>
-            <div class="feat-desc">Visualize your study habits</div>
-        </div>
-        <div class="feat">
-            <span class="feat-icon">🌙</span>
-            <div class="feat-name">Dark Mode</div>
-            <div class="feat-desc">Easy on the eyes, day or night</div>
         </div>
     </div>
 
+    <!-- ── FEATURES ── -->
+    <div class="features-section">
+        <div class="section-label">Features</div>
+        <div class="section-title">Everything a student needs</div>
+        <p class="section-sub">Built for deep work, not distraction.</p>
+        <div class="features-grid">
+            <div class="feat"><span class="feat-icon">📚</span><div class="feat-name">Study Planner</div><div class="feat-desc">Organize subjects & track chapters</div></div>
+            <div class="feat"><span class="feat-icon">⏱️</span><div class="feat-name">Pomodoro Timer</div><div class="feat-desc">Deep focus with session tracking</div></div>
+            <div class="feat"><span class="feat-icon">🏆</span><div class="feat-name">Gamification</div><div class="feat-desc">XP, levels & global leaderboard</div></div>
+            <div class="feat"><span class="feat-icon">☁️</span><div class="feat-name">Cloud Sync</div><div class="feat-desc">Always in sync across devices</div></div>
+            <div class="feat"><span class="feat-icon">📊</span><div class="feat-name">Analytics</div><div class="feat-desc">Visualize your study habits</div></div>
+            <div class="feat"><span class="feat-icon">🌙</span><div class="feat-name">Dark Mode</div><div class="feat-desc">Easy on the eyes, day or night</div></div>
+        </div>
+    </div>
+
+    <!-- ── FOOTER ── -->
     <footer>
-        Made with <span>♥</span> for students worldwide · By Chenoufi
+        Made with <span>♥</span> for students worldwide · By <a href="#">Chenoufi</a>
     </footer>
 
 </div>
 
 <script>
-/* Animated floating particles background */
 const canvas = document.getElementById('bg');
-const ctx = canvas.getContext('2d');
-
+const ctx    = canvas.getContext('2d');
 let W, H, particles;
 
-function resize() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-}
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
 
 function makeParticle() {
-    const colors = ['rgba(245,166,35,', 'rgba(0,212,170,', 'rgba(79,172,254,'];
+    const colors = ['rgba(123,127,232,','rgba(20,184,178,','rgba(251,191,36,'];
     const c = colors[Math.floor(Math.random() * colors.length)];
-    return {
-        x: Math.random() * W,
-        y: Math.random() * H,
-        r: Math.random() * 1.8 + 0.3,
-        vx: (Math.random() - 0.5) * 0.18,
-        vy: (Math.random() - 0.5) * 0.18,
-        alpha: Math.random() * 0.4 + 0.1,
-        color: c
-    };
+    return { x: Math.random()*W, y: Math.random()*H, r: Math.random()*1.6+0.3,
+             vx: (Math.random()-0.5)*0.15, vy: (Math.random()-0.5)*0.15,
+             alpha: Math.random()*0.35+0.08, color: c };
 }
 
-function init() {
-    resize();
-    particles = Array.from({ length: 80 }, makeParticle);
-}
+function init() { resize(); particles = Array.from({length:90}, makeParticle); }
 
 function draw() {
-    ctx.clearRect(0, 0, W, H);
-
-    /* subtle radial glow in center-top */
-    const g = ctx.createRadialGradient(W * 0.5, H * 0.1, 0, W * 0.5, H * 0.1, W * 0.55);
-    g.addColorStop(0, 'rgba(91,95,199,0.05)');
-    g.addColorStop(1, 'transparent');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
-
+    ctx.clearRect(0,0,W,H);
+    const g = ctx.createRadialGradient(W*0.5,H*0.08,0,W*0.5,H*0.08,W*0.6);
+    g.addColorStop(0,'rgba(123,127,232,0.06)'); g.addColorStop(1,'transparent');
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
     particles.forEach(p => {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = p.color + p.alpha + ')';
-        ctx.fill();
-
-        p.x += p.vx;
-        p.y += p.vy;
-
-        if (p.x < -10) p.x = W + 10;
-        if (p.x > W + 10) p.x = -10;
-        if (p.y < -10) p.y = H + 10;
-        if (p.y > H + 10) p.y = -10;
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fillStyle = p.color+p.alpha+')'; ctx.fill();
+        p.x+=p.vx; p.y+=p.vy;
+        if(p.x<-10)p.x=W+10; if(p.x>W+10)p.x=-10;
+        if(p.y<-10)p.y=H+10; if(p.y>H+10)p.y=-10;
     });
-
     requestAnimationFrame(draw);
 }
 
-window.addEventListener('resize', () => {
-    resize();
-    particles.forEach(p => {
-        p.x = Math.min(p.x, W);
-        p.y = Math.min(p.y, H);
-    });
-});
-
-init();
-draw();
+window.addEventListener('resize', () => { resize(); particles.forEach(p=>{p.x=Math.min(p.x,W);p.y=Math.min(p.y,H);}); });
+init(); draw();
 </script>
 
 </body>
