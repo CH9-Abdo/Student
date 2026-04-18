@@ -1,7 +1,12 @@
 /* ============================================================
-   POMODORO TIMER
+   POMODORO TIMER — Redesigned v2.0
+   Matches main.css design system: Sora + DM Sans,
+   --primary #7b7fe8, --secondary #14b8b2, --accent #fbbf24
    ============================================================ */
 
+/* ══════════════════════════════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════════════════════════════ */
 .pomodoro-container {
     display: flex;
     flex-direction: column;
@@ -10,24 +15,32 @@
     margin: 0 auto;
 }
 
-/* Level / XP Header */
+/* ══════════════════════════════════════════════════════════════
+   LEVEL / XP HEADER CARD
+══════════════════════════════════════════════════════════════ */
 .pomodoro-header-card {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    padding: 20px 24px;
-    background: linear-gradient(135deg, var(--primary-light), transparent);
-    border-color: rgba(91,95,199,0.2);
+    gap: 20px;
+    padding: 18px 24px;
+    background: linear-gradient(
+        135deg,
+        rgba(123, 127, 232, 0.08) 0%,
+        rgba(20, 184, 178, 0.05) 100%
+    );
+    border-color: rgba(123, 127, 232, 0.2);
 }
 
 .level-info {
     display: flex;
     align-items: center;
-    gap: 14px;
-    margin-bottom: 10px;
-    font-size: 1.1rem;
-    font-weight: 700;
+    gap: 10px;
+    flex-shrink: 0;
     font-family: 'Sora', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    white-space: nowrap;
 }
 
 .level-badge {
@@ -35,15 +48,15 @@
     color: white;
     padding: 4px 14px;
     border-radius: 99px;
-    font-size: 0.85rem;
+    font-size: 12px;
     font-weight: 700;
-    box-shadow: 0 2px 8px rgba(91,95,199,0.3);
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 10px rgba(123, 127, 232, 0.3);
 }
 
 .xp-container {
-    width: 100%;
-    max-width: 380px;
-    height: 8px;
+    flex: 1;
+    height: 7px;
     background: var(--progress-bg);
     border-radius: 99px;
     overflow: hidden;
@@ -53,10 +66,32 @@
     height: 100%;
     background: linear-gradient(90deg, var(--primary), var(--secondary));
     border-radius: 99px;
-    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+    transition: width 0.6s cubic-bezier(.4, 0, .2, 1);
+    position: relative;
 }
 
-/* Focus Grid */
+/* Shimmer effect on XP bar */
+.xp-fill::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.25) 50%,
+        transparent 100%
+    );
+    animation: xp-shimmer 2.4s infinite;
+}
+
+@keyframes xp-shimmer {
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(300%); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FOCUS GRID (Timer + Controls Side by Side)
+══════════════════════════════════════════════════════════════ */
 .focus-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -64,87 +99,124 @@
     align-items: start;
 }
 
-/* Timer Card */
+/* ══════════════════════════════════════════════════════════════
+   TIMER CARD
+══════════════════════════════════════════════════════════════ */
 .timer-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 32px 24px;
+    padding: 32px 28px;
+    gap: 0;
+    /* Subtle inner glow that shifts with mode */
+    background: var(--card);
+    position: relative;
+    overflow: hidden;
 }
 
-/* SVG Circle Timer */
+/* Ambient orb behind timer */
+.timer-card::before {
+    content: '';
+    position: absolute;
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    top: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: radial-gradient(
+        circle,
+        rgba(123, 127, 232, 0.1) 0%,
+        transparent 70%
+    );
+    pointer-events: none;
+    transition: background 0.6s ease;
+}
+
+.timer-card.mode-break::before {
+    background: radial-gradient(
+        circle,
+        rgba(20, 184, 178, 0.1) 0%,
+        transparent 70%
+    );
+}
+
+/* ── SVG Circle Wrapper ── */
 .timer-display-wrapper {
     position: relative;
-    width: 230px;
-    height: 230px;
+    width: 220px;
+    height: 220px;
     margin-bottom: 24px;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.timer-bg-image, .timer-bg-break-image {
+/* Background image (tomato / break icons) */
+.timer-bg-image,
+.timer-bg-break-image {
     position: absolute;
-    width: 90%;
-    height: 90%;
+    width: 72%;
+    height: 72%;
     object-fit: contain;
     z-index: 0;
     pointer-events: none;
-    transition: transform 0.3s ease, opacity 0.3s ease;
+    transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
-.timer-bg-break-image {
-    opacity: 0;
-}
+.timer-bg-break-image { opacity: 0; }
 
-.timer-card.mode-break .timer-bg-image {
-    opacity: 0;
-}
+.timer-card.mode-break .timer-bg-image    { opacity: 0; transform: scale(0.9); }
+.timer-card.mode-break .timer-bg-break-image { opacity: 1; transform: scale(1); }
 
-.timer-card.mode-break .timer-bg-break-image {
-    opacity: 1;
-}
-
+/* Pulse when running */
 .timer-running .timer-bg-image,
 .timer-running .timer-bg-break-image {
-    animation: pomodoro-pulse 2s infinite ease-in-out;
+    animation: icon-breathe 3s infinite ease-in-out;
 }
 
-@keyframes pomodoro-pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+@keyframes icon-breathe {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.06); }
 }
 
+/* ── SVG Ring ── */
 .timer-svg {
     width: 100%;
     height: 100%;
     transform: rotate(-90deg);
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
     z-index: 1;
 }
 
 .timer-bg {
     fill: none;
-    stroke: rgba(255, 255, 255, 0.1);
-    stroke-width: 10;
+    stroke: var(--border);
+    stroke-width: 8;
 }
 
 .timer-path {
     fill: none;
     stroke: url(#timerGradient);
-    stroke-width: 10;
+    stroke-width: 8;
     stroke-linecap: round;
     stroke-dasharray: 283;
     stroke-dashoffset: 0;
     transition: stroke-dashoffset 1s linear;
-    filter: 
-        drop-shadow(0 0 5px #ff2d55)
-        drop-shadow(0 0 15px rgba(255, 45, 85, 0.6));
+    filter:
+        drop-shadow(0 0 6px rgba(123, 127, 232, 0.7))
+        drop-shadow(0 0 16px rgba(123, 127, 232, 0.35));
 }
 
+/* Break mode: ring turns teal */
+.timer-card.mode-break .timer-path {
+    filter:
+        drop-shadow(0 0 6px rgba(20, 184, 178, 0.7))
+        drop-shadow(0 0 16px rgba(20, 184, 178, 0.35));
+}
+
+/* ── Inner Text ── */
 .timer-inner-content {
     position: absolute;
     top: 50%;
@@ -156,130 +228,208 @@
 
 .timer-digits {
     font-family: 'Sora', sans-serif;
-    font-size: 3.4rem;
+    font-size: 3.2rem;
     font-weight: 800;
     letter-spacing: -2px;
-    color: #ffffff;
-    text-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    color: var(--text);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    line-height: 1;
 }
 
 .timer-status {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--text-mute);
     text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 600;
-    margin-top: 2px;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    margin-top: 4px;
 }
 
-/* Timer Controls */
-.timer-controls-row {
-    display: flex;
-    gap: 10px;
-    width: 100%;
-    max-width: 240px;
-}
-
-.play-btn { flex: 3; }
-.icon-only-btn { flex: 1; }
-
+/* ══════════════════════════════════════════════════════════════
+   PHASE LINE  (Focus 25m → Break 5m → Repeat)
+══════════════════════════════════════════════════════════════ */
 .pomodoro-phase-line {
-    margin: 0 0 14px;
-    padding: 10px 14px;
-    border-radius: 999px;
-    background: var(--bg-alt);
+    margin: 0 0 18px;
+    padding: 8px 16px;
+    border-radius: 99px;
+    background: var(--progress-bg);
     border: 1px solid var(--border);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     color: var(--text-mute);
     text-align: center;
+    letter-spacing: 0.3px;
 }
 
+/* ══════════════════════════════════════════════════════════════
+   PRESET BUTTONS (25m / 50m / 90m)
+══════════════════════════════════════════════════════════════ */
 .pomodoro-preset-block {
     width: 100%;
-    max-width: 320px;
-    margin: 0 0 16px;
+    max-width: 300px;
+    margin: 0 0 20px;
 }
 
 .pomodoro-preset-label {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
+    letter-spacing: 1px;
     color: var(--text-mute);
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     text-align: center;
 }
 
 .pomodoro-preset-row {
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;
     justify-content: center;
 }
 
 .pomodoro-preset-btn {
-    border: 1px solid var(--border);
-    background: var(--card);
-    color: var(--text);
-    border-radius: 999px;
-    padding: 9px 14px;
+    border: 1.5px solid var(--border);
+    background: var(--progress-bg);
+    color: var(--text-mute);
+    border-radius: 99px;
+    padding: 8px 18px;
+    font-family: 'Sora', sans-serif;
     font-size: 13px;
     font-weight: 700;
     cursor: pointer;
-    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+    transition:
+        transform 0.18s ease,
+        border-color 0.18s ease,
+        background 0.18s ease,
+        color 0.18s ease,
+        box-shadow 0.18s ease;
 }
 
 .pomodoro-preset-btn:hover {
-    transform: translateY(-1px);
-    border-color: rgba(91,95,199,0.35);
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-light);
 }
 
 .pomodoro-preset-btn.active {
     background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: #fff;
+    color: white;
     border-color: transparent;
-    box-shadow: 0 8px 20px rgba(91,95,199,0.24);
+    box-shadow: 0 4px 16px rgba(123, 127, 232, 0.3);
+    transform: translateY(-1px);
 }
 
 .pomodoro-preset-btn:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
     transform: none;
+    pointer-events: none;
 }
 
-.pomodoro-break-actions {
+/* ══════════════════════════════════════════════════════════════
+   TIMER CONTROLS ROW  (Start / Reset)
+══════════════════════════════════════════════════════════════ */
+.timer-controls-row {
     display: flex;
     gap: 10px;
+    width: 100%;
+    max-width: 260px;
+    margin-bottom: 4px;
+}
+
+.play-btn {
+    flex: 3;
+    padding: 13px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(123, 127, 232, 0.3);
+    transition: transform 0.18s, box-shadow 0.18s, filter 0.18s;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.play-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(123, 127, 232, 0.4);
+    filter: brightness(1.08);
+}
+
+.play-btn:active { transform: translateY(0); }
+
+/* Break mode — play button turns teal */
+.timer-card.mode-break .play-btn {
+    background: linear-gradient(135deg, var(--secondary), #0e9e9a);
+    box-shadow: 0 4px 18px rgba(20, 184, 178, 0.3);
+}
+
+.icon-only-btn {
+    flex: 1;
+    padding: 13px;
+    border-radius: var(--radius-md);
+    background: var(--progress-bg);
+    border: 1.5px solid var(--border);
+    color: var(--text-mute);
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.18s;
+}
+
+.icon-only-btn:hover {
+    background: var(--primary-light);
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: rotate(15deg);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BREAK ACTIONS (Skip / +1 min / Start Next Focus)
+══════════════════════════════════════════════════════════════ */
+.pomodoro-break-actions {
+    display: flex;
+    gap: 8px;
     flex-wrap: wrap;
     width: 100%;
-    margin-top: 14px;
+    margin-top: 12px;
+    justify-content: center;
 }
 
 .pomodoro-break-actions .small-btn {
-    flex: 1 1 140px;
+    flex: 1 1 120px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 9px 14px;
 }
 
-/* Controls Column */
+/* ══════════════════════════════════════════════════════════════
+   CONTROLS COLUMN (right side)
+══════════════════════════════════════════════════════════════ */
 .controls-column {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
 }
 
 .control-card {
     padding: 20px;
     border-radius: var(--radius-md);
+    transition: box-shadow 0.2s;
 }
+
+.control-card:hover { box-shadow: var(--shadow-md); }
 
 .control-card h4 {
     font-family: 'Sora', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 700;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
     color: var(--text-mute);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
 }
 
 .pomodoro-card-caption {
@@ -289,98 +439,48 @@
     color: var(--text-mute);
 }
 
-/* Subject Selector inside Pomodoro */
+/* ══════════════════════════════════════════════════════════════
+   SUBJECT SELECTOR
+══════════════════════════════════════════════════════════════ */
 .modern-select {
     appearance: none;
-    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238892b0' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 14px center;
     background-size: 14px;
     padding-right: 38px !important;
-}
-
-/* Lo-Fi Music Controls */
-.lofi-controls {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.lofi-controls label { font-size: 14px; font-weight: 500; }
-
-/* Toggle Switch */
-.toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 46px;
-    height: 26px;
-    flex-shrink: 0;
-}
-
-.toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-    position: absolute;
-    margin: 0;
-}
-
-.slider {
-    position: absolute;
     cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: var(--border);
-    transition: 0.3s;
-    border-radius: 26px;
 }
 
-.slider::before {
-    content: "";
-    position: absolute;
-    height: 18px; width: 18px;
-    left: 4px; bottom: 4px;
-    background: white;
-    transition: 0.3s;
-    border-radius: 50%;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-}
-
-input:checked + .slider { background: var(--primary); }
-input:checked + .slider::before { transform: translateX(20px); }
-
-/* Smart Suggestion Area */
-#smart-suggestion {
-    font-size: 13px;
-    color: var(--text-mute);
-    font-style: italic;
-    padding: 10px 0;
-}
-
+/* ── Subject Summary Panel ── */
 .pomodoro-subject-summary {
     margin-top: 12px;
-    padding: 14px;
-    border-radius: 14px;
-    background: var(--bg-alt);
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    background: var(--progress-bg);
     border: 1px solid var(--border);
+    transition: border-color 0.2s;
 }
 
-.pomodoro-subject-summary.empty {
-    opacity: 0.8;
+.pomodoro-subject-summary:not(.empty) {
+    border-color: rgba(123, 127, 232, 0.25);
 }
+
+.pomodoro-subject-summary.empty { opacity: 0.7; }
 
 .pomodoro-summary-top,
 .pomodoro-next-task-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
+    margin-bottom: 6px;
 }
 
 .pomodoro-summary-title {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0.8px;
+    letter-spacing: 1px;
     text-transform: uppercase;
     color: var(--text-mute);
 }
@@ -389,105 +489,187 @@ input:checked + .slider::before { transform: translateX(20px); }
 .pomodoro-next-task-badge {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    border-radius: 999px;
-    padding: 4px 10px;
-    background: rgba(91,95,199,0.12);
+    border-radius: 99px;
+    padding: 3px 10px;
+    background: var(--primary-light);
     color: var(--primary);
     font-size: 11px;
     font-weight: 800;
+    flex-shrink: 0;
 }
 
 .pomodoro-summary-name {
-    margin-top: 8px;
     font-family: 'Sora', sans-serif;
-    font-size: 1rem;
+    font-size: 15px;
     font-weight: 700;
+    margin-bottom: 10px;
 }
 
 .pomodoro-summary-stats {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 12px;
+    gap: 6px;
 }
 
 .pomodoro-summary-stat {
     display: inline-flex;
     align-items: center;
-    border-radius: 999px;
+    gap: 4px;
+    border-radius: 99px;
     background: var(--card);
     border: 1px solid var(--border);
-    padding: 7px 11px;
-    font-size: 12px;
+    padding: 5px 10px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--text-mute);
 }
 
-.pomodoro-next-task-card {
-    background:
-        radial-gradient(circle at top right, rgba(91,95,199,0.12), transparent 42%),
-        linear-gradient(180deg, var(--card), var(--card));
+#smart-suggestion {
+    font-size: 12px;
+    color: var(--text-mute);
+    font-style: italic;
+    padding: 8px 2px;
+    min-height: 32px;
 }
 
-.pomodoro-next-task-card h4 {
-    margin-bottom: 0;
+/* ══════════════════════════════════════════════════════════════
+   NEXT TASK CARD
+══════════════════════════════════════════════════════════════ */
+.pomodoro-next-task-card {
+    background:
+        radial-gradient(circle at top right, rgba(123, 127, 232, 0.1), transparent 50%),
+        var(--card);
+    border-color: rgba(123, 127, 232, 0.2);
 }
+
+.pomodoro-next-task-card h4 { margin-bottom: 0; }
 
 .pomodoro-next-task-body {
     margin-top: 12px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
-    line-height: 1.45;
+    line-height: 1.5;
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
 }
 
 .pomodoro-next-task-reason {
-    margin-top: 8px;
+    margin-top: 6px;
     min-height: 18px;
     font-size: 12px;
+    color: var(--text-mute);
 }
 
 #pomodoro-use-suggestion-btn {
     width: 100%;
-    margin-top: 12px;
+    margin-top: 14px;
 }
 
-/* Session Stats */
+/* ══════════════════════════════════════════════════════════════
+   LO-FI MUSIC CONTROLS
+══════════════════════════════════════════════════════════════ */
+.lofi-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.lofi-controls label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    flex-shrink: 0;
+}
+
+/* ── Toggle Switch ── */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.toggle-switch input {
+    opacity: 0; width: 0; height: 0;
+    position: absolute; margin: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: var(--border);
+    border-radius: 24px;
+    transition: background 0.3s;
+}
+
+.slider::before {
+    content: "";
+    position: absolute;
+    height: 16px; width: 16px;
+    left: 4px; bottom: 4px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+    transition: transform 0.3s cubic-bezier(.4, 0, .2, 1);
+}
+
+input:checked + .slider { background: var(--primary); }
+input:checked + .slider::before { transform: translateX(20px); }
+
+/* ══════════════════════════════════════════════════════════════
+   SESSION STATS PILLS  (Today card)
+══════════════════════════════════════════════════════════════ */
 .session-stats {
     display: flex;
     justify-content: space-around;
-    gap: 12px;
+    gap: 10px;
 }
 
 .stat-pill {
     text-align: center;
-    padding: 10px 16px;
+    padding: 14px 12px;
     background: var(--progress-bg);
-    border-radius: 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
     flex: 1;
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.stat-pill:hover {
+    border-color: rgba(123, 127, 232, 0.3);
+    transform: translateY(-2px);
 }
 
 .stat-pill .val {
     font-family: 'Sora', sans-serif;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 800;
     color: var(--primary);
+    line-height: 1;
+    margin-bottom: 4px;
 }
 
 .stat-pill .lbl {
-    font-size: 11px;
+    font-size: 10px;
+    font-weight: 700;
     color: var(--text-mute);
-    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-/* --- NEW TIMER STATS UI --- */
+/* ══════════════════════════════════════════════════════════════
+   TIMER TOP STATS  (Daily ring + side stats)
+══════════════════════════════════════════════════════════════ */
 .timer-top-stats {
     display: flex;
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    margin-bottom: 30px;
-    padding: 0 10px;
+    margin-bottom: 24px;
+    padding: 0 4px;
 }
 
 .timer-stat-box {
@@ -495,50 +677,50 @@ input:checked + .slider::before { transform: translateX(20px); }
     flex-direction: column;
     align-items: center;
     flex: 1;
+    gap: 3px;
 }
 
 .timer-stat-val {
     font-family: 'Sora', sans-serif;
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     font-weight: 800;
     color: var(--primary);
 }
 
 .timer-stat-lbl {
-    font-size: 10px;
+    font-size: 9px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
     color: var(--text-mute);
     font-weight: 700;
-    margin-top: 2px;
 }
 
+/* ── Daily Progress Ring ── */
 .daily-progress-circle-wrap {
     position: relative;
-    width: 80px;
-    height: 80px;
+    width: 72px;
+    height: 72px;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
-.daily-ring {
-    width: 100%;
-    height: 100%;
-}
+.daily-ring { width: 100%; height: 100%; }
 
 .daily-ring-bg {
     fill: none;
-    stroke: var(--progress-bg);
-    stroke-width: 3;
+    stroke: var(--border);
+    stroke-width: 3.5;
 }
 
 .daily-ring-fill {
     fill: none;
     stroke: var(--secondary);
-    stroke-width: 3;
+    stroke-width: 3.5;
     stroke-linecap: round;
-    transition: stroke-dasharray 0.6s ease;
+    transition: stroke-dasharray 0.7s cubic-bezier(.4, 0, .2, 1);
+    filter: drop-shadow(0 0 4px rgba(20, 184, 178, 0.5));
 }
 
 .daily-ring-content {
@@ -547,16 +729,74 @@ input:checked + .slider::before { transform: translateX(20px); }
     flex-direction: column;
     align-items: center;
     line-height: 1;
+    gap: 2px;
 }
 
 .daily-ring-content span {
     font-family: 'Sora', sans-serif;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 800;
+    color: var(--text);
 }
 
 .daily-ring-content small {
-    font-size: 9px;
+    font-size: 8px;
     color: var(--text-mute);
     font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+    .focus-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pomodoro-header-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .xp-container {
+        width: 100%;
+        flex: none;
+        height: 10px;
+        margin: 10px 0 5px;
+    }
+
+    .timer-display-wrapper {
+        width: 200px;
+        height: 200px;
+    }
+
+    .timer-digits { font-size: 2.8rem; }
+
+    .pomodoro-break-actions {
+        flex-direction: column;
+    }
+
+    .pomodoro-break-actions .small-btn {
+        flex: 1 1 auto;
+    }
+
+    .session-stats { gap: 8px; }
+    .stat-pill .val { font-size: 18px; }
+}
+
+@media (max-width: 480px) {
+    .timer-display-wrapper {
+        width: 180px;
+        height: 180px;
+    }
+
+    .timer-digits { font-size: 2.4rem; }
+
+    .pomodoro-preset-row { gap: 6px; }
+    .pomodoro-preset-btn { padding: 7px 14px; font-size: 12px; }
+
+    .timer-controls-row { max-width: 100%; }
 }
