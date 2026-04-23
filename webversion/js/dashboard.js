@@ -209,11 +209,26 @@ StudentProApp.prototype.updateMiniChallenge = function() {
         if (!subId) {
             smart.textContent = T.smart_suggestion || 'Smart Suggestion';
         } else {
-            const chaps = db.data.chapters.filter(c => c.subject_id === subId);
             let msg = null;
-            for (const c of chaps) {
-                if (!c.video_completed) { msg = `📖 ${T.course || 'Course'}: ${c.name}`; break; }
-                if (!c.exercises_completed) { msg = `✍️ ${T.exercises || 'Exercises'}: ${c.name}`; break; }
+            const selectedChapter = typeof this._getPomodoroSelectedChapter === 'function'
+                ? this._getPomodoroSelectedChapter(subId)
+                : null;
+
+            if (selectedChapter && typeof this._getPomodoroTaskForChapter === 'function') {
+                const task = this._getPomodoroTaskForChapter(subId, selectedChapter.id);
+                if (task?.type === 'course') {
+                    msg = `📖 ${T.course || 'Course'}: ${selectedChapter.name}`;
+                } else if (task?.type === 'exercises') {
+                    msg = `✍️ ${T.exercises || 'Exercises'}: ${selectedChapter.name}`;
+                } else {
+                    msg = `${T.chapter_label || 'Chapter'}: ${selectedChapter.name} • ${T.all_done || 'All done!'}`;
+                }
+            } else {
+                const chaps = db.data.chapters.filter(c => c.subject_id === subId);
+                for (const c of chaps) {
+                    if (!c.video_completed) { msg = `📖 ${T.course || 'Course'}: ${c.name}`; break; }
+                    if (!c.exercises_completed) { msg = `✍️ ${T.exercises || 'Exercises'}: ${c.name}`; break; }
+                }
             }
             smart.textContent = msg || (T.all_done || "🎉 All chapters completed!");
         }

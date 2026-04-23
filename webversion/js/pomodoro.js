@@ -155,6 +155,52 @@ StudentProApp.prototype._getPomodoroSubjectName = function(subjectId) {
     return typeof subject?.name === 'string' ? subject.name.trim() : '';
 };
 
+StudentProApp.prototype._getPomodoroChapterName = function(chapterId) {
+    if (!chapterId) return '';
+    const chapter = db.data?.chapters?.find(c => c.id === chapterId);
+    return typeof chapter?.name === 'string' ? chapter.name.trim() : '';
+};
+
+StudentProApp.prototype._getPomodoroChaptersForSubject = function(subjectId = this.activeSubjectId) {
+    const safeSubjectId = Number(subjectId || 0) || null;
+    if (!safeSubjectId) return [];
+    return (db.data?.chapters || []).filter(c => c.subject_id === safeSubjectId);
+};
+
+StudentProApp.prototype._getPomodoroTaskForChapter = function(subjectId, chapterId) {
+    const safeSubjectId = Number(subjectId || 0) || null;
+    const safeChapterId = Number(chapterId || 0) || null;
+    if (!safeSubjectId || !safeChapterId) return null;
+
+    const subject = db.data?.subjects?.find(s => s.id === safeSubjectId);
+    const chapter = this._getPomodoroChaptersForSubject(safeSubjectId).find(c => c.id === safeChapterId);
+    if (!subject || !chapter) return null;
+
+    const hasExercises = subject.has_exercises !== false;
+    if (!chapter.video_completed) {
+        return { type: 'course', chapterId: chapter.id, chapterName: chapter.name };
+    }
+    if (hasExercises && !chapter.exercises_completed) {
+        return { type: 'exercises', chapterId: chapter.id, chapterName: chapter.name };
+    }
+
+    return null;
+};
+
+StudentProApp.prototype._getPomodoroSelectedChapter = function(subjectId = this.activeSubjectId) {
+    const safeSubjectId = Number(subjectId || 0) || null;
+    if (!safeSubjectId) return null;
+
+    const chapterId = Number(
+        (safeSubjectId === (Number(this.activeSubjectId || 0) || null))
+            ? (this.activePomodoroChapterId ?? this._pomodoroChapterId ?? null)
+            : null
+    ) || null;
+    if (!chapterId) return null;
+
+    return this._getPomodoroChaptersForSubject(safeSubjectId).find(c => c.id === chapterId) || null;
+};
+
 StudentProApp.prototype._fillPomodoroTemplate = function(template, values = {}) {
     let text = String(template || '');
     for (const [key, value] of Object.entries(values)) {
@@ -179,6 +225,8 @@ StudentProApp.prototype._getPomodoroNotificationContent = function(kind) {
     const xpEarned = this._getPomodoroXpForMinutes(focusMinutes);
     const subjectId = this._pomodoroSubjectId ?? this.activeSubjectId ?? null;
     const subjectName = this._getPomodoroSubjectName(subjectId);
+    const chapterId = this._pomodoroChapterId ?? this.activePomodoroChapterId ?? null;
+    const chapterName = this._getPomodoroChapterName(chapterId);
     const bodyTemplate = subjectName
         ? (T.pomodoro_complete_body_subject || '{subject} done. +{xp} XP earned. Break for {minutes} min.')
         : (T.pomodoro_complete_body_generic || 'Focus session done. Select a subject next time to earn XP. Break for {minutes} min.');
@@ -194,6 +242,8 @@ StudentProApp.prototype._getPomodoroNotificationContent = function(kind) {
             kind: 'pomodoro-focus-end',
             subjectId,
             subjectName,
+            chapterId,
+            chapterName,
             xpEarned,
             focusMinutes,
             breakMinutes
@@ -270,6 +320,7 @@ StudentProApp.prototype._startPomodoroUiTick = function() {
         this.timeLeft = this._computePomodoroRemaining(state.endAtMs);
         this._pomodoroTotalSec = state.totalSec || this._pomodoroTotalSec;
         this._pomodoroSubjectId = state.subjectId ?? this._pomodoroSubjectId;
+        this._pomodoroChapterId = state.chapterId ?? this._pomodoroChapterId;
         this._setPomodoroStatus(state.kind || this._pomodoroKind || 'focus');
         this.updateTimerDisplay();
 
@@ -283,6 +334,21 @@ StudentProApp.prototype._reconcilePomodoro = async function() {
 
     this._pomodoroTotalSec = state.totalSec || this._pomodoroTotalSec;
     this._pomodoroSubjectId = state.subjectId ?? this._pomodoroSubjectId;
+    this._pomodoroChapterId = state.chapterId ?? this._pomodoroChapterId;
+
+    const restoredSubjectId = Number(state.subjectId || 0) || null;
+    if (restoredSubjectId && db.data?.subjects?.some(s => s.id === restoredSubjectId)) {
+        this.activeSubjectId = restoredSubjectId;
+    }
+    if (this.activeSubjectId) {
+        const chapterId = Number(state.chapterId || 0) || null;
+        const chapter = chapterId
+            ? this._getPomodoroChaptersForSubject(this.activeSubjectId).find(c => c.id === chapterId)
+            : null;
+        this.activePomodoroChapterId = chapter?.id || this._getPomodoroDefaultChapter(this.activeSubjectId)?.id || null;
+    } else {
+        this.activePomodoroChapterId = null;
+    }
 
     if (state.running && state.endAtMs) {
         this.timerRunning = true;
@@ -326,6 +392,10 @@ StudentProApp.prototype.toggleTimer = function() {
     const totalSec = kind === 'break'
         ? (this._pomodoroTotalSec || this._getBreakDurationSec())
         : (this._pomodoroTotalSec || this._getFocusDurationSec());
+    const persistedSubjectId = kind === 'focus'
+        ? (this._pomodoroSubjectId ?? this.activeSubjectId ?? null)
+        : (this.activeSubjectId ?? null);
+    const selectedChapterId = this._getPomodoroSelectedChapter(this.activeSubjectId)?.id || this.activePomodoroChapterId || null;
 
     if (this.timerRunning) {
         // Pause
@@ -336,6 +406,7 @@ StudentProApp.prototype.toggleTimer = function() {
         this.timerRunning = false;
         this.timeLeft = Math.max(0, remainingSec);
         this.updateTimerDisplay();
+        this._pomodoroChapterId = selectedChapterId;
 
         this._savePomodoroState({
             v: 1,
@@ -343,7 +414,8 @@ StudentProApp.prototype.toggleTimer = function() {
             endAtMs: null,
             remainingSec: this.timeLeft,
             totalSec,
-            subjectId: kind === 'focus' ? (this._pomodoroSubjectId ?? this.activeSubjectId ?? null) : null,
+            subjectId: persistedSubjectId,
+            chapterId: this._pomodoroChapterId,
             kind
         });
         this._cancelPomodoroEndNotification();
@@ -354,7 +426,8 @@ StudentProApp.prototype.toggleTimer = function() {
 
     // Start / resume
     this._pomodoroTotalSec = totalSec;
-    this._pomodoroSubjectId = kind === 'focus' ? (this._pomodoroSubjectId ?? this.activeSubjectId ?? null) : null;
+    this._pomodoroSubjectId = kind === 'focus' ? persistedSubjectId : null;
+    this._pomodoroChapterId = selectedChapterId;
     this._setPomodoroStatus(kind);
 
     const endAtMs = Date.now() + (this.timeLeft * 1000);
@@ -364,7 +437,8 @@ StudentProApp.prototype.toggleTimer = function() {
         endAtMs,
         remainingSec: null,
         totalSec,
-        subjectId: this._pomodoroSubjectId,
+        subjectId: persistedSubjectId,
+        chapterId: this._pomodoroChapterId,
         kind
     });
 
@@ -383,6 +457,7 @@ StudentProApp.prototype.resetTimer = function() {
     this.timeLeft = this._getFocusDurationSec();
     this._pomodoroTotalSec = this.timeLeft;
     this._pomodoroSubjectId = null;
+    this._pomodoroChapterId = null;
 
     this.updateTimerDisplay();
     this._cancelPomodoroEndNotification();
@@ -416,18 +491,18 @@ StudentProApp.prototype.completeSession = async function(opts = {}) {
     const completedKind = this._pomodoroKind || 'focus';
 
     if (completedKind === 'break') {
-        // Break finished: start next focus automatically (continuous cycle).
+        // Break finished: setup next focus but DON'T start automatically (user requested).
         const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
         showToast(T.toast_break_finished || "✅ Break finished. Ready to focus.", 'info', 3500);
-        this.startNextFocus();
+        this.startNextFocus(false);
         return;
     }
 
     // Focus finished: play sound, award XP, then start break automatically.
     this._playPomodoroEndSound();
     const workMins = Math.max(1, Math.round((this._pomodoroTotalSec || this._getFocusDurationSec()) / 60));
-    const xpEarned = this._getPomodoroXpForMinutes(workMins);
     const subjectId = this._pomodoroSubjectId ?? this.activeSubjectId ?? null;
+    const chapterId = this._pomodoroChapterId ?? this.activePomodoroChapterId ?? null;
     let totalXpAwarded = 0;
 
     if (subjectId) {
@@ -457,6 +532,7 @@ StudentProApp.prototype.completeSession = async function(opts = {}) {
     this._pomodoroTotalSec = breakSec;
     this.timeLeft = breakSec;
     this._pomodoroSubjectId = null;
+    this._pomodoroChapterId = chapterId;
 
     const endAtMs = Date.now() + (breakSec * 1000);
     this._savePomodoroState({
@@ -465,7 +541,8 @@ StudentProApp.prototype.completeSession = async function(opts = {}) {
         endAtMs,
         remainingSec: null,
         totalSec: breakSec,
-        subjectId: null,
+        subjectId: this.activeSubjectId ?? subjectId ?? null,
+        chapterId: this._pomodoroChapterId,
         kind: 'break'
     });
     this.timerRunning = true;
@@ -493,7 +570,8 @@ StudentProApp.prototype.setPomodoroFocusPreset = function(minutes) {
                 kind: 'focus',
                 totalSec: this.timeLeft,
                 remainingSec: this.timeLeft,
-                subjectId: state.subjectId ?? this.activeSubjectId ?? null
+                subjectId: state.subjectId ?? this.activeSubjectId ?? null,
+                chapterId: state.chapterId ?? this.activePomodoroChapterId ?? null
             });
         }
         this.updateTimerDisplay();
@@ -511,25 +589,40 @@ StudentProApp.prototype._getNextTaskForSubject = function(subjectId) {
     const chapters = db.data.chapters.filter(c => c.subject_id === subjectId);
     for (const chapter of chapters) {
         if (!chapter.video_completed) {
-            return { type: 'course', chapterName: chapter.name };
+            return { type: 'course', chapterId: chapter.id, chapterName: chapter.name };
         }
         if (hasExercises && !chapter.exercises_completed) {
-            return { type: 'exercises', chapterName: chapter.name };
+            return { type: 'exercises', chapterId: chapter.id, chapterName: chapter.name };
         }
     }
 
     return null;
 };
 
+StudentProApp.prototype._getPomodoroDefaultChapter = function(subjectId = this.activeSubjectId) {
+    const chapters = this._getPomodoroChaptersForSubject(subjectId);
+    if (!chapters.length) return null;
+
+    const nextTask = this._getNextTaskForSubject(Number(subjectId || 0) || null);
+    if (nextTask?.chapterId) {
+        return chapters.find(c => c.id === nextTask.chapterId) || chapters[0];
+    }
+
+    return chapters[0];
+};
+
 StudentProApp.prototype.getPomodoroTaskSuggestion = function() {
     if (this.activeSubjectId) {
         const subject = db.data.subjects.find(s => s.id === this.activeSubjectId);
         if (!subject) return null;
+        const selectedChapter = this._getPomodoroSelectedChapter(subject.id) || this._getPomodoroDefaultChapter(subject.id);
         return {
             source: 'selected',
             subjectId: subject.id,
             subjectName: subject.name,
-            nextTask: this._getNextTaskForSubject(subject.id)
+            chapterId: selectedChapter?.id || null,
+            chapterName: selectedChapter?.name || '',
+            nextTask: selectedChapter ? this._getPomodoroTaskForChapter(subject.id, selectedChapter.id) : null
         };
     }
 
@@ -552,7 +645,11 @@ StudentProApp.prototype.refreshPomodoroSubjects = function() {
     const selector = get('active-subject-selector');
     if (!selector) return;
 
-    const currentValue = selector.value;
+    const validSubjectIds = new Set((db.data.subjects || []).map(s => s.id));
+    if (!validSubjectIds.has(this.activeSubjectId)) {
+        this.activeSubjectId = null;
+    }
+
     selector.innerHTML = '<option value="">' + (TRANSLATIONS[this.selectedLang]?.select_subject || 'Select Subject') + '</option>';
 
     db.data.subjects.forEach(s => {
@@ -562,12 +659,65 @@ StudentProApp.prototype.refreshPomodoroSubjects = function() {
         selector.appendChild(opt);
     });
 
-    if (currentValue && db.data.subjects.some(s => s.id == currentValue)) {
-        selector.value = currentValue;
+    if (this.activeSubjectId && validSubjectIds.has(this.activeSubjectId)) {
+        selector.value = String(this.activeSubjectId);
     }
 
     selector.onchange = (e) => {
         this.setPomodoroSubject(e.target.value || null);
+    };
+
+    this.refreshPomodoroChapters();
+};
+
+StudentProApp.prototype.refreshPomodoroChapters = function() {
+    const selector = get('active-chapter-selector');
+    if (!selector) return;
+
+    const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
+    const subjectId = Number(this.activeSubjectId || 0) || null;
+    const chapters = this._getPomodoroChaptersForSubject(subjectId);
+
+    selector.innerHTML = '';
+
+    if (!subjectId) {
+        this.activePomodoroChapterId = null;
+        selector.disabled = true;
+        selector.innerHTML = `<option value="">${T.select_subject_first || 'Select a subject first'}</option>`;
+        selector.onchange = null;
+        return;
+    }
+
+    if (!chapters.length) {
+        this.activePomodoroChapterId = null;
+        selector.disabled = true;
+        selector.innerHTML = `<option value="">${T.no_chapters_available || T.no_chapters_yet || 'No chapters yet'}</option>`;
+        selector.onchange = null;
+        return;
+    }
+
+    let chapterId = Number(this.activePomodoroChapterId || 0) || null;
+    if (!chapters.some(c => c.id === chapterId)) {
+        const persistedChapterId = Number(this._pomodoroChapterId || 0) || null;
+        chapterId = chapters.some(c => c.id === persistedChapterId) ? persistedChapterId : null;
+    }
+    if (!chapterId) {
+        chapterId = this._getPomodoroDefaultChapter(subjectId)?.id || chapters[0].id;
+    }
+
+    this.activePomodoroChapterId = chapterId;
+    selector.disabled = false;
+
+    chapters.forEach(chapter => {
+        const opt = document.createElement('option');
+        opt.value = chapter.id;
+        opt.textContent = chapter.name;
+        selector.appendChild(opt);
+    });
+
+    selector.value = String(chapterId);
+    selector.onchange = (e) => {
+        this.setPomodoroChapter(e.target.value || null);
     };
 };
 
@@ -576,7 +726,9 @@ StudentProApp.prototype.setPomodoroSubject = function(subjectId) {
 
     if (!subjectId) {
         this.activeSubjectId = null;
+        this.activePomodoroChapterId = null;
         if (selector) selector.value = '';
+        this.refreshPomodoroChapters();
         this.updateMiniChallenge();
         this.updateYouTubeEmbed();
         this.updatePomodoroResources();
@@ -590,7 +742,47 @@ StudentProApp.prototype.setPomodoroSubject = function(subjectId) {
     }
 
     this.activeSubjectId = parsedId;
+    this.activePomodoroChapterId = null;
     if (selector) selector.value = String(parsedId);
+    this.refreshPomodoroChapters();
+    this.updateMiniChallenge();
+    this.updateYouTubeEmbed();
+    this.updatePomodoroResources();
+    this.refreshPomodoroUI();
+    return true;
+};
+
+StudentProApp.prototype.setPomodoroChapter = function(chapterId) {
+    const selector = get('active-chapter-selector');
+    if (!this.activeSubjectId) {
+        this.activePomodoroChapterId = null;
+        if (selector) selector.value = '';
+        return false;
+    }
+
+    const chapters = this._getPomodoroChaptersForSubject(this.activeSubjectId);
+    if (!chapters.length) {
+        this.activePomodoroChapterId = null;
+        if (selector) selector.value = '';
+        return false;
+    }
+
+    const parsedId = Number(chapterId || 0) || null;
+    const selectedChapter = parsedId
+        ? chapters.find(chapter => chapter.id === parsedId)
+        : this._getPomodoroDefaultChapter(this.activeSubjectId);
+    if (!selectedChapter) return false;
+
+    this.activePomodoroChapterId = selectedChapter.id;
+    const persistedState = this._loadPomodoroState?.();
+    if (persistedState) {
+        this._pomodoroChapterId = selectedChapter.id;
+        this._savePomodoroState({
+            ...persistedState,
+            chapterId: selectedChapter.id
+        });
+    }
+    if (selector) selector.value = String(selectedChapter.id);
     this.updateMiniChallenge();
     this.updateYouTubeEmbed();
     this.updatePomodoroResources();
@@ -627,13 +819,17 @@ StudentProApp.prototype._getPomodoroChapterVideoUrl = function(chapter) {
 };
 
 StudentProApp.prototype._getPomodoroFocusChapter = function(subjectId = this.activeSubjectId) {
-    if (!subjectId) return null;
+    const safeSubjectId = Number(subjectId || 0) || null;
+    if (!safeSubjectId) return null;
 
-    const subject = db.data.subjects.find(s => s.id === subjectId);
+    const subject = db.data.subjects.find(s => s.id === safeSubjectId);
     if (!subject) return null;
 
     const hasExercises = subject.has_exercises !== false;
-    const chapters = db.data.chapters.filter(c => c.subject_id === subjectId);
+    const chapters = this._getPomodoroChaptersForSubject(safeSubjectId);
+    const selectedChapter = this._getPomodoroSelectedChapter(safeSubjectId);
+
+    if (selectedChapter) return selectedChapter;
 
     for (const chapter of chapters) {
         if (!chapter.video_completed) return chapter;
@@ -923,22 +1119,25 @@ StudentProApp.prototype.refreshPomodoroUI = function() {
             const verb = suggestion.nextTask?.type === 'exercises'
                 ? (T.practice || 'Practice')
                 : (T.study || 'Study');
-            const chapterPart = suggestion.nextTask?.chapterName
-                ? ` • ${suggestion.nextTask.chapterName}`
-                : '';
+            const chapterName = suggestion.nextTask?.chapterName || suggestion.chapterName || '';
+            const chapterPart = chapterName ? ` • ${chapterName}` : '';
 
             taskBadge.textContent = suggestion.source === 'selected'
                 ? (T.selected_subject_label || 'Selected')
                 : (T.suggested_focus || 'Suggested');
             taskBody.textContent = suggestion.nextTask
                 ? `${verb} ${suggestion.subjectName} • ${typeLabel}${chapterPart}`
-                : `${suggestion.subjectName} • ${T.all_done || 'All done!'}`;
+                : chapterName
+                    ? `${suggestion.subjectName} • ${chapterName} • ${T.all_done || 'All done!'}`
+                    : `${suggestion.subjectName} • ${T.all_done || 'All done!'}`;
 
             if (suggestion.reasonKey && T[suggestion.reasonKey]) {
                 taskReason.textContent = `${T.reason_label || 'Reason:'} ${String(T[suggestion.reasonKey]).replace(/\{(\w+)\}/g, (_, key) => suggestion.reasonVars?.[key] ?? '')}`;
             } else {
                 taskReason.textContent = suggestion.source === 'selected'
-                    ? (T.selected_subject_focus_hint || 'You are looking at the current subject plan.')
+                    ? (chapterName
+                        ? (T.selected_chapter_focus_hint || 'Selected chapter is driving your current focus cards.')
+                        : (T.selected_subject_focus_hint || 'You are looking at the current subject plan.'))
                     : '';
             }
 
@@ -976,7 +1175,8 @@ StudentProApp.prototype.extendBreak = function(minutes = 1) {
             totalSec: this._pomodoroTotalSec,
             remainingSec: null,
             kind: 'break',
-            subjectId: null
+            subjectId: state.subjectId ?? this.activeSubjectId ?? null,
+            chapterId: state.chapterId ?? this.activePomodoroChapterId ?? null
         });
         this._schedulePomodoroEndNotification('break', endAtMs);
     } else {
@@ -988,7 +1188,8 @@ StudentProApp.prototype.extendBreak = function(minutes = 1) {
             endAtMs: null,
             remainingSec: this.timeLeft,
             totalSec: this._pomodoroTotalSec,
-            subjectId: null,
+            subjectId: this.activeSubjectId ?? null,
+            chapterId: this.activePomodoroChapterId ?? null,
             kind: 'break'
         });
     }
@@ -998,7 +1199,7 @@ StudentProApp.prototype.extendBreak = function(minutes = 1) {
     return true;
 };
 
-StudentProApp.prototype.startNextFocus = function() {
+StudentProApp.prototype.startNextFocus = function(autoStart = true) {
     const currentKind = this._pomodoroKind || this._loadPomodoroState?.()?.kind || 'focus';
     if (currentKind !== 'break') return false;
 
@@ -1012,8 +1213,15 @@ StudentProApp.prototype.startNextFocus = function() {
     this._pomodoroSubjectId = null;
     // Don't auto-switch subjects if the user already picked one.
     if (!this.activeSubjectId) this.applyRecommendedPomodoroSubject();
+    this._pomodoroChapterId = this._getPomodoroSelectedChapter(this.activeSubjectId)?.id || this.activePomodoroChapterId || null;
     this.updateTimerDisplay();
-    this.toggleTimer();
+    
+    if (autoStart) {
+        this.toggleTimer();
+    } else {
+        this._setPomodoroPrimaryButton('play');
+    }
+
     this.refreshAll();
     return true;
 };
