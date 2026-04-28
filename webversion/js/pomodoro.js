@@ -138,8 +138,21 @@ StudentProApp.prototype._getFocusDurationSec = function() {
     return Math.max(1, Number(workMins) || 25) * 60;
 };
 
-StudentProApp.prototype._getBreakDurationSec = function() {
-    // Default to 5 minutes unless settings specify otherwise.
+StudentProApp.prototype._getBreakDurationSec = function(focusMins) {
+    // If we have a specific focus duration, apply custom rules
+    if (focusMins) {
+        if (focusMins >= 90) {
+            // Big break for 90m+ focus
+            const longBreak = db.data?.settings?.pomodoro?.long || 15;
+            return Math.max(1, Number(longBreak)) * 60;
+        }
+        if (focusMins >= 50) {
+            // 10m break for 50m+ focus
+            return 10 * 60;
+        }
+    }
+
+    // Default to short break unless settings specify otherwise.
     const breakMins = db.data?.settings?.pomodoro?.short || 5;
     return Math.max(1, Number(breakMins) || 5) * 60;
 };
@@ -515,7 +528,7 @@ StudentProApp.prototype.completeSession = async function(opts = {}) {
     }
 
     // Start break immediately
-    const breakSec = this._getBreakDurationSec();
+    const breakSec = this._getBreakDurationSec(workMins);
     const breakMins = Math.round(breakSec / 60);
     {
         const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
@@ -1042,10 +1055,11 @@ StudentProApp.prototype.refreshPomodoroUI = function() {
     }
 
     const focusMinutes = Math.round(this._getFocusDurationSec() / 60);
-    const breakMinutes = Math.round(this._getBreakDurationSec() / 60);
+    const breakMinutes = Math.round(this._getBreakDurationSec(focusMinutes) / 60);
     const flowEl = get('pomodoro-phase-line');
     if (flowEl) {
-        flowEl.textContent = `${T.focus_time || 'Focus Time'} ${focusMinutes}m -> ${T.break_time || 'Break Time'} ${breakMinutes}m -> ${T.repeat_cycle || 'Repeat'}`;
+        const breakLabel = (focusMinutes >= 90) ? (T.long_break || 'Long Break') : (T.break_time || 'Break Time');
+        flowEl.textContent = `${T.focus_time || 'Focus Time'} ${focusMinutes}m -> ${breakLabel} ${breakMinutes}m -> ${T.repeat_cycle || 'Repeat'}`;
     }
 
     document.querySelectorAll('.pomodoro-preset-btn[data-focus-minutes]').forEach(btn => {

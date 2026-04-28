@@ -1,31 +1,64 @@
-.
-├── assets
-│   ├── sounds
-│   └── vendor
-├── css
-│   ├── auth.css
-│   ├── dashboard.css
-│   ├── leaderboard.css
-│   ├── main.css
-│   ├── planner.css
-│   ├── pomodoro.css
-│   └── responsive.css
-├── index.html
-├── js
-│   ├── analytics.js
-│   ├── app.js
-│   ├── auth.js
-│   ├── config.js
-│   ├── dashboard.js
-│   ├── db
-│   ├── leaderboard.js
-│   ├── planner.js
-│   ├── pomodoro.js
-│   ├── templates.js
-│   ├── translations.js
-│   └── utils.js
-├── manifest.json
-├── structure.txt
-└── sw.js
+[4.0K]  .
+├── [4.0K]  assets
+│   ├── [4.0K]  img
+│   │   ├── [234K]  logo.png
+│   │   ├── [ 40K]  no-analytics.png
+│   │   ├── [ 37K]  no-subject.png
+│   │   ├── [ 44K]  pomodoro-technique.png
+│   │   ├── [ 37K]  relaxation.png
+│   │   ├── [ 21K]  trophy.png
+│   │   └── [ 16K]  welcome.png
+│   ├── [4.0K]  sounds
+│   │   ├── [ 43K]  break.wav
+│   │   ├── [ 64K]  Clock 1.mp3
+│   │   ├── [ 69K]  complete.wav
+│   │   ├── [4.5M]  fassounds-lofi-study-calm-peaceful-chill-hop-112191.mp3
+│   │   ├── [ 86K]  levelup.wav
+│   │   ├── [1.9M]  lofi_rain.mp3
+│   │   ├── [ 13M]  nature.mp3
+│   │   ├── [ 26K]  start.wav
+│   │   └── [ 17K]  tada.wav
+│   └── [4.0K]  vendor
+│       ├── [100K]  all.min.css
+│       ├── [204K]  chart.js
+│       ├── [4.0K]  fontawesome
+│       ├── [161K]  supabase.js
+│       └── [4.0K]  webfonts
+├── [4.0K]  css
+│   ├── [4.9K]  auth.css
+│   ├── [ 16K]  dashboard.css
+│   ├── [6.6K]  leaderboard.css
+│   ├── [ 18K]  main.css
+│   ├── [ 16K]  planner.css
+│   ├── [ 22K]  pomodoro.css
+│   └── [ 13K]  responsive.css
+├── [ 55K]  index.html
+├── [4.0K]  js
+│   ├── [ 11K]  analytics.js
+│   ├── [4.0K]  app
+│   │   ├── [ 550]  core.js
+│   │   ├── [ 25K]  events.js
+│   │   ├── [ 13K]  i18n.js
+│   │   ├── [ 14K]  lifecycle.js
+│   │   └── [4.3K]  navigation.js
+│   ├── [ 260]  app.js
+│   ├── [8.5K]  auth.js
+│   ├── [ 339]  config.js
+│   ├── [ 12K]  dashboard.js
+│   ├── [4.0K]  db
+│   │   ├── [ 16K]  actions.js
+│   │   ├── [ 19K]  core.js
+│   │   ├── [ 12K]  getters.js
+│   │   ├── [ 137]  init.js
+│   │   └── [9.2K]  sync.js
+│   ├── [6.5K]  leaderboard.js
+│   ├── [ 24K]  planner.js
+│   ├── [ 49K]  pomodoro.js
+│   ├── [ 39K]  templates.js
+│   ├── [ 49K]  translations.js
+│   └── [ 694]  utils.js
+├── [ 495]  manifest.json
+├── [   0]  structure.txt
+└── [1.7K]  sw.js
 
-7 directories, 22 files
+11 directories, 51 files
