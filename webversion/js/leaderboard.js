@@ -11,7 +11,18 @@ StudentProApp.prototype.refreshLeaderboard = async function() {
     console.log(`[App] Leaderboard: Fetching rankings (${scope})...`);
 
     const subtitle = get('lb-subtitle');
-    if (subtitle) subtitle.textContent = T.lb_ranked_by || 'Ranked by sessions, then XP';
+    let monthSuffix = "";
+    if (scope === 'monthly') {
+        const langMap = { "English": "en-US", "Arabic": "ar-DZ", "French": "fr-FR" };
+        const locale = langMap[this.selectedLang] || "en-US";
+        let monthName = new Date().toLocaleString(locale, { month: 'long' });
+        if (monthName) monthName = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+        monthSuffix = ` (${monthName})`;
+    }
+
+    if (subtitle) {
+        subtitle.textContent = (T.lb_ranked_by || 'Ranked by sessions, then XP') + monthSuffix;
+    }
 
     // Segmented control state
     document.querySelectorAll('.lb-seg[data-period]').forEach(btn => {
@@ -89,7 +100,7 @@ StudentProApp.prototype.refreshLeaderboard = async function() {
         const scopeLabel =
             scope === 'daily' ? (T.lb_daily || 'Daily')
             : scope === 'weekly' ? (T.lb_weekly || 'Weekly')
-            : scope === 'monthly' ? (T.lb_monthly || 'Monthly')
+            : scope === 'monthly' ? (T.lb_monthly || 'Monthly') + monthSuffix
             : (T.lb_all_time || 'All Time');
 
         podium.innerHTML = `

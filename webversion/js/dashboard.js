@@ -109,7 +109,7 @@ StudentProApp.prototype.refreshDashboard = function() {
     if (barsContainer) {
         const isArabic = this.selectedLang === 'Arabic';
         const DAYS_EN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-        const DAYS_AR = ['أحد','اثن','ثلا','أرب','خمي','جمع','سبت'];
+        const DAYS_AR = ['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
         const DAYS_FR = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
         const DAYS = isArabic ? DAYS_AR : this.selectedLang === 'French' ? DAYS_FR : DAYS_EN;
         const today = new Date();

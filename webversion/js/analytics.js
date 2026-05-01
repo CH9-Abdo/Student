@@ -125,7 +125,7 @@ StudentProApp.prototype.refreshAnalytics = function() {
     const weekTotalEl = get('an-week-total');
     if (weekChartEl) {
         const DAYS_EN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-        const DAYS_AR = ['أحد','اثن','ثلا','أرب','خمي','جمع','سبت'];
+        const DAYS_AR = ['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
         const DAYS_FR = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
         const DAYS = this.selectedLang === 'Arabic' ? DAYS_AR
                    : this.selectedLang === 'French' ? DAYS_FR
