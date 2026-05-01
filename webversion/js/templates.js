@@ -505,7 +505,7 @@ const TEMPLATES = [
                 name: "Analyse 2", 
                 chapters: [
                     { name: "Limites et continuité" },
-                    { name: "Dérivabilité" },
+                    { name: "Dérivabilité", url: "https://youtu.be/GxuoqURhDVA?si=mowdnX9g-Jzceue2", resources: [{ type: "video", url: "https://youtu.be/GxuoqURhDVA?si=mowdnX9g-Jzceue2", label: "Video" }] },
                     { name: "Intégration" },
                     { name: "Équations différentielles" },
                     { name: "Fonctions de plusieurs variables" },
