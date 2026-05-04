@@ -134,6 +134,7 @@ StudentProApp.prototype.openAvatarPicker = function() {
     
     // We have 50 avatars named "Avatars Set Flat Style-01.png" to "Avatars Set Flat Style-50.png"
     for (let i = 1; i <= 50; i++) {
+        if (i === 32) continue; // Skip deleted avatar
         const num = i.toString().padStart(2, '0');
         const fileName = `Avatars Set Flat Style-${num}.png`;
         const url = `assets/img/Avatar/${fileName}`;
