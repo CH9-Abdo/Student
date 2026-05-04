@@ -14,6 +14,9 @@ class StudentProApp {
         this.selectedLang = 'Arabic';
         this.isOnline = navigator.onLine;
         this._cloudSyncInFlight = null;
+        this.themeMode = 'Auto';
+        this._themeMediaQuery = null;
+        this._themeMediaQueryHandler = null;
 
         this.init();
     }

@@ -16,7 +16,7 @@ const DEFAULT_DB_DATA = {
         }
     },
     settings: {
-        theme: 'Light',
+        theme: 'Auto',
         lang: 'Arabic',
         sync_mode: 'Automatic',
         pomodoro: { work: 25, short: 5, long: 15 },

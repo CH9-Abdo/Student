@@ -303,6 +303,19 @@
     /* large-modal override for mobile */
     .large-modal { width: 96% !important; }
 
+    .guide-modal {
+        padding: 20px 16px;
+    }
+
+    .guide-section {
+        padding: 16px 14px;
+    }
+
+    .guide-callout {
+        flex-direction: column;
+        gap: 4px;
+    }
+
     /* Focus grid stacks vertically */
     .focus-grid { grid-template-columns: 1fr; }
 

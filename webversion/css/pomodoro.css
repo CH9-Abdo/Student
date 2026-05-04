@@ -544,6 +544,114 @@
     color: var(--text-mute);
 }
 
+.pomodoro-chapter-progress {
+    margin-top: 12px;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    border: 1px solid var(--border);
+}
+
+.pomodoro-chapter-progress.empty {
+    opacity: 0.8;
+}
+
+.pomodoro-chapter-progress-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.pomodoro-chapter-progress-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-mute);
+}
+
+.pomodoro-chapter-progress-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 99px;
+    padding: 3px 10px;
+    background: var(--bg-alt);
+    color: var(--text-mute);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.pomodoro-chapter-progress-name {
+    font-family: 'Sora', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.pomodoro-chapter-progress-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.pomodoro-chapter-progress-empty {
+    font-size: 13px;
+    color: var(--text-mute);
+    line-height: 1.5;
+}
+
+.pomodoro-check-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--bg-alt);
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.2s;
+}
+
+.pomodoro-check-row:hover {
+    border-color: rgba(123, 127, 232, 0.35);
+    transform: translateY(-1px);
+}
+
+.pomodoro-check-row.done {
+    border-color: rgba(14, 165, 160, 0.35);
+    background: rgba(14, 165, 160, 0.08);
+}
+
+.pomodoro-check-row input[type="checkbox"] {
+    width: 19px;
+    height: 19px;
+    margin-top: 2px;
+    accent-color: var(--primary);
+    flex-shrink: 0;
+}
+
+.pomodoro-check-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.pomodoro-check-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.pomodoro-check-hint {
+    font-size: 12px;
+    color: var(--text-mute);
+    line-height: 1.4;
+}
+
 #smart-suggestion {
     font-size: 12px;
     color: var(--text-mute);

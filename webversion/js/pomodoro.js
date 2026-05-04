@@ -214,6 +214,22 @@ StudentProApp.prototype._getPomodoroSelectedChapter = function(subjectId = this.
     return this._getPomodoroChaptersForSubject(safeSubjectId).find(c => c.id === chapterId) || null;
 };
 
+StudentProApp.prototype._getPomodoroCompletionState = function(subjectId = this.activeSubjectId, chapterId = this.activePomodoroChapterId) {
+    const safeSubjectId = Number(subjectId || 0) || null;
+    const safeChapterId = Number(chapterId || 0) || null;
+    if (!safeSubjectId || !safeChapterId) {
+        return { subject: null, chapter: null, hasExercises: false };
+    }
+
+    const subject = db.data?.subjects?.find(s => s.id === safeSubjectId) || null;
+    const chapter = this._getPomodoroChaptersForSubject(safeSubjectId).find(c => c.id === safeChapterId) || null;
+    return {
+        subject,
+        chapter,
+        hasExercises: subject ? (subject.has_exercises !== false) : false
+    };
+};
+
 StudentProApp.prototype._fillPomodoroTemplate = function(template, values = {}) {
     let text = String(template || '');
     for (const [key, value] of Object.entries(values)) {
@@ -980,6 +996,67 @@ StudentProApp.prototype.renderResourceListByType = function(type, allRes) {
     });
 };
 
+StudentProApp.prototype.refreshPomodoroCompletionPanel = function() {
+    const panel = get('pomodoro-chapter-progress');
+    if (!panel) return;
+
+    const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
+    const { subject, chapter, hasExercises } = this._getPomodoroCompletionState();
+
+    if (!subject || !chapter) {
+        panel.classList.add('empty');
+        panel.innerHTML = `
+            <div class="pomodoro-chapter-progress-head">
+                <span class="pomodoro-chapter-progress-title">${T.chapter_progress || 'Chapter Progress'}</span>
+            </div>
+            <div class="pomodoro-chapter-progress-empty">${T.select_chapter_progress_hint || 'Select a chapter to mark it complete.'}</div>
+        `;
+        return;
+    }
+
+    panel.classList.remove('empty');
+    panel.innerHTML = `
+        <div class="pomodoro-chapter-progress-head">
+            <span class="pomodoro-chapter-progress-title">${T.chapter_progress || 'Chapter Progress'}</span>
+            <span class="pomodoro-chapter-progress-pill">${T.chapter_label || 'Chapter'}</span>
+        </div>
+        <div class="pomodoro-chapter-progress-name">${chapter.name}</div>
+        <div class="pomodoro-chapter-progress-list">
+            <label class="pomodoro-check-row ${chapter.video_completed ? 'done' : ''}">
+                <input type="checkbox" data-pomodoro-status="video" ${chapter.video_completed ? 'checked' : ''}>
+                <span class="pomodoro-check-copy">
+                    <span class="pomodoro-check-label">${T.course || 'Course'}</span>
+                    <span class="pomodoro-check-hint">${T.mark_course_complete || 'Mark the lesson part complete'}</span>
+                </span>
+            </label>
+            ${hasExercises ? `
+            <label class="pomodoro-check-row ${chapter.exercises_completed ? 'done' : ''}">
+                <input type="checkbox" data-pomodoro-status="exercises" ${chapter.exercises_completed ? 'checked' : ''}>
+                <span class="pomodoro-check-copy">
+                    <span class="pomodoro-check-label">${T.exercises || 'Exercises'}</span>
+                    <span class="pomodoro-check-hint">${T.mark_exercises_complete || 'Mark the practice part complete'}</span>
+                </span>
+            </label>` : ''}
+        </div>
+    `;
+
+    panel.querySelectorAll('input[data-pomodoro-status]').forEach(input => {
+        input.addEventListener('change', async (event) => {
+            const type = event.target.dataset.pomodoroStatus;
+            const status = !!event.target.checked;
+            panel.querySelectorAll('input[data-pomodoro-status]').forEach(box => {
+                box.disabled = true;
+            });
+            try {
+                await this.togglePomodoroChapterStatus(chapter.id, type, status);
+            } catch (error) {
+                console.error('[Pomodoro] Completion toggle failed:', error);
+                this.refreshPomodoroCompletionPanel();
+            }
+        });
+    });
+};
+
 StudentProApp.prototype.refreshPomodoroUI = function() {
     const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
     const persistedState = this._loadPomodoroState?.();
@@ -1112,6 +1189,8 @@ StudentProApp.prototype.refreshPomodoroUI = function() {
         }
     }
 
+    this.refreshPomodoroCompletionPanel();
+
     const taskTitle = get('pomodoro-next-task-title');
     const taskBadge = get('pomodoro-next-task-badge');
     const taskBody = get('pomodoro-next-task-body');
@@ -1162,6 +1241,18 @@ StudentProApp.prototype.refreshPomodoroUI = function() {
             }
         }
     }
+};
+
+StudentProApp.prototype.togglePomodoroChapterStatus = async function(chapterId, type, status) {
+    const chapter = db.data?.chapters?.find(c => c.id === chapterId);
+    if (!chapter) return false;
+
+    console.log(
+        `[Pomodoro] Chapter toggle: id=${chapterId}, subject_id=${chapter.subject_id}, chapter="${chapter.name}", field=${type}, next=${status}`
+    );
+    await db.toggleChapterStatus(chapterId, type, status);
+    this.refreshAll();
+    return true;
 };
 
 StudentProApp.prototype.skipBreak = function() {

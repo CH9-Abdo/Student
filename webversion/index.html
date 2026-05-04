@@ -469,6 +469,7 @@
                                     <div class="pomodoro-summary-name" id="pomodoro-summary-name">No subject selected</div>
                                     <div class="pomodoro-summary-stats" id="pomodoro-summary-stats"></div>
                                 </div>
+                                <div id="pomodoro-chapter-progress" class="pomodoro-chapter-progress empty"></div>
                             </div>
 
                             <div class="card control-card pomodoro-next-task-card">
@@ -672,7 +673,7 @@
             ========================================== -->
             <section id="settings" class="tab-content">
                 <div class="header">
-                    <h2 class="h1">Settings</h2>
+                    <h2 class="h1" id="settings-title">Settings</h2>
                 </div>
                 <div class="settings-container">
                     <!-- Consolidated Account Card -->
@@ -730,19 +731,19 @@
 
                     <!-- General Settings -->
                     <div class="card">
-                        <h3 class="h2" style="margin-bottom:14px;">⚙️ General</h3>
+                        <h3 class="h2" id="general-settings-title" style="margin-bottom:14px;">⚙️ General</h3>
                         <div class="setting-item">
-                            <label>Name</label>
+                            <label id="acc-name-label">Name</label>
                             <span id="acc-display-name" style="font-weight:600;">—</span>
                         </div>
                         <div class="setting-item">
-                            <label>Progress</label>
+                            <label id="acc-progress-label">Progress</label>
                             <span id="acc-stats" class="banner" style="background:var(--primary-light); color:var(--primary);">
                                 Level 1 Student
                             </span>
                         </div>
                         <div class="setting-item">
-                            <label>Language</label>
+                            <label id="lang-select-label">Language</label>
                             <select id="lang-select" style="margin-bottom:0;">
                                 <option value="English">English</option>
                                 <option value="Arabic">العربية</option>
@@ -750,12 +751,24 @@
                             </select>
                         </div>
                         <div class="setting-item">
-                            <label>Theme</label>
+                            <label id="theme-label">Theme</label>
                             <select id="theme-select" style="margin-bottom:0;">
-                                <option value="Light">☀️ Light</option>
-                                <option value="Dark">🌙 Dark</option>
+                                <option id="theme-opt-auto" value="Auto">Auto</option>
+                                <option id="theme-opt-light" value="Light">☀️ Light</option>
+                                <option id="theme-opt-dark" value="Dark">🌙 Dark</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div class="card settings-guide-card">
+                        <h3 class="h2" style="margin-bottom:10px;" data-i18n="settings_guide_title">How to Use Chnain</h3>
+                        <p class="mute settings-guide-desc" data-i18n="settings_guide_desc">
+                            Open a quick guide for the study flow, offline sync basics, and how XP works.
+                        </p>
+                        <button id="open-help-guide-btn" class="secondary-btn settings-guide-btn" type="button">
+                            <i class="fas fa-circle-question"></i>
+                            <span data-i18n="settings_guide_open_btn">Open Guide</span>
+                        </button>
                     </div>
 
                     <!-- Danger Zone -->
@@ -988,6 +1001,80 @@
             </div>
             <div class="modal-actions">
                 <button class="primary-btn" id="rm-save-btn">Done</button>
+            </div>
+        </div>
+
+        <div id="help-guide-modal" class="modal large-modal guide-modal hidden">
+            <div class="modal-header">
+                <div>
+                    <p class="guide-eyebrow" data-i18n="guide_eyebrow">Help & XP Guide</p>
+                    <h2 class="h2" style="margin-bottom:8px;" data-i18n="guide_title">How to Use Chnain</h2>
+                    <p class="mute guide-intro" data-i18n="guide_intro">
+                        This guide explains the main study flow, where progress is tracked, and how XP is earned.
+                    </p>
+                </div>
+                <button class="btn-icon" id="close-help-guide-btn" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="guide-grid">
+                <section class="guide-section">
+                    <h3 class="guide-section-title" data-i18n="guide_section_start_title">1. Start here</h3>
+                    <ul class="guide-list">
+                        <li data-i18n="guide_start_item_1">Create a semester, then add your subjects in the Planner.</li>
+                        <li data-i18n="guide_start_item_2">Open each subject to add chapters, resources, and an exam date if you have one.</li>
+                        <li data-i18n="guide_start_item_3">Use the Planner as your map of what is left to study and practice.</li>
+                    </ul>
+                </section>
+
+                <section class="guide-section">
+                    <h3 class="guide-section-title" data-i18n="guide_section_flow_title">2. Daily study flow</h3>
+                    <ul class="guide-list">
+                        <li data-i18n="guide_flow_item_1">Go to Pomodoro, choose a subject, and follow the suggested next chapter when available.</li>
+                        <li data-i18n="guide_flow_item_2">Start a focus session, then let the app move you into a break when the timer ends.</li>
+                        <li data-i18n="guide_flow_item_3">After each session, come back and mark lesson or exercise progress so your planner stays accurate.</li>
+                    </ul>
+                </section>
+
+                <section class="guide-section">
+                    <h3 class="guide-section-title" data-i18n="guide_section_progress_title">3. Track progress</h3>
+                    <ul class="guide-list">
+                        <li data-i18n="guide_progress_item_1">Subjects with exercises are only fully completed when both the lesson and exercises are marked done.</li>
+                        <li data-i18n="guide_progress_item_2">Course-only subjects are completed when the lesson part is done.</li>
+                        <li data-i18n="guide_progress_item_3">Use Analytics for totals and trends, and Leaderboard to compare sessions and XP.</li>
+                    </ul>
+                </section>
+
+                <section class="guide-section">
+                    <h3 class="guide-section-title" data-i18n="guide_section_xp_title">4. How XP works</h3>
+                    <div class="guide-callout">
+                        <strong data-i18n="guide_xp_tip_title">Important:</strong>
+                        <span data-i18n="guide_xp_tip_body">Select a subject before starting focus. Sessions without a subject do not award XP.</span>
+                    </div>
+                    <ul class="guide-list">
+                        <li data-i18n="guide_xp_item_1">Focus sessions give 2 XP per study minute.</li>
+                        <li data-i18n="guide_xp_item_2">Completing a chapter gives 20 XP when the subject has exercises, or 10 XP for a course-only subject.</li>
+                        <li data-i18n="guide_xp_item_3">Reaching the daily goal of 3 sessions gives a one-time 30 XP bonus that day.</li>
+                        <li data-i18n="guide_xp_item_4">Your first study session of the day can also trigger a streak bonus: 15 XP per extra streak day, up to 90 XP.</li>
+                        <li data-i18n="guide_xp_item_5">Each new level needs more XP. Level 1 to Level 2 needs 600 XP, and the requirement increases by 140 XP each level.</li>
+                    </ul>
+                </section>
+
+                <section class="guide-section">
+                    <h3 class="guide-section-title" data-i18n="guide_section_sync_title">5. Offline and sync</h3>
+                    <ul class="guide-list">
+                        <li data-i18n="guide_sync_item_1">You can study offline. Your data is stored on this device even without an account.</li>
+                        <li data-i18n="guide_sync_item_2">Sign in from Settings if you want backup and sync across devices.</li>
+                        <li data-i18n="guide_sync_item_3">Use Sync Status and Sync Now in Settings to check whether cloud changes are uploaded.</li>
+                    </ul>
+                </section>
+            </div>
+
+            <div class="modal-actions">
+                <button class="primary-btn" id="help-guide-done-btn" type="button">
+                    <span data-i18n="guide_done_btn">Got it</span>
+                </button>
             </div>
         </div>
 

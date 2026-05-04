@@ -96,6 +96,13 @@ StudentProApp.prototype.setupEventListeners = function() {
         auth.showLogin('login');
     });
 
+    get('open-help-guide-btn')?.addEventListener('click', () => {
+        this.showModal('help-guide-modal');
+    });
+
+    get('close-help-guide-btn')?.addEventListener('click', () => this.closeModal('help-guide-modal'));
+    get('help-guide-done-btn')?.addEventListener('click', () => this.closeModal('help-guide-modal'));
+
     get('settings-sync-btn')?.addEventListener('click', async () => {
         try {
             showToast((TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"]).syncing || "Syncing...", 'info', 2000);
@@ -453,11 +460,12 @@ StudentProApp.prototype.setupEventListeners = function() {
     });
 
     get('theme-select')?.addEventListener('change', (e) => {
+        const nextThemeMode = this.normalizeThemeMode?.(e.target.value) || e.target.value;
         if (db && db.data && db.data.settings) {
-            db.data.settings.theme = e.target.value;
+            db.data.settings.theme = nextThemeMode;
             db.save();
         }
-        this.applyTheme(e.target.value);
+        this.applyTheme(nextThemeMode);
     });
 
     get('web-upload-btn')?.addEventListener('click', async () => {

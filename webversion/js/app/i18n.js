@@ -207,6 +207,8 @@ StudentProApp.prototype.updateLanguage = function() {
     const downloadText = get('download-btn-text');
     if (downloadText) downloadText.textContent = T.download_btn || T.download || 'Download';
 
+    const themeOptAuto = get('theme-opt-auto');
+    if (themeOptAuto) themeOptAuto.textContent = T.auto_theme || 'Auto';
     const themeOptLight = get('theme-opt-light');
     if (themeOptLight) themeOptLight.textContent = T.light_theme || '☀️ Light';
     const themeOptDark = get('theme-opt-dark');

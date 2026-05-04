@@ -52,9 +52,11 @@ StudentProApp.prototype.init = function() {
     console.log("[App] Initializing application...");
     this.initCapacitor();
     this.injectTemplates();
+    this.setupThemeDetection();
 
     this.loadLanguagePreference();
     console.log(`[App] Current Language: ${this.selectedLang}`);
+    this.applyStoredTheme();
 
     const loginLangSelect = document.getElementById('login-lang-select');
     if (loginLangSelect) {
@@ -177,13 +179,14 @@ StudentProApp.prototype.onLogin = async function(user) {
         this.selectedLang = db.data.settings.lang;
     }
 
-    this.applyTheme((db.data && db.data.settings && db.data.settings.theme) || 'Light');
+    this.applyStoredTheme();
     this.refreshAll();
 
     if (user && user.id !== 'offline-user') {
         await this._syncCloudNow({ reason: 'login' });
     }
 
+    this.applyStoredTheme();
     this.loadSettings();
     this.refreshAll();
 
@@ -352,9 +355,53 @@ StudentProApp.prototype.syncDailyStudyReminder = async function() {
     }
 };
 
-StudentProApp.prototype.applyTheme = function(t) {
-    document.documentElement.setAttribute('data-theme', t);
+StudentProApp.prototype.normalizeThemeMode = function(mode) {
+    return ['Auto', 'Light', 'Dark'].includes(mode) ? mode : 'Auto';
+};
+
+StudentProApp.prototype.getSystemTheme = function() {
+    try {
+        return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ? 'Dark' : 'Light';
+    } catch (e) {
+        console.warn('[App] Theme detection failed:', e);
+        return 'Light';
+    }
+};
+
+StudentProApp.prototype.resolveTheme = function(mode = null) {
+    const normalizedMode = this.normalizeThemeMode(mode || this.themeMode || db?.data?.settings?.theme || 'Auto');
+    return normalizedMode === 'Auto' ? this.getSystemTheme() : normalizedMode;
+};
+
+StudentProApp.prototype.applyTheme = function(mode) {
+    this.themeMode = this.normalizeThemeMode(mode);
+    document.documentElement.setAttribute('data-theme', this.resolveTheme(this.themeMode));
     this.applyLoginScreenLanguage();
+};
+
+StudentProApp.prototype.applyStoredTheme = function() {
+    this.applyTheme(db?.data?.settings?.theme || 'Auto');
+};
+
+StudentProApp.prototype.setupThemeDetection = function() {
+    if (this._themeMediaQuery) return;
+
+    const mediaQuery = window.matchMedia?.('(prefers-color-scheme: dark)');
+    if (!mediaQuery) return;
+
+    this._themeMediaQuery = mediaQuery;
+    this._themeMediaQueryHandler = () => {
+        if (this.normalizeThemeMode(db?.data?.settings?.theme || this.themeMode) !== 'Auto') return;
+        this.applyStoredTheme();
+        this.loadSettings();
+        this.refreshAll();
+    };
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+        mediaQuery.addEventListener('change', this._themeMediaQueryHandler);
+    } else if (typeof mediaQuery.addListener === 'function') {
+        mediaQuery.addListener(this._themeMediaQueryHandler);
+    }
 };
 
 StudentProApp.prototype.showModal = function(id) {
@@ -380,7 +427,7 @@ StudentProApp.prototype.loadSettings = function() {
     }
     const themeSel = get('theme-select');
     if (themeSel && db.data?.settings) {
-        themeSel.value = db.data.settings.theme || 'Light';
+        themeSel.value = this.normalizeThemeMode(db.data.settings.theme || 'Auto');
     }
     const syncSel = get('sync-mode-select');
     if (syncSel && db.data?.settings) {
