@@ -478,6 +478,66 @@ StudentProApp.prototype.toggleTimer = function() {
     this._startPomodoroUiTick();
 };
 
+StudentProApp.prototype._hasPomodoroLockedSession = function() {
+    const state = this._loadPomodoroState?.();
+    return Boolean(this.timerRunning || state?.running);
+};
+
+StudentProApp.prototype.preparePomodoroForEntry = function() {
+    if (this._hasPomodoroLockedSession()) return false;
+
+    if (this.activeSubjectId) {
+        const defaultChapter = this._getPomodoroDefaultChapter(this.activeSubjectId);
+        if (defaultChapter && !this.activePomodoroChapterId) {
+            return this.setPomodoroChapter(defaultChapter.id);
+        }
+        this.refreshPomodoroUI();
+        return true;
+    }
+
+    return this.applyRecommendedPomodoroSubject();
+};
+
+StudentProApp.prototype.startSuggestedPomodoroFocus = function() {
+    const currentKind = this._pomodoroKind || this._loadPomodoroState?.()?.kind || 'focus';
+    if (this.timerRunning || currentKind === 'break') return false;
+
+    const suggestion = this.getPomodoroTaskSuggestion();
+    const targetSubjectId = suggestion?.subjectId ?? null;
+    const targetChapterId = suggestion?.chapterId ?? suggestion?.nextTask?.chapterId ?? null;
+
+    if (!this.activeSubjectId && targetSubjectId) {
+        this.setPomodoroSubject(targetSubjectId);
+    } else if (!this.activeSubjectId) {
+        this.applyRecommendedPomodoroSubject();
+    }
+
+    if (!this.activeSubjectId) return false;
+
+    if (targetChapterId) {
+        this.setPomodoroChapter(targetChapterId);
+    } else if (!this.activePomodoroChapterId) {
+        const defaultChapter = this._getPomodoroDefaultChapter(this.activeSubjectId);
+        if (defaultChapter?.id) this.setPomodoroChapter(defaultChapter.id);
+    }
+
+    this.toggleTimer();
+    this.scrollPomodoroTimerIntoView();
+    return true;
+};
+
+StudentProApp.prototype.scrollPomodoroTimerIntoView = function() {
+    const timerCard = document.querySelector('.timer-card');
+    if (!timerCard) return false;
+
+    try {
+        timerCard.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+        return true;
+    } catch {
+        return false;
+    }
+};
+
 StudentProApp.prototype.resetTimer = function() {
     clearInterval(this.timer);
     this.timerRunning = false;
@@ -837,6 +897,20 @@ StudentProApp.prototype.applyRecommendedPomodoroSubject = function() {
     return this.setPomodoroSubject(recommendedSubjectId);
 };
 
+StudentProApp.prototype._applyPomodoroSuggestion = function(suggestion = this.getPomodoroTaskSuggestion()) {
+    if (!suggestion?.subjectId) return false;
+
+    this.setPomodoroSubject(suggestion.subjectId);
+
+    const targetChapterId = suggestion.chapterId ?? suggestion.nextTask?.chapterId ?? null;
+    if (targetChapterId) {
+        this.setPomodoroChapter(targetChapterId);
+    }
+
+    this.refreshPomodoroUI();
+    return true;
+};
+
 StudentProApp.prototype._getPomodoroChapterVideoUrl = function(chapter) {
     if (!chapter) return null;
     if (chapter.youtube_url) return chapter.youtube_url;
@@ -1163,6 +1237,7 @@ StudentProApp.prototype.refreshPomodoroUI = function() {
             summaryStats.innerHTML = '';
         } else {
             const chapters = db.data.chapters.filter(c => c.subject_id === subject.id);
+            const selectedChapter = this._getPomodoroSelectedChapter(subject.id) || this._getPomodoroDefaultChapter(subject.id);
             const hasExercises = subject.has_exercises !== false;
             const courseDone = chapters.filter(c => c.video_completed).length;
             const exercisesDone = chapters.filter(c => c.exercises_completed).length;
@@ -1177,6 +1252,7 @@ StudentProApp.prototype.refreshPomodoroUI = function() {
             summaryStats.innerHTML = '';
 
             [
+                selectedChapter ? `${T.chapter_label || 'Chapter'}: ${selectedChapter.name}` : null,
                 `${chapters.length} ${T.chapters || 'Chapters'}`,
                 `${courseLeft} ${T.course_left || `${T.course || 'Course'} left`}`,
                 hasExercises ? `${exercisesLeft} ${T.exercises_left || `${T.exercises || 'Exercises'} left`}` : null
@@ -1195,8 +1271,9 @@ StudentProApp.prototype.refreshPomodoroUI = function() {
     const taskBadge = get('pomodoro-next-task-badge');
     const taskBody = get('pomodoro-next-task-body');
     const taskReason = get('pomodoro-next-task-reason');
+    const startSuggestionBtn = get('pomodoro-start-suggestion-btn');
     const suggestionBtn = get('pomodoro-use-suggestion-btn');
-    if (taskTitle && taskBadge && taskBody && taskReason && suggestionBtn) {
+    if (taskTitle && taskBadge && taskBody && taskReason && startSuggestionBtn && suggestionBtn) {
         const suggestion = this.getPomodoroTaskSuggestion();
         taskTitle.textContent = T.up_next || 'Up Next';
 
@@ -1204,6 +1281,7 @@ StudentProApp.prototype.refreshPomodoroUI = function() {
             taskBadge.textContent = T.suggested_focus || 'Suggested';
             taskBody.textContent = T.pomodoro_pick_subject_hint || 'Pick a subject to see your next task.';
             taskReason.textContent = '';
+            startSuggestionBtn.classList.add('hidden');
             suggestionBtn.classList.add('hidden');
         } else {
             const typeLabel = suggestion.nextTask?.type === 'exercises'
@@ -1233,6 +1311,14 @@ StudentProApp.prototype.refreshPomodoroUI = function() {
                         : (T.selected_subject_focus_hint || 'You are looking at the current subject plan.'))
                     : '';
             }
+
+            const showStartSuggestion = !this.timerRunning && currentKind !== 'break';
+            startSuggestionBtn.classList.toggle('hidden', !showStartSuggestion);
+            startSuggestionBtn.innerHTML = `<i class="fas fa-play"></i> ${
+                suggestion.source === 'selected'
+                    ? (T.start_focus || 'Start Focus')
+                    : (T.start_suggested_focus || 'Start Suggested Focus')
+            }`;
 
             if (suggestion.source === 'suggested') {
                 suggestionBtn.classList.remove('hidden');

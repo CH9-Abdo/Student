@@ -7,6 +7,9 @@ StudentProApp.prototype.switchTab = function(tabId) {
     this.closeMobileMenu(false);
     this.updateNavigationState(tabId);
 
+    if (tabId === 'pomodoro' && typeof this.preparePomodoroForEntry === 'function') {
+        this.preparePomodoroForEntry();
+    }
     if (tabId === 'leaderboard') this.refreshLeaderboard();
     this.refreshAll();
     this.scrollActiveTabToTop(target);

@@ -479,13 +479,16 @@
                                 </div>
                                 <div class="pomodoro-next-task-body" id="pomodoro-next-task-body">Pick a subject to see your next task.</div>
                                 <div class="pomodoro-next-task-reason mute" id="pomodoro-next-task-reason"></div>
+                                <button id="pomodoro-start-suggestion-btn" class="primary-btn small-btn hidden">
+                                    <i class="fas fa-play"></i> Start Suggested Focus
+                                </button>
                                 <button id="pomodoro-use-suggestion-btn" class="secondary-btn small-btn hidden">
                                     <i class="fas fa-bolt"></i> Use Suggestion
                                 </button>
                             </div>
 
                             <!-- Lo-Fi Music -->
-                            <div class="card control-card">
+                            <div class="card control-card pomodoro-music-card">
                                 <h4>🎵 Focus Music</h4>
                                 <div class="lofi-controls">
                                     <label class="toggle-switch">
@@ -502,7 +505,7 @@
                             </div>
 
                             <!-- Session Stats -->
-                            <div class="card control-card">
+                            <div class="card control-card pomodoro-stats-card">
                                 <h4>📈 Today</h4>
                                 <div class="session-stats">
                                     <div class="stat-pill">

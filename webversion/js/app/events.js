@@ -432,9 +432,14 @@ StudentProApp.prototype.setupEventListeners = function() {
         const suggestion = typeof this.getPomodoroTaskSuggestion === 'function'
             ? this.getPomodoroTaskSuggestion()
             : null;
-        if (suggestion?.subjectId) {
-            this.setPomodoroSubject(suggestion.subjectId);
-            this.refreshPomodoroUI();
+        if (suggestion?.subjectId && typeof this._applyPomodoroSuggestion === 'function') {
+            this._applyPomodoroSuggestion(suggestion);
+        }
+    });
+
+    get('pomodoro-start-suggestion-btn')?.addEventListener('click', () => {
+        if (typeof this.startSuggestedPomodoroFocus === 'function') {
+            this.startSuggestedPomodoroFocus();
         }
     });
 

@@ -693,6 +693,11 @@
     margin-top: 14px;
 }
 
+#pomodoro-start-suggestion-btn {
+    width: 100%;
+    margin-top: 14px;
+}
+
 /* ══════════════════════════════════════════════════════════════
    LO-FI MUSIC CONTROLS
 ══════════════════════════════════════════════════════════════ */
@@ -883,6 +888,10 @@ input:checked + .slider::before { transform: translateX(20px); }
         grid-template-columns: 1fr;
     }
 
+    .timer-card {
+        padding: 24px 18px;
+    }
+
     .pomodoro-header-card {
         flex-direction: column;
         align-items: flex-start;
@@ -909,6 +918,47 @@ input:checked + .slider::before { transform: translateX(20px); }
 
     .pomodoro-break-actions .small-btn {
         flex: 1 1 auto;
+    }
+
+    .controls-column {
+        gap: 12px;
+    }
+
+    .control-card {
+        padding: 18px 16px;
+    }
+
+    #active-subject-selector,
+    #active-chapter-selector {
+        min-height: 48px;
+        font-size: 16px;
+    }
+
+    .pomodoro-subject-summary,
+    .pomodoro-chapter-progress {
+        padding: 12px 14px;
+    }
+
+    .pomodoro-summary-stat {
+        min-height: 32px;
+        padding: 7px 11px;
+    }
+
+    .pomodoro-next-task-body {
+        font-size: 15px;
+    }
+
+    #pomodoro-start-suggestion-btn,
+    #pomodoro-use-suggestion-btn {
+        min-height: 44px;
+    }
+
+    .pomodoro-music-card {
+        order: 4;
+    }
+
+    .pomodoro-stats-card {
+        order: 5;
     }
 
     .session-stats { gap: 8px; }
