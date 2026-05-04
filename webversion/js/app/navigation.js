@@ -72,8 +72,23 @@ StudentProApp.prototype.refreshAll = function() {
     void this.syncDailyStudyReminder();
     this.updateMiniChallenge();
 
-    const nameDisp = get('acc-display-name');
+    const nameDisp = get('acc-display-name-val');
     if (nameDisp) nameDisp.textContent = db.data?.user_profile?.display_name || "Student";
+
+    const avatarImg = get('settings-avatar-img');
+    if (avatarImg && db.data?.user_profile?.avatar_url) {
+        avatarImg.src = db.data.user_profile.avatar_url;
+    }
+
+    const xpLabel = get('settings-xp-label');
+    const xpBar = get('settings-xp-bar');
+    const levelBadge = get('settings-level-badge');
+    if (db.data?.user_profile && xpLabel && xpBar) {
+        const progress = db.getLevelProgress(db.data.user_profile.xp);
+        xpLabel.textContent = `${progress.xpIntoLevel} / ${progress.xpForNextLevel} XP`;
+        xpBar.style.width = `${progress.progressPct}%`;
+        if (levelBadge) levelBadge.textContent = `${T.level_label || 'المستوى'} ${progress.level}`;
+    }
 
     const emailDisp = get('acc-email');
     if (emailDisp && auth.user) {
@@ -109,3 +124,35 @@ StudentProApp.prototype.refreshAll = function() {
         accStats.textContent = `${T.level_label || T.level || 'Level'} ${level} | ${title}`;
     }
 };
+
+StudentProApp.prototype.openAvatarPicker = function() {
+    const grid = get('avatar-grid');
+    if (!grid) return;
+    
+    grid.innerHTML = '';
+    const currentAvatar = db.data?.user_profile?.avatar_url || "";
+    
+    // We have 50 avatars named "Avatars Set Flat Style-01.png" to "Avatars Set Flat Style-50.png"
+    for (let i = 1; i <= 50; i++) {
+        const num = i.toString().padStart(2, '0');
+        const fileName = `Avatars Set Flat Style-${num}.png`;
+        const url = `assets/img/Avatar/${fileName}`;
+        
+        const item = document.createElement('div');
+        item.className = `avatar-item ${currentAvatar.includes(fileName) ? 'selected' : ''}`;
+        item.innerHTML = `<img src="${url}" alt="Avatar ${num}">`;
+        item.onclick = () => this.selectAvatar(url);
+        grid.appendChild(item);
+    }
+    
+    this.showModal('avatar-picker-modal');
+};
+
+StudentProApp.prototype.selectAvatar = async function(url) {
+    const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
+    await db.updateProfile({ avatar_url: url });
+    this.refreshAll();
+    this.closeModal('avatar-picker-modal');
+    showToast(T.toast_sync_ok || "تم التحديث!", 'success');
+};
+

@@ -335,7 +335,64 @@
     .dashboard-bottom { grid-template-columns: 1fr; }
 
     /* Settings */
-    .settings-container { grid-template-columns: 1fr; }
+    .settings-container { 
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .profile-card {
+        padding: 24px 16px;
+    }
+
+    .profile-avatar {
+        width: 84px;
+        height: 84px;
+    }
+
+    .setting-item {
+        padding: 12px 0;
+        gap: 12px;
+    }
+
+    .setting-item label {
+        font-size: 13px;
+    }
+
+    .setting-item select {
+        min-width: 90px;
+        font-size: 13px;
+    }
+
+    .setting-icon-circle {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .setting-icon-circle.small {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    .semester-btns-row {
+        flex-direction: column;
+    }
+
+    .sync-buttons {
+        flex-direction: column;
+    }
+
+    /* Avatar Picker */
+    .avatar-grid {
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+        gap: 10px;
+    }
+
+    .avatar-item {
+        width: 60px;
+        height: 60px;
+    }
 
     /* Analytics */
     .an-header {
@@ -481,6 +538,28 @@
     .add-subject-row select {
         width: 100% !important;
         margin-bottom: 0;
+    }
+
+    /* Horizontal scroll for filters */
+    .planner-filter-row {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        padding-bottom: 8px;
+        margin-bottom: 0;
+        -webkit-overflow-scrolling: touch;
+        gap: 8px;
+        scrollbar-width: none; /* Firefox */
+    }
+
+    .planner-filter-row::-webkit-scrollbar {
+        display: none; /* Chrome/Safari/Edge */
+    }
+
+    .planner-filter-btn {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        width: auto !important;
     }
 
     /* Setting items stack on narrow screens */

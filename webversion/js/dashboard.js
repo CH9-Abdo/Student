@@ -14,6 +14,11 @@ StudentProApp.prototype.refreshDashboard = function() {
     const uname = get('dash-username');
     if (uname) uname.textContent = db.data?.user_profile?.display_name || (T.student || 'Student');
 
+    const dashAvatar = get('dash-avatar-img');
+    if (dashAvatar && db.data?.user_profile?.avatar_url) {
+        dashAvatar.src = db.data.user_profile.avatar_url;
+    }
+
     // ── Progress ring ─────────────────────────────────────
     const stats = db.getProgressStats();
     const perc  = stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;

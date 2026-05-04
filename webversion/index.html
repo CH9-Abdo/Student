@@ -179,6 +179,9 @@
 
                 <!-- ── Banner ─────────────────────────────── -->
                 <div class="db-banner">
+                    <div class="db-banner-avatar" id="dash-avatar-wrap">
+                        <img src="assets/img/logo.png" id="dash-avatar-img" alt="User">
+                    </div>
                     <div class="db-banner-text">
                         <p class="db-date" id="current-date">Loading…</p>
                         <h2 class="db-title"><span id="db-welcome-text">Welcome back,</span> <em id="dash-username">Student</em></h2>
@@ -305,14 +308,6 @@
                             <select id="semester-selector" class="semester-select"></select>
                         </div>
                     </div>
-                    <div class="planner-topbar-actions">
-                        <button id="delete-semester-btn" class="planner-del-sem-btn" disabled>
-                            <i class="fas fa-trash-alt"></i> Delete Semester
-                        </button>
-                        <button id="add-semester-btn" class="planner-add-sem-btn">
-                            <i class="fas fa-plus"></i> New Semester
-                        </button>
-                    </div>
                 </div>
 
                 <!-- Planner stats strip -->
@@ -350,6 +345,11 @@
 
                 <!-- Subject Cards Grid -->
                 <div id="subject-cards-grid" class="subject-cards-grid"></div>
+
+                <!-- Floating Action Button for Mobile -->
+                <button id="planner-fab" class="planner-fab hidden-desktop" title="Add Subject">
+                    <i class="fas fa-plus"></i>
+                </button>
 
                 <!-- Empty state (shown via JS) -->
                 <div id="planner-empty" class="planner-empty hidden">
@@ -676,57 +676,104 @@
             ========================================== -->
             <section id="settings" class="tab-content">
                 <div class="header">
-                    <h2 class="h1" id="settings-title">Settings</h2>
+                    <h2 class="h1" id="settings-title" data-i18n="settings_title">الإعدادات</h2>
                 </div>
+
                 <div class="settings-container">
-                    <!-- Consolidated Account Card -->
+
+                    <!-- Profile Header Card -->
+                    <div class="card profile-card">
+                        <div class="profile-avatar-wrap">
+                            <div class="profile-avatar" id="settings-avatar">
+                                <img src="assets/img/logo.png" id="settings-avatar-img" alt="Avatar">
+                                <button class="avatar-edit-btn" id="change-avatar-btn" title="تغيير الصورة">
+                                    <i class="fas fa-camera"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="profile-info">
+                            <h2 class="profile-name" id="acc-display-name-val">Student</h2>
+                            <button class="name-edit-btn" id="change-name-btn">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                        <div class="profile-level-box">
+                            <div class="level-badge-pill" id="settings-level-badge">المستوى 1</div>
+                            <div class="xp-progress-container">
+                                <div class="xp-progress-bar" id="settings-xp-bar" style="width: 0%;"></div>
+                            </div>
+                            <div class="xp-label" id="settings-xp-label">0 / 600 XP</div>
+                        </div>
+                    </div>
+
+                    <!-- Account Section -->
                     <div class="card" id="account-settings-card">
-                        <h3 class="h2" style="margin-bottom:14px;" data-i18n="account_title">☁️ Account</h3>
-                        
-                        <!-- Offline State -->
+                        <div class="settings-group-header">
+                            <div class="setting-icon-circle accent-blue">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <h3 class="h2" data-i18n="account_title">الحساب</h3>
+                        </div>
+
                         <div id="settings-offline-state" class="hidden">
-                            <p class="mute" style="font-weight:600; margin-bottom:6px;" data-i18n="account_offline_label">You're working offline</p>
-                            <p class="mute" style="margin-bottom:14px;" data-i18n="account_offline_desc">Your data is saved locally on this device.</p>
-                            <p class="mute" style="margin-bottom:14px;" data-i18n="account_connect_prompt">Connect a cloud account to back up and sync your data across devices.</p>
-                            <div style="display:flex; gap:10px;">
-                                <button id="settings-signup-btn" class="primary-btn small-btn" data-i18n="account_create_btn">Create Account</button>
-                                <button id="settings-signin-btn" class="secondary-btn small-btn" data-i18n="account_signin_btn">Sign In</button>
+                            <div class="setting-row" style="padding: 10px 0;">
+                                <p class="mute" style="font-weight:600;" data-i18n="account_offline_label">أنت تعمل بدون اتصال</p>
+                                <div style="display:flex; gap:10px; margin-top:8px;">
+                                    <button id="settings-signup-btn" class="primary-btn small-btn" data-i18n="account_create_btn">إنشاء حساب</button>
+                                    <button id="settings-signin-btn" class="secondary-btn small-btn" data-i18n="account_signin_btn">تسجيل الدخول</button>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Logged-in State -->
                         <div id="settings-logged-in-state" class="hidden">
                             <div class="setting-item">
-                                <label data-i18n="account_sync_desc">Signed in as</label>
-                                <span id="acc-email" class="mute" style="font-size:13px;">—</span>
+                                <div class="setting-item-left">
+                                    <div class="setting-icon-circle small">
+                                        <i class="fas fa-envelope"></i>
+                                    </div>
+                                    <label data-i18n="account_sync_desc">مسجّل دخول باسم</label>
+                                </div>
+                                <span id="acc-email" class="mute">—</span>
                             </div>
                             <div class="setting-item">
-                                <label id="sync-mode-label">Sync Mode</label>
-                                <select id="sync-mode-select" style="margin-bottom:0;">
-                                    <option id="sync-opt-auto" value="Automatic">Automatic</option>
-                                    <option id="sync-opt-manual" value="Manual">Manual</option>
+                                <div class="setting-item-left">
+                                    <div class="setting-icon-circle small">
+                                        <i class="fas fa-sync"></i>
+                                    </div>
+                                    <label id="sync-mode-label" data-i18n="sync_mode">وضع المزامنة</label>
+                                </div>
+                                <select id="sync-mode-select">
+                                    <option id="sync-opt-auto" value="Automatic" data-i18n="sync_auto">تلقائي</option>
+                                    <option id="sync-opt-manual" value="Manual" data-i18n="sync_manual">يدوي</option>
                                 </select>
                             </div>
                             <div class="setting-item">
-                                <label id="daily-reminder-label">Daily Reminder</label>
-                                <select id="daily-reminder-select" style="margin-bottom:0;">
-                                    <option id="daily-reminder-on" value="enabled">On</option>
-                                    <option id="daily-reminder-off" value="disabled">Off</option>
+                                <div class="setting-item-left">
+                                    <div class="setting-icon-circle small">
+                                        <i class="fas fa-bell"></i>
+                                    </div>
+                                    <label id="daily-reminder-label" data-i18n="daily_reminder">تذكير يومي</label>
+                                </div>
+                                <select id="daily-reminder-select">
+                                    <option id="daily-reminder-on" value="enabled" data-i18n="daily_reminder_on">مفعّل</option>
+                                    <option id="daily-reminder-off" value="disabled" data-i18n="daily_reminder_off">متوقف</option>
                                 </select>
                             </div>
-                            <p id="daily-reminder-help" class="mute" style="margin-top:-6px; font-size:12px;">
-                                Android sends one reminder at 18:00 if you have not studied yet today.
-                            </p>
                             <div class="setting-item">
-                                <label id="sync-status-label">Sync Status</label>
-                                <span id="settings-sync-status" class="mute" style="font-size:13px;">—</span>
+                                <div class="setting-item-left">
+                                    <div class="setting-icon-circle small">
+                                        <i class="fas fa-info-circle"></i>
+                                    </div>
+                                    <label id="sync-status-label" data-i18n="sync_status">حالة المزامنة</label>
+                                </div>
+                                <span id="settings-sync-status" class="mute">—</span>
                             </div>
-                            <div class="sync-buttons" style="margin-top:16px;">
+                            <div class="sync-buttons">
                                 <button id="settings-sync-btn" class="primary-btn small-btn" data-i18n="account_sync_now_btn">
-                                    <i class="fas fa-sync-alt"></i> Sync Now
+                                    <i class="fas fa-sync-alt"></i> مزامنة الآن
                                 </button>
                                 <button id="settings-signout-btn" class="danger-btn small-btn" data-i18n="account_signout_btn">
-                                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                                    <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
                                 </button>
                             </div>
                         </div>
@@ -734,59 +781,95 @@
 
                     <!-- General Settings -->
                     <div class="card">
-                        <h3 class="h2" id="general-settings-title" style="margin-bottom:14px;">⚙️ General</h3>
-                        <div class="setting-item">
-                            <label id="acc-name-label">Name</label>
-                            <span id="acc-display-name" style="font-weight:600;">—</span>
+                        <div class="settings-group-header">
+                            <div class="setting-icon-circle accent-purple">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <h3 class="h2" id="general-settings-title" data-i18n="general_title">عام</h3>
                         </div>
+
                         <div class="setting-item">
-                            <label id="acc-progress-label">Progress</label>
-                            <span id="acc-stats" class="banner" style="background:var(--primary-light); color:var(--primary);">
-                                Level 1 Student
-                            </span>
-                        </div>
-                        <div class="setting-item">
-                            <label id="lang-select-label">Language</label>
-                            <select id="lang-select" style="margin-bottom:0;">
+                            <div class="setting-item-left">
+                                <div class="setting-icon-circle small">
+                                    <i class="fas fa-globe"></i>
+                                </div>
+                                <label id="lang-select-label" data-i18n="language">اللغة</label>
+                            </div>
+                            <select id="lang-select">
                                 <option value="English">English</option>
                                 <option value="Arabic">العربية</option>
                                 <option value="French">Français</option>
                             </select>
                         </div>
                         <div class="setting-item">
-                            <label id="theme-label">Theme</label>
-                            <select id="theme-select" style="margin-bottom:0;">
-                                <option id="theme-opt-auto" value="Auto">Auto</option>
-                                <option id="theme-opt-light" value="Light">☀️ Light</option>
-                                <option id="theme-opt-dark" value="Dark">🌙 Dark</option>
+                            <div class="setting-item-left">
+                                <div class="setting-icon-circle small">
+                                    <i class="fas fa-palette"></i>
+                                </div>
+                                <label id="theme-label" data-i18n="theme">المظهر</label>
+                            </div>
+                            <select id="theme-select">
+                                <option id="theme-opt-auto" value="Auto" data-i18n="auto_theme">تلقائي</option>
+                                <option id="theme-opt-light" value="Light" data-i18n="light_theme">☀️ فاتح</option>
+                                <option id="theme-opt-dark" value="Dark" data-i18n="dark_theme">🌙 داكن</option>
                             </select>
+                        </div>
+
+                        <div class="setting-divider"></div>
+
+                        <div class="semester-mgmt-section">
+                            <div class="setting-item-left" style="margin-bottom:12px;">
+                                <div class="setting-icon-circle small">
+                                    <i class="fas fa-layer-group"></i>
+                                </div>
+                                <label style="font-weight: 700;">إدارة الفصل الدراسي</label>
+                            </div>
+                            <div class="semester-btns-row">
+                                <button id="add-semester-btn" class="planner-add-sem-btn">
+                                    <i class="fas fa-plus"></i> <span data-i18n="new_semester">فصل جديد</span>
+                                </button>
+                                <button id="delete-semester-btn" class="planner-del-sem-btn" disabled>
+                                    <i class="fas fa-trash-alt"></i> <span>حذف الحالي</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
+                    <!-- Support Section -->
                     <div class="card settings-guide-card">
-                        <h3 class="h2" style="margin-bottom:10px;" data-i18n="settings_guide_title">How to Use Chnain</h3>
+                        <div class="settings-group-header">
+                            <div class="setting-icon-circle accent-green">
+                                <i class="fas fa-question-circle"></i>
+                            </div>
+                            <h3 class="h2" data-i18n="settings_guide_title">كيفية الاستخدام</h3>
+                        </div>
                         <p class="mute settings-guide-desc" data-i18n="settings_guide_desc">
-                            Open a quick guide for the study flow, offline sync basics, and how XP works.
+                            افتح دليلاً سريعاً لشرح مسار الدراسة، وأساسيات المزامنة، وكيف تعمل نقاط XP.
                         </p>
                         <button id="open-help-guide-btn" class="secondary-btn settings-guide-btn" type="button">
                             <i class="fas fa-circle-question"></i>
-                            <span data-i18n="settings_guide_open_btn">Open Guide</span>
+                            <span data-i18n="settings_guide_open_btn">فتح الدليل</span>
                         </button>
                     </div>
 
-                    <!-- Danger Zone -->
-                    <div class="card danger-zone">
-                        <h3 class="h2" style="margin-bottom:14px; color:var(--danger);" id="danger-zone-title">⚠️ Danger Zone</h3>
-                        <p class="mute" style="font-size:13px; margin-bottom:14px;" id="danger-zone-desc">
-                            This will permanently delete all your study data from both local storage and the cloud.
+                    <!-- Danger Zone (Bottom) -->
+                    <div class="card danger-zone-card">
+                        <div class="settings-group-header">
+                            <div class="setting-icon-circle accent-red">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <h3 class="h2" id="danger-zone-title" data-i18n="danger_zone_title">منطقة الخطر</h3>
+                        </div>
+                        <p class="mute" style="font-size:13px; margin-bottom:14px;" id="danger-zone-desc" data-i18n="danger_zone_desc">
+                            سيؤدي هذا إلى حذف جميع بياناتك الدراسية نهائياً من التخزين المحلي والسحابة.
                         </p>
                         <button id="reset-data-btn" class="danger-btn">
-                            <i class="fas fa-trash-alt"></i> Reset All Data
+                            <i class="fas fa-trash-alt"></i> <span data-i18n="reset_all_data">إعادة تعيين جميع البيانات</span>
                         </button>
                     </div>
+
                 </div>
             </section>
-
         </main>
 
         <nav id="mobile-bottom-nav" aria-label="Mobile navigation">
@@ -1078,6 +1161,21 @@
                 <button class="primary-btn" id="help-guide-done-btn" type="button">
                     <span data-i18n="guide_done_btn">Got it</span>
                 </button>
+            </div>
+        </div>
+
+        <!-- Avatar Selection Modal -->
+        <div id="avatar-picker-modal" class="modal hidden">
+            <div class="modal-header">
+                <h2 class="h2" data-i18n="choose_avatar_title">اختر صورتك الشخصية</h2>
+                <button class="btn-icon" id="close-avatar-modal" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="avatar-grid" class="avatar-grid scroll-area" style="max-height: 400px;">
+                    <!-- Avatars will be injected here via JS -->
+                </div>
             </div>
         </div>
 

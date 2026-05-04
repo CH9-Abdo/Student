@@ -357,7 +357,10 @@ const TRANSLATIONS = {
         "guide_sync_item_2": "Sign in from Settings if you want backup and sync across devices.",
         "guide_sync_item_3": "Use Sync Status and Sync Now in Settings to check whether cloud changes are uploaded.",
         "guide_done_btn": "Got it",
-        "header_cloud_btn_tip": "Connect to cloud"
+        "header_cloud_btn_tip": "Connect to cloud",
+        "display_name_prompt": "Enter your new display name:",
+        "avatar_url_prompt": "Enter new profile picture URL:",
+        "choose_avatar_title": "Choose your avatar"
     },
     "Arabic": {
         "app_name": "الشنين",
@@ -717,7 +720,10 @@ const TRANSLATIONS = {
         "guide_sync_item_2": "سجّل الدخول من الإعدادات إذا أردت النسخ الاحتياطي والمزامنة بين الأجهزة.",
         "guide_sync_item_3": "استخدم حالة المزامنة وزر المزامنة الآن في الإعدادات للتأكد من رفع التغييرات السحابية.",
         "guide_done_btn": "فهمت",
-        "header_cloud_btn_tip": "الاتصال بالسحابة"
+        "header_cloud_btn_tip": "الاتصال بالسحابة",
+        "display_name_prompt": "أدخل اسمك الجديد:",
+        "avatar_url_prompt": "أدخل رابط الصورة الشخصية الجديد (URL):",
+        "choose_avatar_title": "اختر صورتك الشخصية"
     },
     "French": {
         "app_name": "Chnain",

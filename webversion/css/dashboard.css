@@ -12,9 +12,24 @@
     margin-bottom: 20px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 20px;
+}
+.db-banner-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    overflow: hidden;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.1);
+    position: relative;
+    z-index: 1;
+}
+.db-banner-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 .db-banner-blob {
     position: absolute;

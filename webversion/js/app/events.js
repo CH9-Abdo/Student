@@ -343,16 +343,34 @@ StudentProApp.prototype.setupEventListeners = function() {
     get('add-subject-toggle-btn')?.addEventListener('click', () => {
         const form = get('add-subject-form');
         const toggle = get('add-subject-toggle-btn');
+        const fab = get('planner-fab');
         if (!form) return;
         const isHidden = form.classList.contains('hidden');
         form.classList.toggle('hidden', !isHidden);
         toggle.classList.toggle('hidden', isHidden);
-        if (isHidden) get('subject-name-input')?.focus();
+        fab?.classList.toggle('hidden', isHidden);
+        if (isHidden) {
+            get('subject-name-input')?.focus();
+            form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+
+    get('planner-fab')?.addEventListener('click', () => {
+        const form = get('add-subject-form');
+        const toggle = get('add-subject-toggle-btn');
+        const fab = get('planner-fab');
+        if (!form) return;
+        form.classList.remove('hidden');
+        toggle?.classList.add('hidden');
+        fab?.classList.add('hidden');
+        get('subject-name-input')?.focus();
+        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
 
     get('cancel-add-subject-btn')?.addEventListener('click', () => {
         get('add-subject-form')?.classList.add('hidden');
         get('add-subject-toggle-btn')?.classList.remove('hidden');
+        get('planner-fab')?.classList.remove('hidden');
     });
 
     get('close-sw-modal')?.addEventListener('click', () => this.closeModal('subject-window-modal'));
@@ -400,6 +418,25 @@ StudentProApp.prototype.setupEventListeners = function() {
 
     get('close-rm-modal')?.addEventListener('click', () => {
         this.closeModal('resource-manager-modal');
+    });
+
+    get('change-name-btn')?.addEventListener('click', async () => {
+        const T = TRANSLATIONS[this.selectedLang] || TRANSLATIONS["English"];
+        const currentName = db.data?.user_profile?.display_name || "Student";
+        const newName = prompt(T.display_name_prompt || "أدخل اسمك الجديد:", currentName);
+        if (newName !== null && newName.trim() !== "" && newName !== currentName) {
+            await db.updateProfile({ display_name: newName.trim() });
+            this.refreshAll();
+            showToast(T.toast_sync_ok || "تم التحديث!", 'success');
+        }
+    });
+
+    get('change-avatar-btn')?.addEventListener('click', () => {
+        this.openAvatarPicker();
+    });
+
+    get('close-avatar-modal')?.addEventListener('click', () => {
+        this.closeModal('avatar-picker-modal');
     });
 
     get('timer-start')?.addEventListener('click', () => {

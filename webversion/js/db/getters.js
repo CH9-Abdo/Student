@@ -303,10 +303,12 @@ Database.prototype.getLeaderboard = async function(scope = 'weekly') {
             rankings[meIdx].xp = this.data.user_profile.xp;
             rankings[meIdx].level = this.data.user_profile.level;
             rankings[meIdx].display_name = this.data.user_profile.display_name;
+            rankings[meIdx].avatar_url = this.data.user_profile.avatar_url;
         } else {
             rankings.push({
                 user_id: myId,
                 display_name: this.data.user_profile.display_name || "Guest",
+                avatar_url: this.data.user_profile.avatar_url || "",
                 xp: this.data.user_profile.xp,
                 level: this.data.user_profile.level,
                 total_sessions: mySessionsInWindow

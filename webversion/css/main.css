@@ -625,74 +625,302 @@ input::placeholder { color: var(--text-mute); }
 }
 
 /* ============================================================
-   SETTINGS PAGE
+   SETTINGS PAGE — MOBILE-FIRST REDESIGN
    ============================================================ */
 .settings-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-    align-items: start;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
-.settings-container .card { margin-bottom: 0; }
+/* ── PROFILE CARD ── */
+.profile-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
+    text-align: center;
+    background: linear-gradient(180deg, var(--card), var(--bg-alt));
+}
+
+.profile-avatar-wrap {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 4px solid var(--primary-light);
+    overflow: hidden;
+    position: relative;
+    background: var(--progress-bg);
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-edit-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    border: 2px solid var(--card);
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transition: transform 0.2s;
+}
+
+.avatar-edit-btn:active { transform: scale(0.9); }
+
+.profile-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.profile-name {
+    font-family: 'Sora', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text);
+}
+
+.name-edit-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-mute);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s;
+}
+
+.name-edit-btn:hover { color: var(--primary); }
+
+.profile-level-box {
+    width: 100%;
+    max-width: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.level-badge-pill {
+    padding: 4px 14px;
+    border-radius: 99px;
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.xp-progress-container {
+    width: 100%;
+    height: 8px;
+    background: var(--progress-bg);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.xp-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-radius: 4px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.xp-label {
+    font-size: 11px;
+    color: var(--text-mute);
+    font-weight: 600;
+}
+
+/* ── SETTINGS ITEMS ── */
+.settings-group-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.setting-icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.setting-icon-circle.small {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+}
+
+.accent-blue   { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.accent-purple { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+.accent-green  { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.accent-red    { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 
 .setting-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 0;
+    padding: 14px 0;
     border-bottom: 1px solid var(--border);
-    gap: 12px;
+    gap: 16px;
 }
 
 .setting-item:last-child { border-bottom: none; }
 
+.setting-item-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
 .setting-item label {
-    font-weight: 500;
+    font-weight: 600;
     font-size: 14px;
     color: var(--text);
-    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .setting-item select,
 .setting-item span {
-    text-align: right;
     font-size: 14px;
+    color: var(--text-mute);
 }
 
 .setting-item select {
     width: auto;
-    min-width: 120px;
-    margin-bottom: 0;
+    min-width: 100px;
+    padding: 6px 10px !important;
+    margin-bottom: 0 !important;
 }
 
-.settings-guide-card {
+.setting-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+}
+
+/* ── SEMESTER MANAGEMENT ── */
+.semester-mgmt-section {
+    padding-top: 8px;
+}
+
+.semester-btns-row {
     display: flex;
-    flex-direction: column;
-    gap: 14px;
+    gap: 10px;
 }
 
-.settings-guide-desc {
-    font-size: 14px;
-    line-height: 1.6;
+.semester-btns-row button {
+    flex: 1;
+    justify-content: center;
+    margin-top: 0 !important;
 }
 
-.settings-guide-btn {
-    display: inline-flex;
+/* ── DANGER ZONE ── */
+.danger-zone-card {
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    background: rgba(239, 68, 68, 0.02);
+}
+
+.danger-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--danger);
+    color: white;
+    font-weight: 700;
+    display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
+    transition: opacity 0.2s;
+}
+
+.danger-btn:active { opacity: 0.8; }
+
+/* ── GUIDE CARD ── */
+.settings-guide-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-guide-desc {
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.settings-guide-btn {
     width: 100%;
 }
 
-.danger-zone { border-color: rgba(239,68,68,0.25); }
-.danger-zone h3 { color: var(--danger); }
-
-.sync-buttons { display: flex; gap: 8px; margin-top: 12px; }
-
+/* ── MODALS ── */
 .guide-modal {
     width: 760px;
 }
+
+/* ── AVATAR PICKER ── */
+.avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 12px;
+    padding: 10px;
+}
+
+.avatar-item {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.2s;
+    background: var(--progress-bg);
+}
+
+.avatar-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-item:hover {
+    transform: scale(1.1);
+}
+
+.avatar-item.selected {
+    border-color: var(--primary);
+    box-shadow: 0 0 12px rgba(91, 95, 199, 0.4);
+}
+
+
 
 .guide-eyebrow {
     font-size: 12px;

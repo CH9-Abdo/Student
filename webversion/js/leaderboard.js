@@ -61,6 +61,28 @@ StudentProApp.prototype.refreshLeaderboard = async function() {
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
+        const getInitials = (name) => String(name || '')
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map(part => part.charAt(0).toUpperCase())
+            .join('') || '?';
+        const renderAvatar = (user, className = '') => {
+            const safeName = escapeHtml(user.display_name || (T.student || 'Student'));
+            const safeInitials = escapeHtml(getInitials(user.display_name || (T.student || 'Student')));
+            const safeUrl = user.avatar_url ? escapeHtml(user.avatar_url) : '';
+            const extraClass = className ? ` ${className}` : '';
+            const img = safeUrl
+                ? `<img src="${safeUrl}" alt="${safeName}" loading="lazy" onerror="this.remove()">`
+                : '';
+            return `
+                <div class="lb-avatar${extraClass}">
+                    <span class="lb-avatar-fallback">${safeInitials}</span>
+                    ${img}
+                </div>
+            `;
+        };
 
         const renderPod = (u, rank) => {
             if (!u) {
@@ -83,6 +105,9 @@ StudentProApp.prototype.refreshLeaderboard = async function() {
                     <div class="lb-pod-top">
                         <span class="lb-medal">${medal}</span>
                         <span class="lb-rankpill">#${rank}</span>
+                    </div>
+                    <div class="lb-pod-avatar-wrap">
+                        ${renderAvatar(u, 'podium')}
                     </div>
                     <div class="lb-name">
                         <span class="lb-name-text" title="${name}">${name}</span>${meTag}
@@ -132,8 +157,13 @@ StudentProApp.prototype.refreshLeaderboard = async function() {
                 <div class="lb-row ${isMe ? 'me' : ''}">
                     <div class="lb-col-rank">${rank}</div>
                     <div class="lb-col-student">
-                        ${name}${isMe ? ' <span class="badge">Me</span>' : ''}
-                        <span class="lb-sub">${xp} ${T.xp || 'XP'}</span>
+                        <div class="lb-student-main">
+                            ${renderAvatar(u)}
+                            <div class="lb-student-copy">
+                                <span class="lb-student-name">${name}${isMe ? ' <span class="badge">Me</span>' : ''}</span>
+                                <span class="lb-sub">${xp} ${T.xp || 'XP'}</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="lb-col-level">
                         <span class="lb-level-num">${level}</span>
